@@ -1,0 +1,43 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import type Database from 'better-sqlite3';
+import { createDb } from '../db/connection';
+import { getContest, startContest, setAllowSelfVote, revealResults, setPhase } from './contestService';
+import { AppError } from '../middleware/errors';
+
+let db: Database.Database;
+
+beforeEach(() => {
+  db = createDb(':memory:');
+});
+
+describe('contestService', () => {
+  it('starts in REGISTRATION with allowSelfVote false', () => {
+    const contest = getContest(db);
+    expect(contest.phase).toBe('REGISTRATION');
+    expect(contest.allowSelfVote).toBe(false);
+    expect(contest.resultsRevealedAt).toBeNull();
+  });
+
+  it('startContest moves REGISTRATION -> VOTING', () => {
+    const contest = startContest(db);
+    expect(contest.phase).toBe('VOTING');
+  });
+
+  it('startContest throws if the contest already started', () => {
+    startContest(db);
+    expect(() => startContest(db)).toThrow(AppError);
+  });
+
+  it('setAllowSelfVote toggles the flag', () => {
+    expect(setAllowSelfVote(db, true).allowSelfVote).toBe(true);
+    expect(setAllowSelfVote(db, false).allowSelfVote).toBe(false);
+  });
+
+  it('revealResults requires phase RESULTS and sets resultsRevealedAt once', () => {
+    expect(() => revealResults(db)).toThrow(AppError);
+    setPhase(db, 'RESULTS');
+    const revealed = revealResults(db);
+    expect(revealed.resultsRevealedAt).not.toBeNull();
+    expect(() => revealResults(db)).toThrow(AppError);
+  });
+});
