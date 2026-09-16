@@ -2,6 +2,7 @@ import path from 'node:path';
 import express from 'express';
 import { config } from './config';
 import { contestRouter } from './routes/contest.routes';
+import { entriesRouter } from './routes/entries.routes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -10,6 +11,7 @@ app.use(express.json());
 app.use('/uploads', express.static(config.uploadsDir));
 
 app.use('/api/contest', contestRouter);
+app.use('/api/entries', entriesRouter);
 
 if (config.nodeEnv === 'production') {
   const clientDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
