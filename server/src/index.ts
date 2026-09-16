@@ -7,6 +7,7 @@ import { usersRouter } from './routes/users.routes';
 import { votesRouter } from './routes/votes.routes';
 import { tiebreakRouter } from './routes/tiebreak.routes';
 import { resultsRouter } from './routes/results.routes';
+import { adminRouter } from './routes/admin.routes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -20,6 +21,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/votes', votesRouter);
 app.use('/api/tiebreak', tiebreakRouter);
 app.use('/api/results', resultsRouter);
+app.use('/api/admin', adminRouter);
 
 if (config.nodeEnv === 'production') {
   const clientDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
