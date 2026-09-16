@@ -3,6 +3,8 @@ import express from 'express';
 import { config } from './config';
 import { contestRouter } from './routes/contest.routes';
 import { entriesRouter } from './routes/entries.routes';
+import { usersRouter } from './routes/users.routes';
+import { votesRouter } from './routes/votes.routes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -12,6 +14,8 @@ app.use('/uploads', express.static(config.uploadsDir));
 
 app.use('/api/contest', contestRouter);
 app.use('/api/entries', entriesRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/votes', votesRouter);
 
 if (config.nodeEnv === 'production') {
   const clientDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
