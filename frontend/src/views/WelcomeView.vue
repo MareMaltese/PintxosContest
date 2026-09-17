@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useSessionStore } from '../stores/session';
+import { coverImageUrl } from '../services/coverImage';
 
 const router = useRouter();
 const session = useSessionStore();
-
-const coverImages = import.meta.glob('../assets/images/cover.{jpg,jpeg,png,webp}', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>;
-const coverImageUrl = Object.values(coverImages)[0] ?? null;
 
 function goToRegister(): void {
   router.push({ name: 'register' });

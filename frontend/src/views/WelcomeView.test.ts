@@ -9,6 +9,10 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushMock }),
 }));
 
+vi.mock('../services/coverImage', () => ({
+  coverImageUrl: null as string | null,
+}));
+
 beforeEach(() => {
   localStorage.clear();
   setActivePinia(createPinia());
@@ -18,7 +22,7 @@ beforeEach(() => {
 describe('WelcomeView', () => {
   it('shows the welcome message and CTA when there is no session', () => {
     const wrapper = mount(WelcomeView);
-    expect(wrapper.text()).toContain('¡Bienvenido al concurso de pinchos!');
+    expect(wrapper.text()).toContain('¡Bienvenido al concurso de pinchos y tapas!');
     expect(wrapper.find('button').exists()).toBe(true);
   });
 
