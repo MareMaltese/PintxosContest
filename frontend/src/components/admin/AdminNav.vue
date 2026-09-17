@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useContestStore } from '../../stores/contest';
 
 const router = useRouter();
+const contest = useContestStore();
 
 function goTo(name: string): void {
   router.push({ name });
@@ -35,6 +37,7 @@ function goTo(name: string): void {
       Fases
     </button>
     <button
+      v-if="contest.votingMode === 'MEDALS'"
       type="button"
       @click="goTo('admin-medal-votes')"
     >

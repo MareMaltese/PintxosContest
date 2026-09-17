@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
 import AdminDashboardView from './AdminDashboardView.vue';
 
 vi.mock('vue-router', () => ({
@@ -14,6 +15,7 @@ vi.mock('../../services/api', async () => {
 import { api } from '../../services/api';
 
 beforeEach(() => {
+  setActivePinia(createPinia());
   vi.clearAllMocks();
 });
 
@@ -29,6 +31,7 @@ describe('AdminDashboardView', () => {
     vi.mocked(api.get).mockResolvedValue({
       phase: 'VOTING',
       allowSelfVote: false,
+      votingMode: 'FAVORITES',
       participantCount: 12,
       entryCount: 17,
       votersFinished: 3,
@@ -42,6 +45,23 @@ describe('AdminDashboardView', () => {
     expect(wrapper.text()).toContain('12');
     expect(wrapper.text()).toContain('17');
     expect(wrapper.text()).toContain('3 / 18');
+  });
+
+  it('hides the "han terminado de votar" card when votingMode is MEDALS', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      phase: 'VOTING',
+      allowSelfVote: false,
+      votingMode: 'MEDALS',
+      participantCount: 12,
+      entryCount: 17,
+      votersFinished: 3,
+      votersTotal: 18,
+      people: [],
+    });
+    const wrapper = mount(AdminDashboardView);
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain('Han terminado de votar');
   });
 
   it('shows a retryable error message when loading fails', async () => {

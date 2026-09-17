@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import AdminNav from '../../components/admin/AdminNav.vue';
 import Icon from '../../components/common/Icon.vue';
 import { api, ApiError } from '../../services/api';
+import { useContestStore } from '../../stores/contest';
 
 interface AdminEntry {
   id: string;
@@ -19,6 +20,7 @@ interface AdminEntry {
   bronze: number;
 }
 
+const contest = useContestStore();
 const entries = ref<AdminEntry[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
@@ -108,10 +110,14 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Creador</th>
-            <th>Favoritos</th>
-            <th>Oro</th>
-            <th>Plata</th>
-            <th>Bronce</th>
+            <th v-if="contest.votingMode === 'FAVORITES'">
+              Favoritos
+            </th>
+            <template v-if="contest.votingMode === 'MEDALS'">
+              <th>Oro</th>
+              <th>Plata</th>
+              <th>Bronce</th>
+            </template>
             <th />
           </tr>
         </thead>
@@ -124,10 +130,14 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             <td>{{ entry.name ?? '—' }}</td>
             <td>{{ entry.description ?? '—' }}</td>
             <td>{{ entry.creatorName }}</td>
-            <td>{{ entry.voteCount }}</td>
-            <td>{{ entry.gold }}</td>
-            <td>{{ entry.silver }}</td>
-            <td>{{ entry.bronze }}</td>
+            <td v-if="contest.votingMode === 'FAVORITES'">
+              {{ entry.voteCount }}
+            </td>
+            <template v-if="contest.votingMode === 'MEDALS'">
+              <td>{{ entry.gold }}</td>
+              <td>{{ entry.silver }}</td>
+              <td>{{ entry.bronze }}</td>
+            </template>
             <td class="admin-table__actions">
               <button
                 class="admin-table__edit"

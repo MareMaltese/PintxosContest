@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
 import AdminParticipantsView from './AdminParticipantsView.vue';
 
 vi.mock('vue-router', () => ({
@@ -34,18 +35,24 @@ const people = [
   },
 ];
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.unstubAllGlobals();
-  vi.mocked(api.get).mockResolvedValue({
+function dashboardWith(votingMode = 'FAVORITES') {
+  return {
     phase: 'VOTING',
     allowSelfVote: false,
+    votingMode,
     participantCount: 2,
     entryCount: 2,
     votersFinished: 1,
     votersTotal: 2,
     people,
-  });
+  };
+}
+
+beforeEach(() => {
+  setActivePinia(createPinia());
+  vi.clearAllMocks();
+  vi.unstubAllGlobals();
+  vi.mocked(api.get).mockResolvedValue(dashboardWith());
 });
 
 describe('AdminParticipantsView', () => {
@@ -60,6 +67,16 @@ describe('AdminParticipantsView', () => {
     expect(wrapper.text()).toContain('Miguel');
     expect(wrapper.text()).toContain('2 / 3');
     expect(wrapper.text()).toContain('Pendiente');
+  });
+
+  it('hides the voting progress column when votingMode is MEDALS', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('MEDALS'));
+    const wrapper = mount(AdminParticipantsView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Laura');
+    expect(wrapper.text()).not.toContain('Completo');
+    expect(wrapper.text()).not.toContain('Pendiente');
   });
 
   it('renames a participant after confirming via prompt', async () => {

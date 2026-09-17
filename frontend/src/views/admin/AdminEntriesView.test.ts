@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
 import AdminEntriesView from './AdminEntriesView.vue';
 
 vi.mock('vue-router', () => ({
@@ -12,6 +13,7 @@ vi.mock('../../services/api', async () => {
 });
 
 import { api } from '../../services/api';
+import { useContestStore } from '../../stores/contest';
 
 const entries = [
   {
@@ -31,6 +33,7 @@ const entries = [
 ];
 
 beforeEach(() => {
+  setActivePinia(createPinia());
   vi.clearAllMocks();
   vi.unstubAllGlobals();
   vi.mocked(api.get).mockResolvedValue(entries);
@@ -47,12 +50,24 @@ describe('AdminEntriesView', () => {
     expect(wrapper.text()).toContain('Laura');
   });
 
-  it('shows the favorite vote count and medal tally for each entry', async () => {
+  it('shows the favorite vote count, and hides medal columns, when votingMode is FAVORITES', async () => {
+    useContestStore().votingMode = 'FAVORITES';
+    const wrapper = mount(AdminEntriesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Favoritos');
+    expect(wrapper.find('tbody tr').text()).toContain('4');
+    expect(wrapper.text()).not.toContain('Oro');
+  });
+
+  it('shows the medal tally, and hides the favorites column, when votingMode is MEDALS', async () => {
+    useContestStore().votingMode = 'MEDALS';
     const wrapper = mount(AdminEntriesView);
     await flushPromises();
 
     const row = wrapper.find('tbody tr');
-    expect(row.text()).toContain('4');
+    expect(wrapper.text()).not.toContain('Favoritos');
+    expect(wrapper.text()).toContain('Oro');
     expect(row.text()).toContain('2');
     expect(row.text()).toContain('1');
     expect(row.text()).toContain('0');

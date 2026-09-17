@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
 import AdminPhasesView from './AdminPhasesView.vue';
 
 vi.mock('vue-router', () => ({
@@ -27,6 +28,7 @@ function dashboardWith(phase: string, allowSelfVote = false, votingMode = 'FAVOR
 }
 
 beforeEach(() => {
+  setActivePinia(createPinia());
   vi.clearAllMocks();
   vi.unstubAllGlobals();
 });

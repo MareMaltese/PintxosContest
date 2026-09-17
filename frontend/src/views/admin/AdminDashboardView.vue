@@ -62,7 +62,10 @@ const PHASE_LABELS: Record<string, string> = {
             {{ data.entryCount }}
           </p>
         </div>
-        <div class="admin-card">
+        <div
+          v-if="data.votingMode === 'FAVORITES'"
+          class="admin-card"
+        >
           <p class="admin-card__label">
             Han terminado de votar
           </p>

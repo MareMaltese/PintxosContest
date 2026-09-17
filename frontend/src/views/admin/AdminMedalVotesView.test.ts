@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
 import AdminMedalVotesView from './AdminMedalVotesView.vue';
 
 vi.mock('vue-router', () => ({
@@ -14,6 +15,7 @@ vi.mock('../../services/api', async () => {
 import { api } from '../../services/api';
 
 beforeEach(() => {
+  setActivePinia(createPinia());
   vi.clearAllMocks();
 });
 

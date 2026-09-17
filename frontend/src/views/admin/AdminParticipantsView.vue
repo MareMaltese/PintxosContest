@@ -70,7 +70,9 @@ async function deletePerson(person: AdminPerson): Promise<void> {
           <tr>
             <th>Nombre</th>
             <th>Pinchos</th>
-            <th>Votos</th>
+            <th v-if="data.votingMode === 'FAVORITES'">
+              Votos
+            </th>
             <th>Última actividad</th>
             <th />
           </tr>
@@ -82,7 +84,9 @@ async function deletePerson(person: AdminPerson): Promise<void> {
           >
             <td>{{ person.name }}</td>
             <td>{{ entryLabels(person) }}</td>
-            <td>{{ person.votedCount }} / {{ person.voteLimit }} — {{ person.hasFinishedVoting ? 'Completo' : 'Pendiente' }}</td>
+            <td v-if="data.votingMode === 'FAVORITES'">
+              {{ person.votedCount }} / {{ person.voteLimit }} — {{ person.hasFinishedVoting ? 'Completo' : 'Pendiente' }}
+            </td>
             <td>{{ formatRelativeTime(person.lastSeen) }}</td>
             <td class="admin-table__actions">
               <button
@@ -93,7 +97,7 @@ async function deletePerson(person: AdminPerson): Promise<void> {
               >
                 <Icon
                   name="pencil"
-                  :size="16"
+                  :size="20"
                 />
               </button>
               <button
@@ -104,7 +108,7 @@ async function deletePerson(person: AdminPerson): Promise<void> {
               >
                 <Icon
                   name="trash"
-                  :size="16"
+                  :size="20"
                 />
               </button>
             </td>
