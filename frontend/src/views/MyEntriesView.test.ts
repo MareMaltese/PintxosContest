@@ -10,7 +10,7 @@ vi.mock('vue-router', () => ({
 
 vi.mock('../services/api', async () => {
   const actual = await vi.importActual<typeof import('../services/api')>('../services/api');
-  return { ...actual, api: { ...actual.api, get: vi.fn(), patch: vi.fn() } };
+  return { ...actual, api: { ...actual.api, get: vi.fn() } };
 });
 
 import { api } from '../services/api';
@@ -56,36 +56,16 @@ describe('MyEntriesView', () => {
     expect(push).toHaveBeenCalledWith({ name: 'new-entry' });
   });
 
-  it('edits an entry after confirming both prompts', async () => {
+  it('navigates to the edit screen for that entry', async () => {
     vi.mocked(api.get).mockResolvedValue([
       { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta', description: 'Con jamón.', imagePath: 'a.webp', createdAt: 'x' },
     ]);
-    vi.spyOn(window, 'prompt').mockReturnValueOnce('Croqueta de jamón').mockReturnValueOnce('Con jamón ibérico.');
-    vi.mocked(api.patch).mockResolvedValue({});
     const wrapper = mount(MyEntriesView);
     await flushPromises();
 
     await wrapper.find('.my-entries__edit').trigger('click');
-    await flushPromises();
 
-    expect(api.patch).toHaveBeenCalledWith('/api/entries/e1', {
-      name: 'Croqueta de jamón',
-      description: 'Con jamón ibérico.',
-    });
-  });
-
-  it('does not edit when the first prompt is cancelled', async () => {
-    vi.mocked(api.get).mockResolvedValue([
-      { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta', description: 'Con jamón.', imagePath: 'a.webp', createdAt: 'x' },
-    ]);
-    vi.spyOn(window, 'prompt').mockReturnValueOnce(null);
-    const wrapper = mount(MyEntriesView);
-    await flushPromises();
-
-    await wrapper.find('.my-entries__edit').trigger('click');
-    await flushPromises();
-
-    expect(api.patch).not.toHaveBeenCalled();
+    expect(push).toHaveBeenCalledWith({ name: 'edit-entry', params: { id: 'e1' } });
   });
 
   it('closing the view navigates back to the waiting room', async () => {

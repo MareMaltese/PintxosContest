@@ -3,7 +3,6 @@ import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { X } from '@lucide/vue';
 import Icon from '../components/common/Icon.vue';
-import { ApiError } from '../services/api';
 import { useEntriesStore, type EntrySummary } from '../stores/entries';
 
 const router = useRouter();
@@ -21,19 +20,8 @@ function addAnother(): void {
   router.push({ name: 'new-entry' });
 }
 
-async function editEntry(entry: EntrySummary): Promise<void> {
-  const newName = window.prompt('Nombre de tu pincho (vacío para quitar)', entry.name ?? '');
-  if (newName === null) return;
-  const newDescription = window.prompt('Descripción (vacío para quitar)', entry.description ?? '');
-  if (newDescription === null) return;
-  try {
-    await entries.updateMine(entry.id, {
-      name: newName.trim() || null,
-      description: newDescription.trim() || null,
-    });
-  } catch (err) {
-    window.alert(err instanceof ApiError ? err.message : 'No hemos podido editar tu pincho.');
-  }
+function editEntry(entry: EntrySummary): void {
+  router.push({ name: 'edit-entry', params: { id: entry.id } });
 }
 </script>
 
@@ -162,6 +150,10 @@ async function editEntry(entry: EntrySummary): Promise<void> {
 .my-entries__title {
   margin: 0 0 var(--space-5);
   text-align: center;
+  border-bottom: 1px solid var(--color-title);
+  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-md)
 }
 
 .my-entries__status {

@@ -24,10 +24,6 @@ export interface EntryDetail extends EntrySummary {
   creatorName: string;
 }
 
-export interface UpdateEntryFields {
-  name?: string | null;
-  description?: string | null;
-}
 
 export const useEntriesStore = defineStore('entries', () => {
   const lastCreated = ref<CreatedEntry | null>(null);
@@ -71,8 +67,8 @@ export const useEntriesStore = defineStore('entries', () => {
     }
   }
 
-  async function updateMine(id: string, fields: UpdateEntryFields): Promise<void> {
-    await api.patch(`/api/entries/${id}`, fields);
+  async function updateMine(id: string, form: FormData): Promise<void> {
+    await api.patchForm(`/api/entries/${id}`, form);
     await fetchMine();
   }
 

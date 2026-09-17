@@ -100,6 +100,22 @@ describe('api', () => {
     });
   });
 
+  it('patchForm sends FormData with PATCH and without a Content-Type header', async () => {
+    localStorage.setItem('pinchoParty.userId', 'u1');
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ id: 'e1' }) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const form = new FormData();
+    form.set('name', 'Croqueta');
+    await api.patchForm('/api/entries/e1', form);
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/entries/e1');
+    expect(options.method).toBe('PATCH');
+    expect((options.headers as Headers).has('Content-Type')).toBe(false);
+    expect(options.body).toBe(form);
+  });
+
   it('sends a JSON body and Content-Type on put()', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ ok: true }) });
     vi.stubGlobal('fetch', fetchMock);

@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia';
 
 vi.mock('../services/api', async () => {
   const actual = await vi.importActual<typeof import('../services/api')>('../services/api');
-  return { ...actual, api: { ...actual.api, get: vi.fn(), patch: vi.fn() } };
+  return { ...actual, api: { ...actual.api, get: vi.fn(), patch: vi.fn(), patchForm: vi.fn() } };
 });
 
 import { api, ApiError } from '../services/api';
@@ -99,16 +99,18 @@ describe('useEntriesStore', () => {
     expect(store.isLoadingMine).toBe(false);
   });
 
-  it('updateMine patches the entry and refreshes myList', async () => {
+  it('updateMine sends the form and refreshes myList', async () => {
     vi.mocked(api.get).mockResolvedValue([
       { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta de jamón', description: null, imagePath: 'a.webp', createdAt: 'x' },
     ]);
-    vi.mocked(api.patch).mockResolvedValue({});
+    vi.mocked(api.patchForm).mockResolvedValue({});
     const store = useEntriesStore();
+    const form = new FormData();
+    form.set('name', 'Croqueta de jamón');
 
-    await store.updateMine('e1', { name: 'Croqueta de jamón' });
+    await store.updateMine('e1', form);
 
-    expect(api.patch).toHaveBeenCalledWith('/api/entries/e1', { name: 'Croqueta de jamón' });
+    expect(api.patchForm).toHaveBeenCalledWith('/api/entries/e1', form);
     expect(store.myList[0].name).toBe('Croqueta de jamón');
   });
 });

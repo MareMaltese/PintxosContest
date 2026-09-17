@@ -169,4 +169,22 @@ describe('router', () => {
     await router.push('/mis-pinchos');
     expect(router.currentRoute.value.name).toBe('gallery');
   });
+
+  it('lets a registered visitor reach /mis-pinchos/:id/editar during REGISTRATION', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    await router.push('/mis-pinchos/e1/editar');
+    expect(router.currentRoute.value.name).toBe('edit-entry');
+  });
+
+  it('blocks an anonymous visitor from /mis-pinchos/:id/editar', async () => {
+    await router.push('/mis-pinchos/e1/editar');
+    expect(router.currentRoute.value.name).toBe('welcome');
+  });
+
+  it('redirects away from /mis-pinchos/:id/editar to /galeria once registration has closed', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    useContestStore().phase = 'VOTING';
+    await router.push('/mis-pinchos/e1/editar');
+    expect(router.currentRoute.value.name).toBe('gallery');
+  });
 });

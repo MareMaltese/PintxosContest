@@ -56,8 +56,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return handleResponse<T>(response);
 }
 
-async function requestForm<T>(path: string, form: FormData): Promise<T> {
-  const response = await fetch(path, { method: 'POST', headers: authHeaders(), body: form });
+async function requestForm<T>(path: string, form: FormData, method = 'POST'): Promise<T> {
+  const response = await fetch(path, { method, headers: authHeaders(), body: form });
   return handleResponse<T>(response);
 }
 
@@ -66,6 +66,7 @@ export const api = {
   post: <T>(path: string, json?: unknown) => request<T>(path, { method: 'POST', json }),
   put: <T>(path: string, json?: unknown) => request<T>(path, { method: 'PUT', json }),
   postForm: <T>(path: string, form: FormData) => requestForm<T>(path, form),
+  patchForm: <T>(path: string, form: FormData) => requestForm<T>(path, form, 'PATCH'),
   patch: <T>(path: string, json?: unknown) => request<T>(path, { method: 'PATCH', json }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };
