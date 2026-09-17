@@ -16,6 +16,7 @@ vi.mock('../services/sse', () => ({
 
 import { api } from '../services/api';
 import { useContestStore } from './contest';
+import { useEntriesStore } from './entries';
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -62,5 +63,18 @@ describe('useContestStore', () => {
     handler({ type: 'results-revealed', data: { revealedAt: 'x' } });
 
     expect(store.phase).toBe('VOTING');
+  });
+
+  it('refreshes the entries list when the SSE stream reports an entries-changed event', async () => {
+    vi.mocked(api.get).mockResolvedValue({ phase: 'REGISTRATION', allowSelfVote: false });
+    const store = useContestStore();
+    await store.init();
+    const entries = useEntriesStore();
+    const refreshSpy = vi.spyOn(entries, 'refreshList').mockResolvedValue();
+
+    const handler = connectMock.mock.calls[0][0];
+    handler({ type: 'entries-changed', data: {} });
+
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
   });
 });

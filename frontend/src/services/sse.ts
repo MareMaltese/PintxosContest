@@ -3,7 +3,7 @@ export interface ContestStreamEvent {
   data: Record<string, unknown>;
 }
 
-const EVENT_TYPES = ['phase-changed', 'tiebreak-round-changed', 'results-revealed'];
+const EVENT_TYPES = ['phase-changed', 'tiebreak-round-changed', 'results-revealed', 'entries-changed'];
 
 export function connectContestStream(onEvent: (event: ContestStreamEvent) => void): EventSource {
   const source = new EventSource('/api/contest/stream');

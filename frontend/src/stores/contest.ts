@@ -2,6 +2,7 @@ import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { api } from '../services/api';
 import { connectContestStream } from '../services/sse';
+import { useEntriesStore } from './entries';
 
 export type ContestPhase = 'REGISTRATION' | 'VOTING' | 'TIEBREAK' | 'RESULTS';
 export type VotingMode = 'FAVORITES' | 'MEDALS';
@@ -28,6 +29,9 @@ export const useContestStore = defineStore('contest', () => {
     connectContestStream((event) => {
       if (event.type === 'phase-changed' && typeof event.data.phase === 'string') {
         phase.value = event.data.phase as ContestPhase;
+      }
+      if (event.type === 'entries-changed') {
+        useEntriesStore().refreshList();
       }
     });
   }

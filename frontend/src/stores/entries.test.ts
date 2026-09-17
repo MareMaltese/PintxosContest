@@ -114,6 +114,34 @@ describe('useEntriesStore', () => {
     expect(store.myList[0].name).toBe('Croqueta de jamón');
   });
 
+  it('refreshList replaces the list silently, without touching isLoadingList', async () => {
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 1, creatorId: 'u1', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+    ]);
+    const store = useEntriesStore();
+
+    const promise = store.refreshList();
+    expect(store.isLoadingList).toBe(false);
+    await promise;
+
+    expect(store.list).toHaveLength(1);
+    expect(store.isLoadingList).toBe(false);
+  });
+
+  it('refreshList swallows errors silently, keeping the last known list', async () => {
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 1, creatorId: 'u1', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+    ]);
+    const store = useEntriesStore();
+    await store.fetchList();
+
+    vi.mocked(api.get).mockRejectedValue(new ApiError(500, 'INTERNAL_ERROR', 'boom'));
+    await expect(store.refreshList()).resolves.toBeUndefined();
+
+    expect(store.list).toHaveLength(1);
+    expect(store.listError).toBeNull();
+  });
+
   it('deleteMine deletes the entry and refreshes myList', async () => {
     vi.mocked(api.get).mockResolvedValue([]);
     vi.mocked(api.delete).mockResolvedValue({ ok: true });

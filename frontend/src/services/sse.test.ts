@@ -37,6 +37,13 @@ describe('connectContestStream', () => {
     expect(onEvent).toHaveBeenCalledTimes(2);
   });
 
+  it('forwards entries-changed events too', () => {
+    const onEvent = vi.fn();
+    const source = connectContestStream(onEvent) as unknown as FakeEventSource;
+    source.emit('entries-changed', {});
+    expect(onEvent).toHaveBeenCalledWith({ type: 'entries-changed', data: {} });
+  });
+
   it('ignores events with invalid JSON payloads', () => {
     const onEvent = vi.fn();
     const source = connectContestStream(onEvent) as unknown as FakeEventSource;

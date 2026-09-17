@@ -51,6 +51,14 @@ export const useEntriesStore = defineStore('entries', () => {
     }
   }
 
+  async function refreshList(): Promise<void> {
+    try {
+      list.value = await api.get<EntrySummary[]>('/api/entries');
+    } catch {
+      // una actualización en segundo plano no debe interrumpir la vista
+    }
+  }
+
   async function fetchDetail(id: string): Promise<EntryDetail> {
     return api.get<EntryDetail>(`/api/entries/${id}`);
   }
@@ -87,6 +95,7 @@ export const useEntriesStore = defineStore('entries', () => {
     mineError,
     setLastCreated,
     fetchList,
+    refreshList,
     fetchDetail,
     fetchMine,
     updateMine,
