@@ -15,7 +15,7 @@ Pinia `session` store owns the current user and persists it via a tiny
 framework — design tokens as CSS custom properties, per the spec.
 
 **Tech Stack:** Vue 3.5, Vite 5, TypeScript 5.9, Vue Router 4, Pinia 2,
-`lucide-vue-next` for icons, Vitest + `@vue/test-utils` + jsdom for tests,
+`@lucide/vue` for icons, Vitest + `@vue/test-utils` + jsdom for tests,
 ESLint (flat config, `typescript-eslint` + `eslint-plugin-vue`).
 
 **Spec:** `docs/superpowers/specs/2026-09-16-pincho-party-design.md`
@@ -27,7 +27,7 @@ ESLint (flat config, `typescript-eslint` + `eslint-plugin-vue`).
   `/api` and `/uploads` to the backend; in production the backend serves the
   built frontend itself. This is what makes the same build work from any LAN
   IP.
-- No emoji used as a UI control icon. `lucide-vue-next` for icons; emoji only
+- No emoji used as a UI control icon. `@lucide/vue` for icons; emoji only
   allowed as a typographic accent inside copy text.
 - No vote/results data exists in this phase — nothing here touches those
   endpoints.
@@ -87,7 +87,7 @@ ESLint (flat config, `typescript-eslint` + `eslint-plugin-vue`).
     "vue": "^3.5.42",
     "vue-router": "^4.6.4",
     "pinia": "^2.3.1",
-    "lucide-vue-next": "^1.0.0"
+    "@lucide/vue": "^1.47.0"
   },
   "devDependencies": {
     "@types/node": "^22.20.3",
@@ -100,6 +100,7 @@ ESLint (flat config, `typescript-eslint` + `eslint-plugin-vue`).
     "typescript-eslint": "^8.70.0",
     "vite": "^5.4.21",
     "vitest": "^2.1.9",
+    "vue-eslint-parser": "^10.4.1",
     "vue-tsc": "^2.2.12"
   }
 }
@@ -156,14 +157,19 @@ export default defineConfig({
 
 ```js
 import pluginVue from 'eslint-plugin-vue';
+import vueParser from 'vue-eslint-parser';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   ...pluginVue.configs['flat/recommended'],
   ...tseslint.configs.recommended,
   {
+    // typescript-eslint's recommended config sets languageOptions.parser globally
+    // (no `files` filter), which otherwise clobbers vue-eslint-parser for .vue
+    // files since this entry comes last in the array. Reassert both parsers here.
     files: ['**/*.vue'],
     languageOptions: {
+      parser: vueParser,
       parserOptions: {
         parser: tseslint.parser,
       },
@@ -321,7 +327,9 @@ button {
 <script setup lang="ts"></script>
 
 <template>
-  <main class="scaffold-placeholder">Pincho Party</main>
+  <main class="scaffold-placeholder">
+    Pincho Party
+  </main>
 </template>
 
 <style scoped>
@@ -996,7 +1004,7 @@ Expected: FAIL — `Cannot find module './RegisterUserView.vue'`.
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ArrowRight } from 'lucide-vue-next';
+import { ArrowRight } from '@lucide/vue';
 import { useSessionStore } from '../stores/session';
 
 const router = useRouter();
