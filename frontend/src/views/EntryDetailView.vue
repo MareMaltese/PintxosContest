@@ -28,26 +28,46 @@ onMounted(load);
 
 <template>
   <main class="entry-detail">
-    <p v-if="isLoading" class="entry-detail__status">
+    <p
+      v-if="isLoading"
+      class="entry-detail__status"
+    >
       Cargando…
     </p>
     <template v-else-if="loadError">
       <p class="entry-detail__status entry-detail__status--error">
         {{ loadError }}
       </p>
-      <button class="button button--secondary" type="button" @click="load">
+      <button
+        class="button button--secondary"
+        type="button"
+        @click="load"
+      >
         Reintentar
       </button>
     </template>
-    <div v-else-if="entry" class="entry-detail__card">
-      <img :src="`/uploads/${entry.imagePath}`" :alt="`Tapa número ${entry.number}`" class="entry-detail__photo">
+    <div
+      v-else-if="entry"
+      class="entry-detail__card"
+    >
+      <img
+        :src="`/uploads/${entry.imagePath}`"
+        :alt="`Tapa número ${entry.number}`"
+        class="entry-detail__photo"
+      >
       <p class="entry-detail__badge">
         #{{ String(entry.number).padStart(2, '0') }}
       </p>
-      <h1 v-if="entry.name" class="entry-detail__name">
+      <h1
+        v-if="entry.name"
+        class="entry-detail__name"
+      >
         {{ entry.name }}
       </h1>
-      <p v-if="entry.description" class="entry-detail__description">
+      <p
+        v-if="entry.description"
+        class="entry-detail__description"
+      >
         {{ entry.description }}
       </p>
       <p class="entry-detail__creator">

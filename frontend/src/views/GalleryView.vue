@@ -25,22 +25,35 @@ function openEntry(id: string): void {
       Galería de tapas
     </h1>
 
-    <p v-if="entries.isLoadingList" class="gallery__status">
+    <p
+      v-if="entries.isLoadingList"
+      class="gallery__status"
+    >
       Cargando…
     </p>
     <template v-else-if="entries.listError">
       <p class="gallery__status gallery__status--error">
         {{ entries.listError }}
       </p>
-      <button class="button button--secondary" type="button" @click="entries.fetchList()">
+      <button
+        class="button button--secondary"
+        type="button"
+        @click="entries.fetchList()"
+      >
         Reintentar
       </button>
     </template>
-    <p v-else-if="entries.list.length === 0" class="gallery__status">
+    <p
+      v-else-if="entries.list.length === 0"
+      class="gallery__status"
+    >
       Todavía no hay tapas registradas.
     </p>
 
-    <div v-else class="gallery__grid">
+    <div
+      v-else
+      class="gallery__grid"
+    >
       <button
         v-for="entry in entries.list"
         :key="entry.id"
@@ -48,7 +61,11 @@ function openEntry(id: string): void {
         type="button"
         @click="openEntry(entry.id)"
       >
-        <img :src="`/uploads/${entry.imagePath}`" :alt="`Tapa número ${entry.number}`" class="gallery__photo">
+        <img
+          :src="`/uploads/${entry.imagePath}`"
+          :alt="`Tapa número ${entry.number}`"
+          class="gallery__photo"
+        >
         <span class="gallery__number">#{{ String(entry.number).padStart(2, '0') }}</span>
       </button>
     </div>
