@@ -12,6 +12,7 @@ describe('createDb', () => {
     expect(tables).toEqual([
       'Contest',
       'Entry',
+      'MedalVote',
       'TiebreakCandidate',
       'TiebreakRound',
       'TiebreakVote',
@@ -33,5 +34,12 @@ describe('createDb', () => {
     db.exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8'));
     const count = (db.prepare('SELECT COUNT(*) as c FROM Contest').get() as { c: number }).c;
     expect(count).toBe(1);
+  });
+
+  it('creates the MedalVote table and a kind column on TiebreakRound', () => {
+    const db = createDb(':memory:');
+    expect(() => db.prepare('SELECT id, userId, entryId, medal, createdAt FROM MedalVote').all()).not.toThrow();
+    const columns = db.prepare('PRAGMA table_info(TiebreakRound)').all() as { name: string }[];
+    expect(columns.some((c) => c.name === 'kind')).toBe(true);
   });
 });

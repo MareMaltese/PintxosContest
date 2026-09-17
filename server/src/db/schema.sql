@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS TiebreakRound (
   id TEXT PRIMARY KEY,
   roundNumber INTEGER NOT NULL,
   targetRank INTEGER NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'MAIN' CHECK (kind IN ('MAIN','MEDAL')),
   status TEXT NOT NULL CHECK (status IN ('OPEN','CLOSED')),
   createdAt TEXT NOT NULL,
   closedAt TEXT NULL
@@ -53,4 +54,14 @@ CREATE TABLE IF NOT EXISTS TiebreakVote (
   entryId TEXT NOT NULL REFERENCES Entry(id),
   createdAt TEXT NOT NULL,
   UNIQUE (roundId, userId)
+);
+
+CREATE TABLE IF NOT EXISTS MedalVote (
+  id TEXT PRIMARY KEY,
+  userId TEXT NOT NULL REFERENCES User(id),
+  entryId TEXT NOT NULL REFERENCES Entry(id),
+  medal TEXT NOT NULL CHECK (medal IN ('GOLD','SILVER','BRONZE')),
+  createdAt TEXT NOT NULL,
+  UNIQUE (userId, entryId),
+  UNIQUE (userId, medal)
 );
