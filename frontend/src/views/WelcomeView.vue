@@ -22,7 +22,7 @@ function goToRegister(): void {
           class="welcome__cover"
         >
         <h1 class="welcome__title">
-          ¡Bienvenido al concurso de tapas y pinchos!
+          ¡Bienvenido al primer concurso de tapas y pinchos!
         </h1>
         <p class="welcome__subtitle">
           Que empiece el picoteo!

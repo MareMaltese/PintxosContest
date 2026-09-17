@@ -27,6 +27,6 @@
   --space-6: 32px;
   --space-8: 48px;
 
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Raleway', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-title: 'Newsreader', serif;
 }
