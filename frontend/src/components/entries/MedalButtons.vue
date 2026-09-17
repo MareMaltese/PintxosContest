@@ -1,0 +1,126 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { Medal as MedalIcon } from '@lucide/vue';
+import { useMedalVotesStore, type Medal } from '../../stores/medalVotes';
+
+const props = withDefaults(
+  defineProps<{ entryId: string; disabled?: boolean; disabledReason?: string }>(),
+  { disabled: false, disabledReason: '' }
+);
+
+const medals = useMedalVotesStore();
+const current = computed(() => medals.medalFor(props.entryId));
+
+const OPTIONS: { medal: Medal; label: string }[] = [
+  { medal: 'GOLD', label: 'Oro' },
+  { medal: 'SILVER', label: 'Plata' },
+  { medal: 'BRONZE', label: 'Bronce' },
+];
+
+async function choose(medal: Medal): Promise<void> {
+  const next = current.value === medal ? null : medal;
+  await medals.setMedal(props.entryId, next);
+}
+</script>
+
+<template>
+  <div class="medal-buttons">
+    <p
+      v-if="disabled"
+      class="medal-buttons__reason"
+    >
+      {{ disabledReason }}
+    </p>
+    <div
+      v-else
+      class="medal-buttons__group"
+    >
+      <button
+        v-for="option in OPTIONS"
+        :key="option.medal"
+        type="button"
+        class="medal-buttons__button"
+        :class="[
+          `medal-buttons__button--${option.medal.toLowerCase()}`,
+          { 'medal-buttons__button--active': current === option.medal },
+        ]"
+        @click="choose(option.medal)"
+      >
+        <MedalIcon
+          :size="18"
+          aria-hidden="true"
+        />
+        {{ option.label }}
+      </button>
+    </div>
+    <p
+      v-if="medals.error"
+      class="medal-buttons__error"
+    >
+      {{ medals.error }}
+    </p>
+  </div>
+</template>
+
+<style scoped>
+.medal-buttons__group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.medal-buttons__button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.medal-buttons__button--gold {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+.medal-buttons__button--silver {
+  border-color: var(--color-silver);
+  color: var(--color-silver);
+}
+
+.medal-buttons__button--bronze {
+  border-color: var(--color-bronze);
+  color: var(--color-bronze);
+}
+
+.medal-buttons__button--active {
+  color: var(--color-primary-contrast);
+}
+
+.medal-buttons__button--gold.medal-buttons__button--active {
+  background: var(--color-gold);
+}
+
+.medal-buttons__button--silver.medal-buttons__button--active {
+  background: var(--color-silver);
+}
+
+.medal-buttons__button--bronze.medal-buttons__button--active {
+  background: var(--color-bronze);
+}
+
+.medal-buttons__reason {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.medal-buttons__error {
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  margin-top: var(--space-2);
+}
+</style>
