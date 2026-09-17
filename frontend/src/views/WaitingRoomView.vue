@@ -45,6 +45,9 @@ watch(
   align-items: center;
   justify-content: center;
   padding: var(--space-5);
+  background-image: url('../assets/cartel.jpeg');
+  background-size: cover;
+  background-position: center;
 }
 
 .waiting__card {
