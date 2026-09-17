@@ -5,6 +5,12 @@ import { useSessionStore } from '../stores/session';
 const router = useRouter();
 const session = useSessionStore();
 
+const coverImages = import.meta.glob('../assets/images/cover.{jpg,jpeg,png,webp}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
+const coverImageUrl = Object.values(coverImages)[0] ?? null;
+
 function goToRegister(): void {
   router.push({ name: 'register' });
 }
@@ -14,6 +20,7 @@ function goToRegister(): void {
   <main class="welcome">
     <div class="welcome__card">
       <template v-if="!session.user">
+        <img v-if="coverImageUrl" :src="coverImageUrl" alt="" class="welcome__cover">
         <h1 class="welcome__title">
           ¡Bienvenido al concurso de pinchos!
         </h1>
@@ -67,5 +74,13 @@ function goToRegister(): void {
 .welcome__subtitle {
   color: var(--color-text-muted);
   margin: 0 0 var(--space-5);
+}
+
+.welcome__cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-5);
 }
 </style>

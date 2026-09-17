@@ -35,4 +35,9 @@ describe('WelcomeView', () => {
     expect(wrapper.text()).toContain('¡Hola, Laura!');
     expect(wrapper.find('button').exists()).toBe(false);
   });
+
+  it('does not render a cover image when none has been provided', () => {
+    const wrapper = mount(WelcomeView);
+    expect(wrapper.find('.welcome__cover').exists()).toBe(false);
+  });
 });
