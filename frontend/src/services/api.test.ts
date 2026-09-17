@@ -99,4 +99,15 @@ describe('api', () => {
       code: 'IMAGE_REQUIRED',
     });
   });
+
+  it('sends X-Admin-Pin when a pin is stored', async () => {
+    localStorage.setItem('pinchoParty.adminPin', '1234');
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await api.get('/api/admin/dashboard');
+
+    const [, options] = fetchMock.mock.calls[0];
+    expect((options.headers as Headers).get('X-Admin-Pin')).toBe('1234');
+  });
 });

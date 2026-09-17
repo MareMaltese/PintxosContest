@@ -1,4 +1,5 @@
 import { getStoredUserId } from './sessionStorage';
+import { getStoredAdminPin } from './adminAuth';
 
 export class ApiError extends Error {
   status: number;
@@ -34,6 +35,8 @@ function authHeaders(): Headers {
   const headers = new Headers();
   const userId = getStoredUserId();
   if (userId) headers.set('X-User-Id', userId);
+  const adminPin = getStoredAdminPin();
+  if (adminPin) headers.set('X-Admin-Pin', adminPin);
   return headers;
 }
 
