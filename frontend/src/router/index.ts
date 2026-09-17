@@ -8,12 +8,13 @@ const SESSION_REQUIRED_ROUTES = [
   'new-entry',
   'entry-confirmation',
   'waiting-room',
+  'my-entries',
   'gallery',
   'entry-detail',
   'tiebreak',
   'medal-results',
 ];
-const REGISTRATION_ONLY_ROUTES = ['has-entry', 'new-entry'];
+const REGISTRATION_ONLY_ROUTES = ['has-entry', 'new-entry', 'my-entries'];
 const GALLERY_ROUTES = ['gallery', 'entry-detail'];
 const ADMIN_ROUTES = [
   'admin-dashboard',
@@ -36,6 +37,7 @@ export const router = createRouter({
       component: () => import('../views/EntryConfirmationView.vue'),
     },
     { path: '/esperando', name: 'waiting-room', component: () => import('../views/WaitingRoomView.vue') },
+    { path: '/mis-pinchos', name: 'my-entries', component: () => import('../views/MyEntriesView.vue') },
     { path: '/galeria', name: 'gallery', component: () => import('../views/GalleryView.vue') },
     { path: '/galeria/:id', name: 'entry-detail', component: () => import('../views/EntryDetailView.vue') },
     { path: '/desempate', name: 'tiebreak', component: () => import('../views/TiebreakVoteView.vue') },
