@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import { watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useContestStore } from '../stores/contest';
 import { useHeartbeat } from '../composables/useHeartbeat';
 
 useHeartbeat();
+const router = useRouter();
 const contest = useContestStore();
+
+watch(
+  () => contest.phase,
+  (phase) => {
+    if (phase !== 'REGISTRATION') {
+      router.push({ name: 'gallery' });
+    }
+  }
+);
 </script>
 
 <template>

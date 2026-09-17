@@ -16,7 +16,7 @@ describe('router', () => {
     expect(router.currentRoute.value.name).toBe('register');
   });
 
-  it('redirects a registered visitor away from /registro to /pincho', async () => {
+  it('redirects a registered visitor away from /registro to /pincho during REGISTRATION', async () => {
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     await router.push('/registro');
     expect(router.currentRoute.value.name).toBe('has-entry');
@@ -29,41 +29,59 @@ describe('router', () => {
     expect(router.currentRoute.value.name).toBe('has-entry');
   });
 
-  it('redirects a registered visitor away from / to /esperando once voting has started', async () => {
+  it('redirects a registered visitor away from / to /galeria once voting has started', async () => {
     await router.push('/registro');
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     useContestStore().phase = 'VOTING';
     await router.push('/');
-    expect(router.currentRoute.value.name).toBe('waiting-room');
+    expect(router.currentRoute.value.name).toBe('gallery');
   });
 
-  it('blocks an anonymous visitor from reaching /pincho', async () => {
-    await router.push('/pincho');
-    expect(router.currentRoute.value.name).toBe('welcome');
+  it('blocks an anonymous visitor from reaching /pincho, /pincho/nuevo, /esperando, /galeria and /galeria/:id', async () => {
+    for (const path of ['/pincho', '/pincho/nuevo', '/esperando', '/galeria', '/galeria/e1']) {
+      await router.push(path);
+      expect(router.currentRoute.value.name).toBe('welcome');
+    }
   });
 
-  it('blocks an anonymous visitor from reaching /pincho/nuevo', async () => {
-    await router.push('/pincho/nuevo');
-    expect(router.currentRoute.value.name).toBe('welcome');
-  });
-
-  it('blocks an anonymous visitor from reaching /esperando', async () => {
-    await router.push('/esperando');
-    expect(router.currentRoute.value.name).toBe('welcome');
-  });
-
-  it('redirects away from /pincho/nuevo to /esperando once registration has closed', async () => {
+  it('redirects away from /pincho/nuevo to /galeria once registration has closed', async () => {
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     useContestStore().phase = 'VOTING';
     await router.push('/pincho/nuevo');
-    expect(router.currentRoute.value.name).toBe('waiting-room');
+    expect(router.currentRoute.value.name).toBe('gallery');
   });
 
-  it('lets a registered visitor reach /pincho/confirmacion/:number and /esperando directly', async () => {
+  it('lets a registered visitor reach /pincho/confirmacion/:number directly', async () => {
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     await router.push('/pincho/confirmacion/7');
     expect(router.currentRoute.value.name).toBe('entry-confirmation');
+  });
+
+  it('lets a registered visitor reach /esperando during REGISTRATION', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
     await router.push('/esperando');
     expect(router.currentRoute.value.name).toBe('waiting-room');
+  });
+
+  it('redirects away from /esperando to /galeria once registration has closed', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    useContestStore().phase = 'VOTING';
+    await router.push('/esperando');
+    expect(router.currentRoute.value.name).toBe('gallery');
+  });
+
+  it('blocks a registered visitor from /galeria while registration is still open', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    await router.push('/galeria');
+    expect(router.currentRoute.value.name).toBe('waiting-room');
+  });
+
+  it('lets a registered visitor reach /galeria and /galeria/:id once voting has started', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    useContestStore().phase = 'VOTING';
+    await router.push('/galeria');
+    expect(router.currentRoute.value.name).toBe('gallery');
+    await router.push('/galeria/e1');
+    expect(router.currentRoute.value.name).toBe('entry-detail');
   });
 });

@@ -49,4 +49,11 @@ describe('entryService', () => {
   it('getEntryUnchecked never throws and ignores phase', () => {
     expect(getEntryUnchecked(db, 'missing')).toBeUndefined();
   });
+
+  it('getEntry includes the creator name', () => {
+    const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    startContest(db);
+    const detail = getEntry(db, entry.id);
+    expect(detail.creatorName).toBe('Laura');
+  });
 });

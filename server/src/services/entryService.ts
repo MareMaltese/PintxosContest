@@ -66,9 +66,20 @@ export function listEntries(db: Database.Database): Entry[] {
   return db.prepare('SELECT * FROM Entry ORDER BY number ASC').all() as Entry[];
 }
 
-export function getEntry(db: Database.Database, id: string): Entry {
+export interface EntryDetail extends Entry {
+  creatorName: string;
+}
+
+export function getEntry(db: Database.Database, id: string): EntryDetail {
   assertGalleryUnlocked(db);
-  const entry = db.prepare('SELECT * FROM Entry WHERE id = ?').get(id) as Entry | undefined;
+  const entry = db
+    .prepare(
+      `SELECT e.*, u.name as creatorName
+       FROM Entry e
+       JOIN User u ON u.id = e.creatorId
+       WHERE e.id = ?`
+    )
+    .get(id) as EntryDetail | undefined;
   if (!entry) {
     throw new AppError(404, 'ENTRY_NOT_FOUND', 'No existe esa tapa.');
   }
