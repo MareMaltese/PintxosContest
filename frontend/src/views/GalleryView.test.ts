@@ -18,6 +18,7 @@ vi.mock('../services/api', async () => {
 });
 
 import { api } from '../services/api';
+import { useContestStore } from '../stores/contest';
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -72,5 +73,27 @@ describe('GalleryView', () => {
     const wrapper = mount(GalleryView);
     await flushPromises();
     expect(wrapper.text()).toContain('Todavía no hay tapas registradas.');
+  });
+
+  it('shows the favorite counter during VOTING', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/votes/me' ? Promise.resolve({ entryIds: [], limit: 3 }) : Promise.resolve([])
+    );
+    useContestStore().phase = 'VOTING';
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('0 / 3 favoritos');
+  });
+
+  it('hides the favorite counter outside VOTING', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/votes/me' ? Promise.resolve({ entryIds: [], limit: 3 }) : Promise.resolve([])
+    );
+    useContestStore().phase = 'TIEBREAK';
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain('favoritos');
   });
 });

@@ -2,15 +2,23 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useEntriesStore } from '../stores/entries';
+import { useVotesStore } from '../stores/votes';
+import { useContestStore } from '../stores/contest';
 import { useHeartbeat } from '../composables/useHeartbeat';
+import FavoriteCounter from '../components/entries/FavoriteCounter.vue';
 
 useHeartbeat();
 const router = useRouter();
 const entries = useEntriesStore();
+const votes = useVotesStore();
+const contest = useContestStore();
 
 onMounted(() => {
   entries.fetchList().catch(() => {
     // el error queda reflejado en entries.listError
+  });
+  votes.init().catch(() => {
+    // un fallo al cargar los favoritos no debe bloquear la galería
   });
 });
 
@@ -21,9 +29,12 @@ function openEntry(id: string): void {
 
 <template>
   <main class="gallery">
-    <h1 class="gallery__title">
-      Galería de tapas
-    </h1>
+    <div class="gallery__header">
+      <h1 class="gallery__title">
+        Galería de tapas
+      </h1>
+      <FavoriteCounter v-if="contest.phase === 'VOTING'" />
+    </div>
 
     <p
       v-if="entries.isLoadingList"
@@ -79,9 +90,17 @@ function openEntry(id: string): void {
   margin: 0 auto;
 }
 
+.gallery__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+}
+
 .gallery__title {
   font-size: 1.5rem;
-  margin: 0 0 var(--space-5);
+  margin: 0;
 }
 
 .gallery__status {
