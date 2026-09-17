@@ -7,6 +7,8 @@
   --color-primary-contrast: #ffffff;
   --color-border: #ece7e0;
   --color-gold: #c9a227;
+  --color-silver: #9aa0a6;
+  --color-bronze: #b06a35;
   --color-danger: #b3261e;
   --color-success: #2e7d32;
 
@@ -33,5 +35,7 @@
     --color-text: #f5f1ea;
     --color-text-muted: #b3aa9c;
     --color-border: #322c24;
+    --color-silver: #c2c7cc;
+    --color-bronze: #cd8a52;
   }
 }
