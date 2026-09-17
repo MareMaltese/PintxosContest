@@ -8,6 +8,7 @@ import { getContest, startContest, setAllowSelfVote, revealResults } from '../se
 import { listUsers, getUser } from '../services/userService';
 import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
+import { computeMedalStandings } from '../services/rankingService';
 import { advance, closeRound, getOpenRoundId } from '../services/tiebreakService';
 import { deleteEntryImage } from '../images/imageProcessor';
 import { broadcast } from '../realtime/sse';
@@ -58,6 +59,24 @@ adminRouter.get(
       votersTotal: users.length,
       people,
     });
+  })
+);
+
+adminRouter.get(
+  '/medal-votes',
+  asyncHandler(async (_req, res) => {
+    const standings = computeMedalStandings(db);
+    res.json(
+      standings.map((s) => ({
+        entryId: s.entryId,
+        number: s.number,
+        name: s.name,
+        gold: s.gold,
+        silver: s.silver,
+        bronze: s.bronze,
+        total: s.total,
+      }))
+    );
   })
 );
 
@@ -172,6 +191,7 @@ adminRouter.delete(
       db.prepare('DELETE FROM TiebreakVote WHERE entryId = ?').run(id);
       db.prepare('DELETE FROM TiebreakCandidate WHERE entryId = ?').run(id);
       db.prepare('DELETE FROM Vote WHERE entryId = ?').run(id);
+      db.prepare('DELETE FROM MedalVote WHERE entryId = ?').run(id);
       db.prepare('DELETE FROM Entry WHERE id = ?').run(id);
     });
     tx(req.params.id);
@@ -206,10 +226,12 @@ adminRouter.delete(
         db.prepare('DELETE FROM TiebreakVote WHERE entryId = ?').run(entry.id);
         db.prepare('DELETE FROM TiebreakCandidate WHERE entryId = ?').run(entry.id);
         db.prepare('DELETE FROM Vote WHERE entryId = ?').run(entry.id);
+        db.prepare('DELETE FROM MedalVote WHERE entryId = ?').run(entry.id);
       }
       db.prepare('DELETE FROM Entry WHERE creatorId = ?').run(id);
       db.prepare('DELETE FROM Vote WHERE userId = ?').run(id);
       db.prepare('DELETE FROM TiebreakVote WHERE userId = ?').run(id);
+      db.prepare('DELETE FROM MedalVote WHERE userId = ?').run(id);
       const result = db.prepare('DELETE FROM User WHERE id = ?').run(id);
       if (result.changes === 0) {
         throw new AppError(404, 'USER_NOT_FOUND', 'No existe ese participante.');
