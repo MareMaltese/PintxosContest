@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Camera } from '@lucide/vue';
+import { Camera, X } from '@lucide/vue';
 import Icon from '../components/common/Icon.vue';
 import { ApiError } from '../services/api';
 import { compressImage } from '../services/image';
@@ -172,6 +172,10 @@ onMounted(() => {
           class="button button--secondary button--block edit-entry__cancel"
           @click="cancel"
         >
+          <X
+            :size="20"
+            aria-hidden="true"
+          />
           Cancelar
         </button>
         <button
@@ -182,9 +186,9 @@ onMounted(() => {
           <Icon
             v-if="!isSubmitting"
             name="check"
-            :size="18"
+            :size="20"
           />
-          {{ isSubmitting ? 'Guardando…' : 'Guardar cambios' }}
+          {{ isSubmitting ? 'Guardando…' : 'Guardar' }}
         </button>
       </div>
     </form>
@@ -287,7 +291,8 @@ onMounted(() => {
   margin-top: var(--space-4);
 }
 
-.edit-entry__submit {
+.edit-entry__submit,
+.edit-entry__cancel {
   display: inline-flex;
   align-items: center;
   justify-content: center;

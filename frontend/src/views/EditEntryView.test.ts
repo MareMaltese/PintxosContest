@@ -57,7 +57,17 @@ describe('EditEntryView', () => {
 
     const submitButton = wrapper.find('button[type="submit"]');
     expect(submitButton.find('.icon').exists()).toBe(true);
-    expect(submitButton.text()).toContain('Guardar cambios');
+    expect(submitButton.text()).toContain('Guardar');
+  });
+
+  it('shows an x icon before the cancel button label', async () => {
+    vi.mocked(api.get).mockResolvedValue([entry]);
+    const wrapper = mount(EditEntryView);
+    await flushPromises();
+
+    const cancelButton = wrapper.find('.edit-entry__cancel');
+    expect(cancelButton.find('svg').exists()).toBe(true);
+    expect(cancelButton.text()).toContain('Cancelar');
   });
 
   it('saves name, description and a replacement photo', async () => {
