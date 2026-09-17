@@ -13,10 +13,11 @@ El nombre "Pincho Party" está centralizado en `server/src/config.ts`
 (`APP_NAME`) por si se quiere cambiar más adelante.
 
 > **Estado actual:** el backend está completo y probado. El frontend cubre
-> el registro de participante y de tapas, y la galería de tapas (grid +
-> detalle de solo lectura) una vez arranca la votación. La votación en sí,
-> los resultados y el panel de administración por interfaz todavía no
-> existen — se prueban directamente contra la API REST.
+> el registro de participante y de tapas, la galería de tapas, y el panel
+> de administración completo (login por PIN, dashboard en vivo, gestión de
+> participantes y tapas, control de fases). La votación en sí (favoritos) y
+> la pantalla de resultados todavía no existen en el frontend — se prueban
+> directamente contra la API REST.
 
 ## Stack técnico
 
