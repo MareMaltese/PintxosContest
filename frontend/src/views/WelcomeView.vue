@@ -14,12 +14,24 @@ function goToRegister(): void {
   <main class="welcome">
     <div class="welcome__card">
       <template v-if="!session.user">
-        <h1 class="welcome__title">¡Bienvenido al concurso de pinchos!</h1>
-        <p class="welcome__subtitle">Que empiece el picoteo.</p>
-        <button class="button button--primary" type="button" @click="goToRegister">Participar</button>
+        <h1 class="welcome__title">
+          ¡Bienvenido al concurso de pinchos!
+        </h1>
+        <p class="welcome__subtitle">
+          Que empiece el picoteo.
+        </p>
+        <button
+          class="button button--primary"
+          type="button"
+          @click="goToRegister"
+        >
+          Participar
+        </button>
       </template>
       <template v-else>
-        <h1 class="welcome__title">¡Hola, {{ session.user.name }}!</h1>
+        <h1 class="welcome__title">
+          ¡Hola, {{ session.user.name }}!
+        </h1>
         <p class="welcome__subtitle">
           Ya estás dentro del concurso. Muy pronto podrás registrar tu pincho.
         </p>

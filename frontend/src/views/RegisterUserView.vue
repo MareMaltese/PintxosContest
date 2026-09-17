@@ -27,11 +27,21 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <main class="register">
-    <form class="register__card" @submit.prevent="onSubmit">
-      <h1 class="register__title">¿Cómo te llamas?</h1>
-      <p class="register__subtitle">Solo necesitamos tu nombre, nada más.</p>
+    <form
+      class="register__card"
+      @submit.prevent="onSubmit"
+    >
+      <h1 class="register__title">
+        ¿Cómo te llamas?
+      </h1>
+      <p class="register__subtitle">
+        Solo necesitamos tu nombre, nada más.
+      </p>
 
-      <label class="register__label" for="name">Nombre</label>
+      <label
+        class="register__label"
+        for="name"
+      >Nombre</label>
       <input
         id="name"
         v-model="name"
@@ -41,17 +51,32 @@ async function onSubmit(): Promise<void> {
         autocomplete="name"
         maxlength="60"
         :aria-invalid="touched && !trimmedName()"
-      />
-      <p v-if="touched && !trimmedName()" class="register__error" role="alert">
+      >
+      <p
+        v-if="touched && !trimmedName()"
+        class="register__error"
+        role="alert"
+      >
         Escribe tu nombre para continuar.
       </p>
-      <p v-if="session.registerError" class="register__error" role="alert">
+      <p
+        v-if="session.registerError"
+        class="register__error"
+        role="alert"
+      >
         {{ session.registerError }}
       </p>
 
-      <button class="button button--primary button--block" type="submit" :disabled="session.isRegistering">
+      <button
+        class="button button--primary button--block"
+        type="submit"
+        :disabled="session.isRegistering"
+      >
         <span>{{ session.isRegistering ? 'Un momento…' : 'Participar' }}</span>
-        <ArrowRight :size="18" aria-hidden="true" />
+        <ArrowRight
+          :size="18"
+          aria-hidden="true"
+        />
       </button>
     </form>
   </main>
