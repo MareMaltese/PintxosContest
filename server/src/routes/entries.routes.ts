@@ -6,7 +6,7 @@ import { userAuth } from '../middleware/userAuth';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errors';
 import { createEntry, listEntries, getEntry, listMyEntries, updateOwnEntry } from '../services/entryService';
-import { saveEntryImage } from '../images/imageProcessor';
+import { saveEntryImage, deleteEntryImage } from '../images/imageProcessor';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -60,16 +60,30 @@ entriesRouter.get(
 );
 
 const updateOwnEntrySchema = z.object({
-  name: z.string().trim().max(80).nullable().optional(),
-  description: z.string().trim().max(280).nullable().optional(),
+  name: z.string().trim().max(80),
+  description: z.string().trim().max(280),
 });
 
 entriesRouter.patch(
   '/:id',
   userAuth,
+  upload.single('image'),
   asyncHandler(async (req, res) => {
+    if (req.file && !req.file.mimetype.startsWith('image/')) {
+      throw new AppError(400, 'INVALID_IMAGE_TYPE', 'El archivo no es una imagen válida.');
+    }
     const fields = updateOwnEntrySchema.parse(req.body);
-    res.json(updateOwnEntry(db, req.userId!, req.params.id, fields));
+    let entry = updateOwnEntry(db, req.userId!, req.params.id, {
+      name: fields.name || null,
+      description: fields.description || null,
+    });
+    if (req.file) {
+      const oldImagePath = entry.imagePath;
+      const imagePath = await saveEntryImage(req.file.buffer);
+      entry = updateOwnEntry(db, req.userId!, req.params.id, { imagePath });
+      deleteEntryImage(oldImagePath);
+    }
+    res.json(entry);
   })
 );
 

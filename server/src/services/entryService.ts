@@ -108,6 +108,7 @@ export function listMyEntries(db: Database.Database, userId: string): Entry[] {
 export interface UpdateOwnEntryInput {
   name?: string | null;
   description?: string | null;
+  imagePath?: string;
 }
 
 export function updateOwnEntry(
@@ -132,6 +133,9 @@ export function updateOwnEntry(
   }
   if (fields.description !== undefined) {
     db.prepare('UPDATE Entry SET description = ? WHERE id = ?').run(fields.description, entryId);
+  }
+  if (fields.imagePath !== undefined) {
+    db.prepare('UPDATE Entry SET imagePath = ? WHERE id = ?').run(fields.imagePath, entryId);
   }
   return getEntryUnchecked(db, entryId)!;
 }

@@ -105,4 +105,10 @@ describe('entryService', () => {
   it('updateOwnEntry throws for an unknown entry id', () => {
     expect(() => updateOwnEntry(db, creatorId, 'missing', { name: 'Nueva' })).toThrow(AppError);
   });
+
+  it('updateOwnEntry lets the creator replace the photo', () => {
+    const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    const updated = updateOwnEntry(db, creatorId, entry.id, { imagePath: 'b.webp' });
+    expect(updated.imagePath).toBe('b.webp');
+  });
 });
