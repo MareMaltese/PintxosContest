@@ -11,6 +11,7 @@ import {
   listEntriesForAdmin,
   listMyEntries,
   updateOwnEntry,
+  deleteOwnEntry,
 } from './entryService';
 import { AppError } from '../middleware/errors';
 
@@ -110,5 +111,29 @@ describe('entryService', () => {
     const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
     const updated = updateOwnEntry(db, creatorId, entry.id, { imagePath: 'b.webp' });
     expect(updated.imagePath).toBe('b.webp');
+  });
+
+  it('deleteOwnEntry lets the creator delete their own entry during REGISTRATION and returns its imagePath', () => {
+    const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    const imagePath = deleteOwnEntry(db, creatorId, entry.id);
+    expect(imagePath).toBe('a.webp');
+    expect(getEntryUnchecked(db, entry.id)).toBeUndefined();
+  });
+
+  it('deleteOwnEntry refuses to delete an entry that belongs to someone else', () => {
+    const other = createUser(db, 'Miguel').id;
+    const entry = createEntry(db, { creatorId: other, name: 'Tortilla', description: null, imagePath: 'a.webp' });
+    expect(() => deleteOwnEntry(db, creatorId, entry.id)).toThrow(AppError);
+    expect(getEntryUnchecked(db, entry.id)).toBeDefined();
+  });
+
+  it('deleteOwnEntry refuses to delete once the contest has left REGISTRATION', () => {
+    const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    startContest(db);
+    expect(() => deleteOwnEntry(db, creatorId, entry.id)).toThrow(AppError);
+  });
+
+  it('deleteOwnEntry throws for an unknown entry id', () => {
+    expect(() => deleteOwnEntry(db, creatorId, 'missing')).toThrow(AppError);
   });
 });

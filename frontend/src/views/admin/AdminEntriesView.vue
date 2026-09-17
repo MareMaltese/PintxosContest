@@ -147,7 +147,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
               >
                 <Icon
                   name="pencil"
-                  :size="16"
+                  :size="20"
                 />
               </button>
               <button
@@ -158,7 +158,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
               >
                 <Icon
                   name="trash"
-                  :size="16"
+                  :size="20"
                 />
               </button>
             </td>

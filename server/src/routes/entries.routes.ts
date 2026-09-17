@@ -5,7 +5,14 @@ import { db } from '../db';
 import { userAuth } from '../middleware/userAuth';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errors';
-import { createEntry, listEntries, getEntry, listMyEntries, updateOwnEntry } from '../services/entryService';
+import {
+  createEntry,
+  listEntries,
+  getEntry,
+  listMyEntries,
+  updateOwnEntry,
+  deleteOwnEntry,
+} from '../services/entryService';
 import { saveEntryImage, deleteEntryImage } from '../images/imageProcessor';
 
 const upload = multer({
@@ -84,6 +91,16 @@ entriesRouter.patch(
       deleteEntryImage(oldImagePath);
     }
     res.json(entry);
+  })
+);
+
+entriesRouter.delete(
+  '/:id',
+  userAuth,
+  asyncHandler(async (req, res) => {
+    const imagePath = deleteOwnEntry(db, req.userId!, req.params.id);
+    deleteEntryImage(imagePath);
+    res.json({ ok: true });
   })
 );
 

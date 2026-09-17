@@ -40,7 +40,7 @@ function editEntry(entry: EntrySummary): void {
     </button>
 
     <h1 class="my-entries__title">
-      Mis pinchos
+      Mis Tapas y Pinchos
     </h1>
 
     <p
@@ -106,7 +106,7 @@ function editEntry(entry: EntrySummary): void {
         >
           <Icon
             name="pencil"
-            :size="16"
+            :size="25"
           />
         </button>
       </li>
@@ -132,8 +132,8 @@ function editEntry(entry: EntrySummary): void {
 
 .my-entries__close {
   position: absolute;
-  top: var(--space-5);
-  right: var(--space-5);
+  top: var(--space-6);
+  right: var(--space-6);
   z-index: 1;
   display: inline-flex;
   align-items: center;
@@ -151,9 +151,9 @@ function editEntry(entry: EntrySummary): void {
   margin: 0 0 var(--space-5);
   text-align: center;
   border-bottom: 1px solid var(--color-title);
-  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+  padding: 1rem 0.5rem 0.5rem 0.5rem;
   background: var(--color-surface);
-  border-radius: var(--radius-md)
+  border-radius: var(--radius-lg)
 }
 
 .my-entries__status {
@@ -218,8 +218,8 @@ function editEntry(entry: EntrySummary): void {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 50%;
   background: var(--color-bronze);

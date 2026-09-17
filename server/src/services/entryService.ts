@@ -139,3 +139,19 @@ export function updateOwnEntry(
   }
   return getEntryUnchecked(db, entryId)!;
 }
+
+export function deleteOwnEntry(db: Database.Database, userId: string, entryId: string): string {
+  const contest = getContest(db);
+  if (contest.phase !== 'REGISTRATION') {
+    throw new AppError(409, 'REGISTRATION_CLOSED', 'Ya no se pueden borrar tapas: el concurso ha empezado.');
+  }
+  const entry = getEntryUnchecked(db, entryId);
+  if (!entry) {
+    throw new AppError(404, 'ENTRY_NOT_FOUND', 'No existe esa tapa.');
+  }
+  if (entry.creatorId !== userId) {
+    throw new AppError(403, 'NOT_YOUR_ENTRY', 'Esta tapa no es tuya.');
+  }
+  db.prepare('DELETE FROM Entry WHERE id = ?').run(entryId);
+  return entry.imagePath;
+}
