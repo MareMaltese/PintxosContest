@@ -343,9 +343,12 @@ beforeEach(() => {
 });
 
 describe('GalleryView', () => {
-  it('shows a loading state while fetching', () => {
+  it('shows a loading state while fetching', async () => {
     vi.mocked(api.get).mockReturnValue(new Promise(() => {}));
     const wrapper = mount(GalleryView);
+    // onMounted sets isLoadingList synchronously, but the DOM only reflects
+    // it after the next reactivity flush.
+    await flushPromises();
     expect(wrapper.text()).toContain('Cargando');
   });
 
