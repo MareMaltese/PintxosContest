@@ -54,6 +54,17 @@ async function toggleSelfVote(): Promise<void> {
   }
 }
 
+async function toggleVotingMode(): Promise<void> {
+  if (!data.value) return;
+  const next = data.value.votingMode === 'FAVORITES' ? 'MEDALS' : 'FAVORITES';
+  try {
+    await api.patch('/api/admin/contest', { votingMode: next });
+    await refetch();
+  } catch (err) {
+    window.alert(friendlyMessage(err, 'No hemos podido cambiar la configuración.'));
+  }
+}
+
 async function closeTiebreakRound(): Promise<void> {
   try {
     await api.post('/api/admin/tiebreak/close-round');
@@ -147,6 +158,14 @@ async function revealResults(): Promise<void> {
           @click="toggleSelfVote"
         >
           Autovoto: {{ data.allowSelfVote ? 'permitido' : 'no permitido' }} (cambiar)
+        </button>
+
+        <button
+          class="button button--secondary admin-phases__voting-mode"
+          type="button"
+          @click="toggleVotingMode"
+        >
+          Modo de puntuación: {{ data.votingMode === 'FAVORITES' ? 'Favoritos' : 'Pintx-o-visión' }} (cambiar)
         </button>
       </div>
     </main>

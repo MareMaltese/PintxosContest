@@ -33,7 +33,7 @@ function openEntry(id: string): void {
       <h1 class="gallery__title">
         Galería de tapas
       </h1>
-      <FavoriteCounter v-if="contest.phase === 'VOTING'" />
+      <FavoriteCounter v-if="contest.phase === 'VOTING' && contest.votingMode === 'FAVORITES'" />
     </div>
 
     <p

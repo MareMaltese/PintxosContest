@@ -23,6 +23,10 @@ const entries = [
     description: 'Con jamón.',
     imagePath: 'a.webp',
     createdAt: 'x',
+    voteCount: 4,
+    gold: 2,
+    silver: 1,
+    bronze: 0,
   },
 ];
 
@@ -41,6 +45,17 @@ describe('AdminEntriesView', () => {
     expect(wrapper.text()).toContain('Croqueta');
     expect(wrapper.text()).toContain('Con jamón.');
     expect(wrapper.text()).toContain('Laura');
+  });
+
+  it('shows the favorite vote count and medal tally for each entry', async () => {
+    const wrapper = mount(AdminEntriesView);
+    await flushPromises();
+
+    const row = wrapper.find('tbody tr');
+    expect(row.text()).toContain('4');
+    expect(row.text()).toContain('2');
+    expect(row.text()).toContain('1');
+    expect(row.text()).toContain('0');
   });
 
   it('edits an entry after confirming both prompts', async () => {

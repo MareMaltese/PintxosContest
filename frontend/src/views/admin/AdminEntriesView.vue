@@ -12,6 +12,10 @@ interface AdminEntry {
   description: string | null;
   imagePath: string;
   createdAt: string;
+  voteCount: number;
+  gold: number;
+  silver: number;
+  bronze: number;
 }
 
 const entries = ref<AdminEntry[]>([]);
@@ -96,6 +100,10 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Creador</th>
+            <th>Favoritos</th>
+            <th>Oro</th>
+            <th>Plata</th>
+            <th>Bronce</th>
             <th />
           </tr>
         </thead>
@@ -108,6 +116,10 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             <td>{{ entry.name ?? '—' }}</td>
             <td>{{ entry.description ?? '—' }}</td>
             <td>{{ entry.creatorName }}</td>
+            <td>{{ entry.voteCount }}</td>
+            <td>{{ entry.gold }}</td>
+            <td>{{ entry.silver }}</td>
+            <td>{{ entry.bronze }}</td>
             <td>
               <button
                 class="admin-table__edit"

@@ -13,10 +13,11 @@ vi.mock('../../services/api', async () => {
 
 import { api, ApiError } from '../../services/api';
 
-function dashboardWith(phase: string, allowSelfVote = false) {
+function dashboardWith(phase: string, allowSelfVote = false, votingMode = 'FAVORITES') {
   return {
     phase,
     allowSelfVote,
+    votingMode,
     participantCount: 2,
     entryCount: 2,
     votersFinished: 1,
@@ -102,6 +103,19 @@ describe('AdminPhasesView', () => {
     await flushPromises();
 
     expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { allowSelfVote: true });
+  });
+
+  it('toggles votingMode between FAVORITES and MEDALS', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING', false, 'FAVORITES'));
+    vi.mocked(api.patch).mockResolvedValue({});
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Favoritos');
+    await wrapper.find('.admin-phases__voting-mode').trigger('click');
+    await flushPromises();
+
+    expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { votingMode: 'MEDALS' });
   });
 
   it('shows only "Cerrar ronda de desempate" during TIEBREAK', async () => {

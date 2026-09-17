@@ -97,6 +97,19 @@ describe('GalleryView', () => {
     expect(wrapper.text()).not.toContain('favoritos');
   });
 
+  it('hides the favorite counter when votingMode is MEDALS', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/votes/me' ? Promise.resolve({ entryIds: [], limit: 3 }) : Promise.resolve([])
+    );
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.votingMode = 'MEDALS';
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain('favoritos');
+  });
+
   it('highlights cards that are already favorited', async () => {
     vi.mocked(api.get).mockImplementation((path: string) =>
       path === '/api/votes/me'

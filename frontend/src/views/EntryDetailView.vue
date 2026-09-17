@@ -119,13 +119,16 @@ onMounted(() => {
         v-if="canVote"
         class="entry-detail__voting"
       >
-        <FavoriteCounter />
-        <FavoriteButton
-          :entry-id="entry.id"
-          :disabled="selfVoteBlocked"
-          disabled-reason="No puedes votar tu propio pincho."
-        />
+        <template v-if="contest.votingMode === 'FAVORITES'">
+          <FavoriteCounter />
+          <FavoriteButton
+            :entry-id="entry.id"
+            :disabled="selfVoteBlocked"
+            disabled-reason="No puedes votar tu propio pincho."
+          />
+        </template>
         <MedalButtons
+          v-else
           :entry-id="entry.id"
           :disabled="selfVoteBlocked"
           disabled-reason="No puedes puntuar tu propio pincho."

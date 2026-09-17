@@ -91,28 +91,33 @@ describe('EntryDetailView', () => {
     expect(wrapper.text()).toContain('No hemos podido cargar esta tapa.');
   });
 
-  it('shows the favorite button and counter during VOTING', async () => {
+  it('shows the favorite button and counter during VOTING when votingMode is FAVORITES', async () => {
     vi.mocked(api.get).mockImplementation((path: string) => {
       if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });
       if (path === '/api/medal-votes/me') return Promise.resolve({ gold: null, silver: null, bronze: null });
       return Promise.resolve(mockEntry());
     });
-    useContestStore().phase = 'VOTING';
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.votingMode = 'FAVORITES';
     useSessionStore().user = { id: 'me', name: 'Yo' };
     const wrapper = mount(EntryDetailView);
     await flushPromises();
 
     expect(wrapper.text()).toContain('0 / 3 favoritos');
     expect(wrapper.text()).toContain('Me encanta!');
+    expect(wrapper.text()).not.toContain('Oro');
   });
 
-  it('shows the medal buttons during VOTING', async () => {
+  it('shows the medal buttons during VOTING when votingMode is MEDALS', async () => {
     vi.mocked(api.get).mockImplementation((path: string) => {
       if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });
       if (path === '/api/medal-votes/me') return Promise.resolve({ gold: null, silver: null, bronze: null });
       return Promise.resolve(mockEntry());
     });
-    useContestStore().phase = 'VOTING';
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.votingMode = 'MEDALS';
     useSessionStore().user = { id: 'me', name: 'Yo' };
     const wrapper = mount(EntryDetailView);
     await flushPromises();
@@ -120,6 +125,7 @@ describe('EntryDetailView', () => {
     expect(wrapper.text()).toContain('Oro');
     expect(wrapper.text()).toContain('Plata');
     expect(wrapper.text()).toContain('Bronce');
+    expect(wrapper.text()).not.toContain('favoritos');
   });
 
   it('hides voting UI outside the VOTING phase', async () => {

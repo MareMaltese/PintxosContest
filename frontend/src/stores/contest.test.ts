@@ -30,13 +30,14 @@ describe('useContestStore', () => {
   });
 
   it('init() loads the current phase and connects the SSE stream', async () => {
-    vi.mocked(api.get).mockResolvedValue({ phase: 'VOTING', allowSelfVote: true });
+    vi.mocked(api.get).mockResolvedValue({ phase: 'VOTING', allowSelfVote: true, votingMode: 'MEDALS' });
     const store = useContestStore();
 
     await store.init();
 
     expect(store.phase).toBe('VOTING');
     expect(store.allowSelfVote).toBe(true);
+    expect(store.votingMode).toBe('MEDALS');
     expect(store.loaded).toBe(true);
     expect(connectMock).toHaveBeenCalledTimes(1);
   });

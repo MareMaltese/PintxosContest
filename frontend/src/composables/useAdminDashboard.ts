@@ -14,6 +14,7 @@ export interface AdminPerson {
 export interface AdminDashboardData {
   phase: 'REGISTRATION' | 'VOTING' | 'TIEBREAK' | 'RESULTS';
   allowSelfVote: boolean;
+  votingMode: 'FAVORITES' | 'MEDALS';
   participantCount: number;
   entryCount: number;
   votersFinished: number;
