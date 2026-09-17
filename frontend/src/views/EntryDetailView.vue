@@ -1,15 +1,29 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { X } from '@lucide/vue';
 import { ApiError } from '../services/api';
 import { useEntriesStore, type EntryDetail } from '../stores/entries';
+import { useVotesStore } from '../stores/votes';
+import { useContestStore } from '../stores/contest';
+import { useSessionStore } from '../stores/session';
+import FavoriteButton from '../components/entries/FavoriteButton.vue';
+import FavoriteCounter from '../components/entries/FavoriteCounter.vue';
 
 const route = useRoute();
+const router = useRouter();
 const entries = useEntriesStore();
+const votes = useVotesStore();
+const contest = useContestStore();
+const session = useSessionStore();
 
 const entry = ref<EntryDetail | null>(null);
 const isLoading = ref(true);
 const loadError = ref<string | null>(null);
+
+const canVote = computed(() => contest.phase === 'VOTING');
+const isOwnEntry = computed(() => entry.value !== null && entry.value.creatorId === session.user?.id);
+const selfVoteBlocked = computed(() => isOwnEntry.value && !contest.allowSelfVote);
 
 async function load(): Promise<void> {
   isLoading.value = true;
@@ -23,11 +37,32 @@ async function load(): Promise<void> {
   }
 }
 
-onMounted(load);
+function close(): void {
+  router.push({ name: 'gallery' });
+}
+
+onMounted(() => {
+  load();
+  votes.init().catch(() => {
+    // un fallo al cargar los favoritos no debe bloquear la vista de la tapa
+  });
+});
 </script>
 
 <template>
   <main class="entry-detail">
+    <button
+      class="entry-detail__close"
+      type="button"
+      aria-label="Cerrar"
+      @click="close"
+    >
+      <X
+        :size="24"
+        aria-hidden="true"
+      />
+    </button>
+
     <p
       v-if="isLoading"
       class="entry-detail__status"
@@ -73,6 +108,18 @@ onMounted(load);
       <p class="entry-detail__creator">
         Presentado por {{ entry.creatorName }}
       </p>
+
+      <div
+        v-if="canVote"
+        class="entry-detail__voting"
+      >
+        <FavoriteCounter />
+        <FavoriteButton
+          :entry-id="entry.id"
+          :disabled="selfVoteBlocked"
+          disabled-reason="No puedes votar tu propio pincho."
+        />
+      </div>
     </div>
   </main>
 </template>
@@ -82,6 +129,24 @@ onMounted(load);
   padding: var(--space-5);
   max-width: 560px;
   margin: 0 auto;
+  position: relative;
+}
+
+.entry-detail__close {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(31, 27, 22, 0.55);
+  color: #fff;
+  cursor: pointer;
 }
 
 .entry-detail__status {
@@ -130,5 +195,13 @@ onMounted(load);
   margin: var(--space-4) var(--space-5) 0;
   font-size: 0.9rem;
   color: var(--color-text-muted);
+}
+
+.entry-detail__voting {
+  margin: var(--space-4) var(--space-5) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
 }
 </style>
