@@ -72,6 +72,11 @@ export const useEntriesStore = defineStore('entries', () => {
     await fetchMine();
   }
 
+  async function deleteMine(id: string): Promise<void> {
+    await api.delete(`/api/entries/${id}`);
+    await fetchMine();
+  }
+
   return {
     lastCreated,
     list,
@@ -85,5 +90,6 @@ export const useEntriesStore = defineStore('entries', () => {
     fetchDetail,
     fetchMine,
     updateMine,
+    deleteMine,
   };
 });

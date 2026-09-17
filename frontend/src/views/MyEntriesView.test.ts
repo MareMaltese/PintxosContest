@@ -10,7 +10,7 @@ vi.mock('vue-router', () => ({
 
 vi.mock('../services/api', async () => {
   const actual = await vi.importActual<typeof import('../services/api')>('../services/api');
-  return { ...actual, api: { ...actual.api, get: vi.fn() } };
+  return { ...actual, api: { ...actual.api, get: vi.fn(), delete: vi.fn() } };
 });
 
 import { api } from '../services/api';
@@ -66,6 +66,38 @@ describe('MyEntriesView', () => {
     await wrapper.find('.my-entries__edit').trigger('click');
 
     expect(push).toHaveBeenCalledWith({ name: 'edit-entry', params: { id: 'e1' } });
+  });
+
+  it('deletes an entry after confirming the pop-up, showing its details', async () => {
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta', description: 'Con jamón.', imagePath: 'a.webp', createdAt: 'x' },
+    ]);
+    vi.mocked(api.delete).mockResolvedValue({ ok: true });
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const wrapper = mount(MyEntriesView);
+    await flushPromises();
+
+    await wrapper.find('.my-entries__delete').trigger('click');
+    await flushPromises();
+
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('#03'));
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('Croqueta'));
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('Con jamón.'));
+    expect(api.delete).toHaveBeenCalledWith('/api/entries/e1');
+  });
+
+  it('does not delete when the confirmation is cancelled', async () => {
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta', description: 'Con jamón.', imagePath: 'a.webp', createdAt: 'x' },
+    ]);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const wrapper = mount(MyEntriesView);
+    await flushPromises();
+
+    await wrapper.find('.my-entries__delete').trigger('click');
+    await flushPromises();
+
+    expect(api.delete).not.toHaveBeenCalled();
   });
 
   it('closing the view navigates back to the waiting room', async () => {

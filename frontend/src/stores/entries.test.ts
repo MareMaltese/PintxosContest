@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia';
 
 vi.mock('../services/api', async () => {
   const actual = await vi.importActual<typeof import('../services/api')>('../services/api');
-  return { ...actual, api: { ...actual.api, get: vi.fn(), patch: vi.fn(), patchForm: vi.fn() } };
+  return { ...actual, api: { ...actual.api, get: vi.fn(), patch: vi.fn(), patchForm: vi.fn(), delete: vi.fn() } };
 });
 
 import { api, ApiError } from '../services/api';
@@ -112,5 +112,16 @@ describe('useEntriesStore', () => {
 
     expect(api.patchForm).toHaveBeenCalledWith('/api/entries/e1', form);
     expect(store.myList[0].name).toBe('Croqueta de jamón');
+  });
+
+  it('deleteMine deletes the entry and refreshes myList', async () => {
+    vi.mocked(api.get).mockResolvedValue([]);
+    vi.mocked(api.delete).mockResolvedValue({ ok: true });
+    const store = useEntriesStore();
+
+    await store.deleteMine('e1');
+
+    expect(api.delete).toHaveBeenCalledWith('/api/entries/e1');
+    expect(store.myList).toEqual([]);
   });
 });

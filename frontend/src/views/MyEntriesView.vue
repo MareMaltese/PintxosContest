@@ -3,6 +3,7 @@ import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { X } from '@lucide/vue';
 import Icon from '../components/common/Icon.vue';
+import { ApiError } from '../services/api';
 import { useEntriesStore, type EntrySummary } from '../stores/entries';
 
 const router = useRouter();
@@ -22,6 +23,22 @@ function addAnother(): void {
 
 function editEntry(entry: EntrySummary): void {
   router.push({ name: 'edit-entry', params: { id: entry.id } });
+}
+
+async function deleteEntry(entry: EntrySummary): Promise<void> {
+  const confirmed = window.confirm(
+    `¿Seguro que quieres borrar este pincho?\n\n` +
+      `Nº: #${String(entry.number).padStart(2, '0')}\n` +
+      `Nombre: ${entry.name ?? '—'}\n` +
+      `Descripción: ${entry.description ?? '—'}\n\n` +
+      `Esto no se puede deshacer.`
+  );
+  if (!confirmed) return;
+  try {
+    await entries.deleteMine(entry.id);
+  } catch (err) {
+    window.alert(err instanceof ApiError ? err.message : 'No hemos podido borrar tu pincho.');
+  }
 }
 </script>
 
@@ -98,17 +115,30 @@ function editEntry(entry: EntrySummary): void {
             {{ entry.description }}
           </p>
         </div>
-        <button
-          class="my-entries__edit"
-          type="button"
-          aria-label="Editar"
-          @click="editEntry(entry)"
-        >
-          <Icon
-            name="pencil"
-            :size="25"
-          />
-        </button>
+        <div class="my-entries__actions">
+          <button
+            class="my-entries__edit"
+            type="button"
+            aria-label="Editar"
+            @click="editEntry(entry)"
+          >
+            <Icon
+              name="pencil"
+              :size="20"
+            />
+          </button>
+          <button
+            class="my-entries__delete"
+            type="button"
+            aria-label="Borrar"
+            @click="deleteEntry(entry)"
+          >
+            <Icon
+              name="trash"
+              :size="20"
+            />
+          </button>
+        </div>
       </li>
     </ul>
 
@@ -214,7 +244,14 @@ function editEntry(entry: EntrySummary): void {
   font-size: 0.9rem;
 }
 
-.my-entries__edit {
+.my-entries__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.my-entries__edit,
+.my-entries__delete {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -222,9 +259,16 @@ function editEntry(entry: EntrySummary): void {
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: var(--color-bronze);
   color: #fff;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.my-entries__edit {
+  background: var(--color-bronze);
+}
+
+.my-entries__delete {
+  background: var(--color-danger);
 }
 </style>
