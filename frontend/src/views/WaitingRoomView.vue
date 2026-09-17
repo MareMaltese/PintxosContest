@@ -3,6 +3,7 @@ import { watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useContestStore } from '../stores/contest';
 import { useHeartbeat } from '../composables/useHeartbeat';
+import Icon from '../components/common/Icon.vue';
 
 useHeartbeat();
 const router = useRouter();
@@ -16,6 +17,10 @@ watch(
     }
   }
 );
+
+function goToMyEntries(): void {
+  router.push({ name: 'my-entries' });
+}
 </script>
 
 <template>
@@ -35,6 +40,19 @@ watch(
         </template>
       </p>
     </div>
+
+    <button
+      v-if="contest.phase === 'REGISTRATION'"
+      class="waiting__edit"
+      type="button"
+      aria-label="Ver y editar mis pinchos"
+      @click="goToMyEntries"
+    >
+      <Icon
+        name="pencil"
+        :size="28"
+      />
+    </button>
   </main>
 </template>
 
@@ -68,5 +86,22 @@ watch(
 .waiting__subtitle {
   color: var(--color-text-muted);
   margin: 0;
+}
+
+.waiting__edit {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-bronze);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
 }
 </style>

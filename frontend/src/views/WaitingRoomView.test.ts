@@ -41,4 +41,19 @@ describe('WaitingRoomView', () => {
 
     expect(pushMock).toHaveBeenCalledWith({ name: 'gallery' });
   });
+
+  it('shows an edit button that navigates to my-entries while in REGISTRATION', async () => {
+    const wrapper = mount(WaitingRoomView);
+
+    await wrapper.find('.waiting__edit').trigger('click');
+
+    expect(pushMock).toHaveBeenCalledWith({ name: 'my-entries' });
+  });
+
+  it('hides the edit button once registration has closed', () => {
+    useContestStore().phase = 'VOTING';
+    const wrapper = mount(WaitingRoomView);
+
+    expect(wrapper.find('.waiting__edit').exists()).toBe(false);
+  });
 });
