@@ -73,6 +73,7 @@ async function deletePerson(person: AdminPerson): Promise<void> {
             <th>Votos</th>
             <th>Última actividad</th>
             <th />
+            <th />
           </tr>
         </thead>
         <tbody>
@@ -96,6 +97,8 @@ async function deletePerson(person: AdminPerson): Promise<void> {
                   :size="18"
                 />
               </button>
+            </td>
+            <td>
               <button
                 class="admin-table__delete"
                 type="button"

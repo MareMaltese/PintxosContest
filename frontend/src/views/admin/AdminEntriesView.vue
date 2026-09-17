@@ -106,6 +106,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             <th>Plata</th>
             <th>Bronce</th>
             <th />
+            <th />
           </tr>
         </thead>
         <tbody>
@@ -133,6 +134,8 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
                   :size="18"
                 />
               </button>
+            </td>
+            <td>
               <button
                 class="admin-table__delete"
                 type="button"
