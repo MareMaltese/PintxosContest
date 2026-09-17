@@ -43,7 +43,6 @@ async function deletePerson(person: AdminPerson): Promise<void> {
       <h1 class="admin-participants__title">
         Participantes
       </h1>
-
       <p
         v-if="isLoading"
         class="admin-participants__status"
@@ -116,7 +115,12 @@ async function deletePerson(person: AdminPerson): Promise<void> {
 
 .admin-participants__title {
   font-size: 1.4rem;
-  margin: 0 0 var(--space-4);
+  margin: 0;
+  text-align: center;
+  border-bottom: 1px solid var(--color-title);
+  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .admin-participants__status {
@@ -133,7 +137,7 @@ async function deletePerson(person: AdminPerson): Promise<void> {
   width: 100%;
   border-collapse: collapse;
   background: var(--color-surface);
-  border-radius: var(--radius-md);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }

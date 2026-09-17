@@ -22,7 +22,7 @@ beforeEach(() => {
 describe('WelcomeView', () => {
   it('shows the welcome message and CTA when there is no session', () => {
     const wrapper = mount(WelcomeView);
-    expect(wrapper.text()).toContain('¡Bienvenido al concurso de tapas y pinchos!');
+    expect(wrapper.text()).toContain('¡Bienvenido al primer concurso de tapas y pinchos!');
     expect(wrapper.find('button').exists()).toBe(true);
   });
 

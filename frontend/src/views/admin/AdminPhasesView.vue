@@ -182,6 +182,11 @@ async function revealResults(): Promise<void> {
 .admin-phases__title {
   font-size: 1.4rem;
   margin: 0 0 var(--space-4);
+  text-align: center;
+  border-bottom: 1px solid var(--color-title);
+  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
 }
 
 .admin-phases__status {

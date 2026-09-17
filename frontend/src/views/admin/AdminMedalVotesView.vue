@@ -72,7 +72,12 @@ const { data, isLoading, error, refetch } = useAdminMedalVotes();
 
 .admin-medal-votes__title {
   font-size: 1.4rem;
-  margin: 0 0 var(--space-4);
+  margin: 0;
+  text-align: center;
+  border-bottom: 1px solid var(--color-title);
+  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .admin-medal-votes__status {
@@ -89,7 +94,7 @@ const { data, isLoading, error, refetch } = useAdminMedalVotes();
   width: 100%;
   border-collapse: collapse;
   background: var(--color-surface);
-  border-radius: var(--radius-md);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
