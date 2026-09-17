@@ -129,6 +129,25 @@ describe('api', () => {
     expect(options.body).toBe(JSON.stringify({ medal: 'GOLD' }));
   });
 
+  it('clears the stored session and redirects home when the server reports UNKNOWN_USER', async () => {
+    localStorage.setItem('pinchoParty.userId', 'stale-id');
+    localStorage.setItem('pinchoParty.userName', 'Laura');
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ code: 'UNKNOWN_USER', message: 'No reconocemos tu sesión. Vuelve a entrar con tu nombre.' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const assignMock = vi.fn();
+    vi.stubGlobal('location', { ...window.location, assign: assignMock });
+
+    await expect(api.get('/api/entries/mine')).rejects.toMatchObject({ code: 'UNKNOWN_USER' });
+
+    expect(localStorage.getItem('pinchoParty.userId')).toBeNull();
+    expect(localStorage.getItem('pinchoParty.userName')).toBeNull();
+    expect(assignMock).toHaveBeenCalledWith('/');
+  });
+
   it('sends X-Admin-Pin when a pin is stored', async () => {
     localStorage.setItem('pinchoParty.adminPin', '1234');
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) });

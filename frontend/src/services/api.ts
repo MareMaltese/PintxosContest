@@ -1,4 +1,4 @@
-import { getStoredUserId } from './sessionStorage';
+import { getStoredUserId, clearStoredSession } from './sessionStorage';
 import { getStoredAdminPin } from './adminAuth';
 
 export class ApiError extends Error {
@@ -22,6 +22,10 @@ async function handleResponse<T>(response: Response): Promise<T> {
       if (data.message) message = data.message;
     } catch {
       // el cuerpo no era JSON: nos quedamos con el mensaje genérico
+    }
+    if (code === 'UNKNOWN_USER') {
+      clearStoredSession();
+      window.location.assign('/');
     }
     throw new ApiError(response.status, code, message);
   }
