@@ -50,6 +50,16 @@ describe('EditEntryView', () => {
     expect(wrapper.find('.edit-entry__preview').attributes('src')).toBe('/uploads/a.webp');
   });
 
+  it('shows a check icon before the save button label', async () => {
+    vi.mocked(api.get).mockResolvedValue([entry]);
+    const wrapper = mount(EditEntryView);
+    await flushPromises();
+
+    const submitButton = wrapper.find('button[type="submit"]');
+    expect(submitButton.find('.icon').exists()).toBe(true);
+    expect(submitButton.text()).toContain('Guardar cambios');
+  });
+
   it('saves name, description and a replacement photo', async () => {
     vi.mocked(api.get).mockResolvedValue([entry]);
     vi.mocked(api.patchForm).mockResolvedValue({});
