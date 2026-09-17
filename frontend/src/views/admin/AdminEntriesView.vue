@@ -54,7 +54,14 @@ async function editEntry(entry: AdminEntry): Promise<void> {
 }
 
 async function deleteEntry(entry: AdminEntry): Promise<void> {
-  const confirmed = window.confirm(`¿Eliminar la tapa #${entry.number}? Esto no se puede deshacer.`);
+  const confirmed = window.confirm(
+    `¿Seguro que quieres eliminar esta tapa?\n\n` +
+      `Nº: #${String(entry.number).padStart(2, '0')}\n` +
+      `Nombre: ${entry.name ?? '—'}\n` +
+      `Descripción: ${entry.description ?? '—'}\n` +
+      `Creador: ${entry.creatorName}\n\n` +
+      `Esto no se puede deshacer.`
+  );
   if (!confirmed) return;
   try {
     await api.delete(`/api/admin/entries/${entry.id}`);

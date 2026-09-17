@@ -95,4 +95,18 @@ describe('AdminEntriesView', () => {
 
     expect(api.delete).toHaveBeenCalledWith('/api/admin/entries/e1');
   });
+
+  it('asks for confirmation showing the number, name, description and creator', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const wrapper = mount(AdminEntriesView);
+    await flushPromises();
+
+    await wrapper.find('button.admin-table__delete').trigger('click');
+
+    const message = confirmSpy.mock.calls[0][0] as string;
+    expect(message).toContain('#01');
+    expect(message).toContain('Croqueta');
+    expect(message).toContain('Con jamón.');
+    expect(message).toContain('Laura');
+  });
 });
