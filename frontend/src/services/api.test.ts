@@ -67,4 +67,36 @@ describe('api', () => {
 
     await expect(api.get('/api/contest')).rejects.toBeInstanceOf(ApiError);
   });
+
+  it('postForm sends FormData without a Content-Type header', async () => {
+    localStorage.setItem('pinchoParty.userId', 'u1');
+    localStorage.setItem('pinchoParty.userName', 'Laura');
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => ({ id: 'e1' }) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const form = new FormData();
+    form.set('name', 'Croqueta');
+    await api.postForm('/api/entries', form);
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/entries');
+    expect(options.method).toBe('POST');
+    expect((options.headers as Headers).get('X-User-Id')).toBe('u1');
+    expect((options.headers as Headers).has('Content-Type')).toBe(false);
+    expect(options.body).toBe(form);
+  });
+
+  it('postForm rejects with ApiError on a failed upload', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ code: 'IMAGE_REQUIRED', message: 'Falta la fotografía de la tapa.' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.postForm('/api/entries', new FormData())).rejects.toMatchObject({
+      status: 400,
+      code: 'IMAGE_REQUIRED',
+    });
+  });
 });
