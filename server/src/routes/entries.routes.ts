@@ -14,6 +14,7 @@ import {
   deleteOwnEntry,
 } from '../services/entryService';
 import { saveEntryImage, deleteEntryImage } from '../images/imageProcessor';
+import { broadcast } from '../realtime/sse';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -46,6 +47,7 @@ entriesRouter.post(
       description: fields.description || null,
       imagePath,
     });
+    broadcast('entries-changed', {});
     res.status(201).json(entry);
   })
 );
@@ -90,6 +92,7 @@ entriesRouter.patch(
       entry = updateOwnEntry(db, req.userId!, req.params.id, { imagePath });
       deleteEntryImage(oldImagePath);
     }
+    broadcast('entries-changed', {});
     res.json(entry);
   })
 );
@@ -100,6 +103,7 @@ entriesRouter.delete(
   asyncHandler(async (req, res) => {
     const imagePath = deleteOwnEntry(db, req.userId!, req.params.id);
     deleteEntryImage(imagePath);
+    broadcast('entries-changed', {});
     res.json({ ok: true });
   })
 );

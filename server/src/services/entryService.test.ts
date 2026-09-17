@@ -38,9 +38,10 @@ describe('entryService', () => {
     ).toThrow(AppError);
   });
 
-  it('listEntries and getEntry are locked during REGISTRATION', () => {
-    createEntry(db, { creatorId, name: null, description: null, imagePath: 'a.webp' });
-    expect(() => listEntries(db)).toThrow(AppError);
+  it('listEntries and getEntry are already available during REGISTRATION', () => {
+    const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    expect(listEntries(db)).toHaveLength(1);
+    expect(getEntry(db, entry.id).name).toBe('Croqueta');
   });
 
   it('listEntries and getEntry work once voting has started', () => {

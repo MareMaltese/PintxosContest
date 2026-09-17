@@ -54,15 +54,7 @@ export function createEntry(db: Database.Database, input: CreateEntryInput): Ent
   };
 }
 
-function assertGalleryUnlocked(db: Database.Database): void {
-  const contest = getContest(db);
-  if (contest.phase === 'REGISTRATION') {
-    throw new AppError(409, 'GALLERY_LOCKED', 'La galería todavía no está disponible.');
-  }
-}
-
 export function listEntries(db: Database.Database): Entry[] {
-  assertGalleryUnlocked(db);
   return db.prepare('SELECT * FROM Entry ORDER BY number ASC').all() as Entry[];
 }
 
@@ -71,7 +63,6 @@ export interface EntryDetail extends Entry {
 }
 
 export function getEntry(db: Database.Database, id: string): EntryDetail {
-  assertGalleryUnlocked(db);
   const entry = db
     .prepare(
       `SELECT e.*, u.name as creatorName
