@@ -34,14 +34,14 @@ function goTo(name: string): void {
       type="button"
       @click="goTo('admin-phases')"
     >
-      Fases
+      Administración
     </button>
     <button
       v-if="contest.votingMode === 'MEDALS'"
       type="button"
       @click="goTo('admin-medal-votes')"
     >
-      Pinch-o-visión
+      Clasificación
     </button>
   </nav>
 </template>

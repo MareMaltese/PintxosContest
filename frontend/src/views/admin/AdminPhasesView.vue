@@ -97,7 +97,7 @@ async function revealResults(): Promise<void> {
     <AdminNav />
     <main class="admin-phases">
       <h1 class="admin-phases__title">
-        Control de fases
+        Administración
       </h1>
 
       <p

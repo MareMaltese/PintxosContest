@@ -34,10 +34,10 @@ describe('AdminNav', () => {
     expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-medal-votes' });
   });
 
-  it('hides the Pinch-o-visión tab when votingMode is FAVORITES', () => {
+  it('hides the Clasificación tab when votingMode is FAVORITES', () => {
     useContestStore().votingMode = 'FAVORITES';
     const wrapper = mount(AdminNav);
     expect(wrapper.findAll('button')).toHaveLength(4);
-    expect(wrapper.text()).not.toContain('Pinch-o-visión');
+    expect(wrapper.text()).not.toContain('Clasificación');
   });
 });

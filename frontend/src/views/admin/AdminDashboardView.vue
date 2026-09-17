@@ -1,8 +1,14 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
 import AdminNav from '../../components/admin/AdminNav.vue';
 import { useAdminDashboard } from '../../composables/useAdminDashboard';
 
+const router = useRouter();
 const { data, isLoading, error, refetch } = useAdminDashboard();
+
+function goTo(name: string): void {
+  router.push({ name });
+}
 
 const PHASE_LABELS: Record<string, string> = {
   REGISTRATION: 'Registro',
@@ -43,38 +49,54 @@ const VOTING_MODE_LABELS: Record<string, string> = {
         v-else-if="data"
         class="admin-dashboard__grid"
       >
-        <div class="admin-card">
+        <button
+          class="admin-card"
+          type="button"
+          @click="goTo('admin-phases')"
+        >
           <p class="admin-card__label">
             Fase actual
           </p>
           <p class="admin-card__value">
             {{ PHASE_LABELS[data.phase] }}
           </p>
-        </div>
-        <div class="admin-card">
+        </button>
+        <button
+          class="admin-card"
+          type="button"
+          @click="goTo('admin-participants')"
+        >
           <p class="admin-card__label">
             Participantes
           </p>
           <p class="admin-card__value">
             {{ data.participantCount }}
           </p>
-        </div>
-        <div class="admin-card">
+        </button>
+        <button
+          class="admin-card"
+          type="button"
+          @click="goTo('admin-entries')"
+        >
           <p class="admin-card__label">
             Tapas y Pinchos
           </p>
           <p class="admin-card__value">
             {{ data.entryCount }}
           </p>
-        </div>
-        <div class="admin-card">
+        </button>
+        <button
+          class="admin-card"
+          type="button"
+          @click="goTo('admin-phases')"
+        >
           <p class="admin-card__label">
             Tipo de puntuación
           </p>
           <p class="admin-card__value">
             {{ VOTING_MODE_LABELS[data.votingMode] }}
           </p>
-        </div>
+        </button>
         <div
           v-if="data.votingMode === 'FAVORITES'"
           class="admin-card"
@@ -115,6 +137,12 @@ const VOTING_MODE_LABELS: Record<string, string> = {
 }
 
 .admin-card {
+  display: block;
+  width: 100%;
+  border: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
   background: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);

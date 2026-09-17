@@ -3,8 +3,9 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { setActivePinia, createPinia } from 'pinia';
 import AdminDashboardView from './AdminDashboardView.vue';
 
+const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
 vi.mock('vue-router', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: pushMock }),
 }));
 
 vi.mock('../../services/api', async () => {
@@ -18,6 +19,17 @@ beforeEach(() => {
   setActivePinia(createPinia());
   vi.clearAllMocks();
 });
+
+const fullData = {
+  phase: 'VOTING',
+  allowSelfVote: false,
+  votingMode: 'FAVORITES',
+  participantCount: 12,
+  entryCount: 17,
+  votersFinished: 3,
+  votersTotal: 18,
+  people: [],
+};
 
 describe('AdminDashboardView', () => {
   it('shows a loading state while fetching', async () => {
@@ -80,6 +92,36 @@ describe('AdminDashboardView', () => {
     await flushPromises();
 
     expect(wrapper.text()).not.toContain('Han terminado de votar');
+  });
+
+  it('links the Fase actual and Tipo de puntuación cards to Administración', async () => {
+    vi.mocked(api.get).mockResolvedValue(fullData);
+    const wrapper = mount(AdminDashboardView);
+    await flushPromises();
+
+    const cards = wrapper.findAll('.admin-card');
+    await cards[0].trigger('click');
+    expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-phases' });
+    await cards[3].trigger('click');
+    expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-phases' });
+  });
+
+  it('links the Participantes card to Participantes', async () => {
+    vi.mocked(api.get).mockResolvedValue(fullData);
+    const wrapper = mount(AdminDashboardView);
+    await flushPromises();
+
+    await wrapper.findAll('.admin-card')[1].trigger('click');
+    expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-participants' });
+  });
+
+  it('links the Tapas y Pinchos card to Tapas', async () => {
+    vi.mocked(api.get).mockResolvedValue(fullData);
+    const wrapper = mount(AdminDashboardView);
+    await flushPromises();
+
+    await wrapper.findAll('.admin-card')[2].trigger('click');
+    expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-entries' });
   });
 
   it('shows a retryable error message when loading fails', async () => {
