@@ -100,6 +100,19 @@ describe('api', () => {
     });
   });
 
+  it('sends a JSON body and Content-Type on put()', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ ok: true }) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await api.put('/api/medal-votes/e1', { medal: 'GOLD' });
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/medal-votes/e1');
+    expect(options.method).toBe('PUT');
+    expect((options.headers as Headers).get('Content-Type')).toBe('application/json');
+    expect(options.body).toBe(JSON.stringify({ medal: 'GOLD' }));
+  });
+
   it('sends X-Admin-Pin when a pin is stored', async () => {
     localStorage.setItem('pinchoParty.adminPin', '1234');
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) });
