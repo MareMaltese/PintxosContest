@@ -27,10 +27,10 @@ function goToRegister(): void {
           class="welcome__cover"
         >
         <h1 class="welcome__title">
-          ¡Bienvenido al concurso de pinchos!
+          ¡Bienvenido al concurso de pinchos y tapas!
         </h1>
         <p class="welcome__subtitle">
-          Que empiece el picoteo.
+          Que empiece el picoteo!
         </p>
         <button
           class="button button--primary"
@@ -83,7 +83,6 @@ function goToRegister(): void {
 
 .welcome__cover {
   width: 100%;
-  aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: var(--radius-md);
   margin-bottom: var(--space-5);
