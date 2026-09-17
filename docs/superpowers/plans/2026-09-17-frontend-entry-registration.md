@@ -1755,12 +1755,17 @@ describe('router', () => {
   });
 
   it('redirects a registered visitor away from / to /pincho during REGISTRATION', async () => {
+    // Navigate elsewhere first: pushing to the exact route already active
+    // (the outer beforeEach already pushed '/') is a no-op in vue-router
+    // and never re-runs the guard, so the assertion would trivially fail.
+    await router.push('/registro');
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     await router.push('/');
     expect(router.currentRoute.value.name).toBe('has-entry');
   });
 
   it('redirects a registered visitor away from / to /esperando once voting has started', async () => {
+    await router.push('/registro');
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     useContestStore().phase = 'VOTING';
     await router.push('/');
