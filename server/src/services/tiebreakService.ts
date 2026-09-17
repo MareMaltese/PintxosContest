@@ -206,11 +206,12 @@ function resolveGroups(
 }
 
 export function advance(db: Database.Database): AdvanceResult {
-  const mainResult = resolveGroups(db, 'MAIN', podiumTieGroups(computeStandings(db)));
+  // A group tied at 0 total means nobody voted with that system at all -- there
+  // is no real podium dispute to resolve, so it must not trigger a tiebreak round.
+  const mainGroups = podiumTieGroups(computeStandings(db)).filter((group) => group[0].voteCount > 0);
+  const mainResult = resolveGroups(db, 'MAIN', mainGroups);
   if (mainResult) return mainResult;
 
-  // A group tied at 0 total means nobody assigned any medals at all -- there is
-  // no real podium dispute to resolve, so it must not trigger a tiebreak round.
   const medalGroups = podiumTieGroups(computeMedalStandings(db)).filter((group) => group[0].total > 0);
   const medalResult = resolveGroups(db, 'MEDAL', medalGroups);
   if (medalResult) return medalResult;

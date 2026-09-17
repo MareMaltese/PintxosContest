@@ -139,6 +139,15 @@ describe('tiebreakService', () => {
     const result = advance(db);
     expect(result.phase).toBe('RESULTS');
   });
+
+  it('does not open a MAIN tiebreak round when nobody has cast any favorite votes', () => {
+    makeEntry('A');
+    makeEntry('B');
+    startContest(db);
+    // every entry is tied at 0 favorite votes -- this is not a real dispute
+    const result = advance(db);
+    expect(result.phase).toBe('RESULTS');
+  });
 });
 
 describe('tiebreakService — medal podium (kind = MEDAL)', () => {
