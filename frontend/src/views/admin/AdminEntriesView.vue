@@ -106,7 +106,6 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             <th>Plata</th>
             <th>Bronce</th>
             <th />
-            <th />
           </tr>
         </thead>
         <tbody>
@@ -122,7 +121,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             <td>{{ entry.gold }}</td>
             <td>{{ entry.silver }}</td>
             <td>{{ entry.bronze }}</td>
-            <td>
+            <td class="admin-table__actions">
               <button
                 class="admin-table__edit"
                 type="button"
@@ -131,11 +130,9 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
               >
                 <Icon
                   name="pencil"
-                  :size="18"
+                  :size="16"
                 />
               </button>
-            </td>
-            <td>
               <button
                 class="admin-table__delete"
                 type="button"
@@ -144,7 +141,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
               >
                 <Icon
                   name="trash"
-                  :size="18"
+                  :size="16"
                 />
               </button>
             </td>
@@ -199,20 +196,32 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
   font-size: 0.9rem;
 }
 
-.admin-table button {
-  background: none;
+.admin-table__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.admin-table__edit,
+.admin-table__delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: none;
-  color: var(--color-primary);
-  font-weight: 600;
+  border-radius: 50%;
+  color: #fff;
   cursor: pointer;
-  padding: var(--space-1) var(--space-2);
+  padding: 0;
 }
 
 .admin-table__edit {
-  color: var(--color-bronze) !important;
+  background: var(--color-bronze);
 }
 
 .admin-table__delete {
-  color: var(--color-danger) !important;
+  background: var(--color-danger);
 }
 </style>
