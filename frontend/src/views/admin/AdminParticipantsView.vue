@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AdminNav from '../../components/admin/AdminNav.vue';
+import Icon from '../../components/common/Icon.vue';
 import { useAdminDashboard, type AdminPerson } from '../../composables/useAdminDashboard';
 import { formatRelativeTime } from '../../services/relativeTime';
 import { api, ApiError } from '../../services/api';
@@ -87,16 +88,24 @@ async function deletePerson(person: AdminPerson): Promise<void> {
               <button
                 class="admin-table__edit"
                 type="button"
+                aria-label="Editar"
                 @click="renamePerson(person)"
               >
-                Editar
+                <Icon
+                  name="pencil"
+                  :size="18"
+                />
               </button>
               <button
                 class="admin-table__delete"
                 type="button"
+                aria-label="Eliminar"
                 @click="deletePerson(person)"
               >
-                Eliminar
+                <Icon
+                  name="trash"
+                  :size="18"
+                />
               </button>
             </td>
           </tr>
@@ -157,6 +166,10 @@ async function deletePerson(person: AdminPerson): Promise<void> {
   font-weight: 600;
   cursor: pointer;
   padding: var(--space-1) var(--space-2);
+}
+
+.admin-table__edit {
+  color: var(--color-bronze) !important;
 }
 
 .admin-table__delete {

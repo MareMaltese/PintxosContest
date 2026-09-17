@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import AdminNav from '../../components/admin/AdminNav.vue';
+import Icon from '../../components/common/Icon.vue';
 import { api, ApiError } from '../../services/api';
 
 interface AdminEntry {
@@ -124,16 +125,24 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
               <button
                 class="admin-table__edit"
                 type="button"
+                aria-label="Editar"
                 @click="editEntry(entry)"
               >
-                Editar
+                <Icon
+                  name="pencil"
+                  :size="18"
+                />
               </button>
               <button
                 class="admin-table__delete"
                 type="button"
+                aria-label="Eliminar"
                 @click="deleteEntry(entry)"
               >
-                Eliminar
+                <Icon
+                  name="trash"
+                  :size="18"
+                />
               </button>
             </td>
           </tr>
@@ -194,6 +203,10 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
   font-weight: 600;
   cursor: pointer;
   padding: var(--space-1) var(--space-2);
+}
+
+.admin-table__edit {
+  color: var(--color-bronze) !important;
 }
 
 .admin-table__delete {
