@@ -2,12 +2,15 @@ import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
 import { AppError } from '../middleware/errors';
 import { getContest, setPhase } from './contestService';
-import { computeStandings, podiumTieGroups } from './rankingService';
+import { computeStandings, podiumTieGroups, computeMedalStandings } from './rankingService';
+
+export type TiebreakKind = 'MAIN' | 'MEDAL';
 
 export interface TiebreakRound {
   id: string;
   roundNumber: number;
   targetRank: number;
+  kind: TiebreakKind;
   status: 'OPEN' | 'CLOSED';
   createdAt: string;
   closedAt: string | null;
@@ -20,16 +23,21 @@ export interface EntrySummary {
   imagePath: string;
 }
 
-export function openRound(db: Database.Database, targetRank: number, candidateEntryIds: string[]): TiebreakRound {
+export function openRound(
+  db: Database.Database,
+  targetRank: number,
+  candidateEntryIds: string[],
+  kind: TiebreakKind = 'MAIN'
+): TiebreakRound {
   const now = new Date().toISOString();
   const prevMax = db.prepare('SELECT MAX(roundNumber) as m FROM TiebreakRound').get() as { m: number | null };
   const roundNumber = (prevMax.m ?? 0) + 1;
   const id = randomUUID();
   const tx = db.transaction(() => {
     db.prepare(
-      `INSERT INTO TiebreakRound (id, roundNumber, targetRank, status, createdAt, closedAt)
-       VALUES (?, ?, ?, 'OPEN', ?, NULL)`
-    ).run(id, roundNumber, targetRank, now);
+      `INSERT INTO TiebreakRound (id, roundNumber, targetRank, kind, status, createdAt, closedAt)
+       VALUES (?, ?, ?, ?, 'OPEN', ?, NULL)`
+    ).run(id, roundNumber, targetRank, kind, now);
     const insertCandidate = db.prepare('INSERT INTO TiebreakCandidate (roundId, entryId) VALUES (?, ?)');
     for (const entryId of candidateEntryIds) {
       insertCandidate.run(id, entryId);
@@ -110,21 +118,27 @@ export interface CloseRoundResult {
   tiedEntryIds?: string[];
 }
 
+function tallyRound(db: Database.Database, roundId: string): { entryId: string; votes: number }[] {
+  return db
+    .prepare(
+      'SELECT entryId, COUNT(*) as votes FROM TiebreakVote WHERE roundId = ? GROUP BY entryId ORDER BY votes DESC'
+    )
+    .all(roundId) as { entryId: string; votes: number }[];
+}
+
 export function closeRound(db: Database.Database, roundId: string): CloseRoundResult {
   const round = getRoundById(db, roundId);
   if (!round || round.status !== 'OPEN') {
     throw new AppError(409, 'ROUND_NOT_OPEN', 'Esta ronda ya está cerrada.');
   }
-  const tally = db
-    .prepare('SELECT entryId, COUNT(*) as votes FROM TiebreakVote WHERE roundId = ? GROUP BY entryId ORDER BY votes DESC')
-    .all(roundId) as { entryId: string; votes: number }[];
+  const tally = tallyRound(db, roundId);
 
   const now = new Date().toISOString();
   db.prepare("UPDATE TiebreakRound SET status = 'CLOSED', closedAt = ? WHERE id = ?").run(now, roundId);
 
   if (tally.length === 0) {
     const candidates = getCandidateIds(db, roundId);
-    openRound(db, round.targetRank, candidates);
+    openRound(db, round.targetRank, candidates, round.kind);
     return { status: 'STILL_TIED', tiedEntryIds: candidates };
   }
 
@@ -132,24 +146,36 @@ export function closeRound(db: Database.Database, roundId: string): CloseRoundRe
   const winners = tally.filter((t) => t.votes === topVotes).map((t) => t.entryId);
 
   if (winners.length > 1) {
-    openRound(db, round.targetRank, winners);
+    openRound(db, round.targetRank, winners, round.kind);
     return { status: 'STILL_TIED', tiedEntryIds: winners };
   }
 
   return { status: 'RESOLVED', winnerEntryId: winners[0] };
 }
 
-function isRankResolved(db: Database.Database, targetRank: number): boolean {
+function isRankResolved(db: Database.Database, kind: TiebreakKind, targetRank: number): boolean {
   const lastRound = db
-    .prepare('SELECT id, status FROM TiebreakRound WHERE targetRank = ? ORDER BY roundNumber DESC LIMIT 1')
-    .get(targetRank) as { id: string; status: string } | undefined;
+    .prepare('SELECT id, status FROM TiebreakRound WHERE targetRank = ? AND kind = ? ORDER BY roundNumber DESC LIMIT 1')
+    .get(targetRank, kind) as { id: string; status: string } | undefined;
   if (!lastRound || lastRound.status !== 'CLOSED') return false;
-  const tally = db
-    .prepare('SELECT entryId, COUNT(*) as votes FROM TiebreakVote WHERE roundId = ? GROUP BY entryId ORDER BY votes DESC')
-    .all(lastRound.id) as { entryId: string; votes: number }[];
+  const tally = tallyRound(db, lastRound.id);
   if (tally.length === 0) return false;
   const top = tally[0].votes;
   return tally.filter((t) => t.votes === top).length === 1;
+}
+
+export function getResolvedWinner(db: Database.Database, kind: TiebreakKind, targetRank: number): string | null {
+  const lastRound = db
+    .prepare(
+      "SELECT id FROM TiebreakRound WHERE targetRank = ? AND kind = ? AND status = 'CLOSED' ORDER BY roundNumber DESC LIMIT 1"
+    )
+    .get(targetRank, kind) as { id: string } | undefined;
+  if (!lastRound) return null;
+  const tally = tallyRound(db, lastRound.id);
+  if (tally.length === 0) return null;
+  const top = tally[0].votes;
+  const winners = tally.filter((t) => t.votes === top);
+  return winners.length === 1 ? winners[0].entryId : null;
 }
 
 export interface AdvanceResult {
@@ -157,22 +183,38 @@ export interface AdvanceResult {
   openedRound?: TiebreakRound;
 }
 
-export function advance(db: Database.Database): AdvanceResult {
-  const standings = computeStandings(db);
-  const groups = podiumTieGroups(standings);
+function resolveGroups(
+  db: Database.Database,
+  kind: TiebreakKind,
+  groups: { entryId: string; rank: number }[][]
+): AdvanceResult | null {
   for (const group of groups) {
     const rank = group[0].rank;
-    if (isRankResolved(db, rank)) continue;
+    if (isRankResolved(db, kind, rank)) continue;
     if (getOpenRoundId(db)) {
       return { phase: 'TIEBREAK' };
     }
     const round = openRound(
       db,
       rank,
-      group.map((g) => g.entryId)
+      group.map((g) => g.entryId),
+      kind
     );
     return { phase: 'TIEBREAK', openedRound: round };
   }
+  return null;
+}
+
+export function advance(db: Database.Database): AdvanceResult {
+  const mainResult = resolveGroups(db, 'MAIN', podiumTieGroups(computeStandings(db)));
+  if (mainResult) return mainResult;
+
+  // A group tied at 0 total means nobody assigned any medals at all -- there is
+  // no real podium dispute to resolve, so it must not trigger a tiebreak round.
+  const medalGroups = podiumTieGroups(computeMedalStandings(db)).filter((group) => group[0].total > 0);
+  const medalResult = resolveGroups(db, 'MEDAL', medalGroups);
+  if (medalResult) return medalResult;
+
   setPhase(db, 'RESULTS');
   return { phase: 'RESULTS' };
 }
