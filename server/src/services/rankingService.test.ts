@@ -5,7 +5,7 @@ import { createUser } from './userService';
 import { createEntry } from './entryService';
 import { addVote } from './voteService';
 import { setAllowSelfVote, startContest } from './contestService';
-import { computeStandings, podiumTieGroups } from './rankingService';
+import { computeStandings, podiumTieGroups, computeMedalStandings } from './rankingService';
 
 let db: Database.Database;
 
@@ -72,5 +72,56 @@ describe('rankingService', () => {
     addVote(db, v1.id, a.id);
     const standings = computeStandings(db);
     expect(podiumTieGroups(standings)).toHaveLength(0);
+  });
+});
+
+describe('computeMedalStandings', () => {
+  it('ranks entries by total medal score, using competition ranking for ties', () => {
+    const a = makeEntry('A');
+    const b = makeEntry('B');
+    const c = makeEntry('C');
+    startContest(db);
+    const voter = createUser(db, 'voter');
+    const insert = db.prepare(
+      "INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, datetime('now'))"
+    );
+    insert.run('m1', voter.id, a.id, 'GOLD'); // 5 points
+    insert.run('m2', createUser(db, 'v2').id, b.id, 'SILVER'); // 3 points
+    // c has no medals: 0 points
+
+    const standings = computeMedalStandings(db);
+    const byId = Object.fromEntries(standings.map((s) => [s.entryId, s]));
+    expect(byId[a.id].total).toBe(5);
+    expect(byId[a.id].rank).toBe(1);
+    expect(byId[b.id].total).toBe(3);
+    expect(byId[b.id].rank).toBe(2);
+    expect(byId[c.id].total).toBe(0);
+    expect(byId[c.id].rank).toBe(3);
+    expect(byId[a.id].gold).toBe(1);
+    expect(byId[b.id].silver).toBe(1);
+    expect(byId[a.id].creatorName).toBe('creator-of-A');
+  });
+
+  it('podiumTieGroups also works with medal standings', () => {
+    const a = makeEntry('A');
+    const b = makeEntry('B');
+    startContest(db);
+    const voter = createUser(db, 'voter');
+    db.prepare("INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, datetime('now'))").run(
+      'm1',
+      voter.id,
+      a.id,
+      'BRONZE'
+    );
+    db.prepare("INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, datetime('now'))").run(
+      'm2',
+      createUser(db, 'v2').id,
+      b.id,
+      'BRONZE'
+    );
+
+    const groups = podiumTieGroups(computeMedalStandings(db));
+    expect(groups).toHaveLength(1);
+    expect(groups[0].map((s) => s.entryId).sort()).toEqual([a.id, b.id].sort());
   });
 });
