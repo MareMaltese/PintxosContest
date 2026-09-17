@@ -19,10 +19,18 @@ function no(): void {
         ¿Has traído algún pincho?
       </h1>
       <div class="has-entry__actions">
-        <button class="button button--primary button--block" type="button" @click="yes">
+        <button
+          class="button button--primary button--block"
+          type="button"
+          @click="yes"
+        >
           Sí, quiero registrar mi pincho
         </button>
-        <button class="button button--secondary button--block" type="button" @click="no">
+        <button
+          class="button button--secondary button--block"
+          type="button"
+          @click="no"
+        >
           No, solo vengo a comer 😄
         </button>
       </div>

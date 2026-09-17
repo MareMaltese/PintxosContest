@@ -20,7 +20,12 @@ function goToRegister(): void {
   <main class="welcome">
     <div class="welcome__card">
       <template v-if="!session.user">
-        <img v-if="coverImageUrl" :src="coverImageUrl" alt="" class="welcome__cover">
+        <img
+          v-if="coverImageUrl"
+          :src="coverImageUrl"
+          alt=""
+          class="welcome__cover"
+        >
         <h1 class="welcome__title">
           ¡Bienvenido al concurso de pinchos!
         </h1>

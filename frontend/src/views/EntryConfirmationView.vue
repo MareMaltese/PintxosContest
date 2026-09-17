@@ -37,10 +37,18 @@ function finish(): void {
       </h1>
 
       <div class="confirmation__actions">
-        <button class="button button--secondary button--block" type="button" @click="registerAnother">
+        <button
+          class="button button--secondary button--block"
+          type="button"
+          @click="registerAnother"
+        >
           Registrar otro pincho
         </button>
-        <button class="button button--primary button--block" type="button" @click="finish">
+        <button
+          class="button button--primary button--block"
+          type="button"
+          @click="finish"
+        >
           Terminar
         </button>
       </div>

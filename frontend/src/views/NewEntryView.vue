@@ -70,7 +70,10 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <main class="new-entry">
-    <form class="new-entry__card" @submit.prevent="onSubmit">
+    <form
+      class="new-entry__card"
+      @submit.prevent="onSubmit"
+    >
       <h1 class="new-entry__title">
         Registra tu pincho
       </h1>
@@ -87,18 +90,40 @@ async function onSubmit(): Promise<void> {
         @change="onFileChange"
       >
 
-      <button type="button" class="new-entry__photo-picker" @click="pickPhoto">
-        <img v-if="previewUrl" :src="previewUrl" alt="" class="new-entry__preview">
-        <span v-else class="new-entry__photo-placeholder">
-          <Camera :size="32" aria-hidden="true" />
+      <button
+        type="button"
+        class="new-entry__photo-picker"
+        @click="pickPhoto"
+      >
+        <img
+          v-if="previewUrl"
+          :src="previewUrl"
+          alt=""
+          class="new-entry__preview"
+        >
+        <span
+          v-else
+          class="new-entry__photo-placeholder"
+        >
+          <Camera
+            :size="32"
+            aria-hidden="true"
+          />
           <span>Hacer foto</span>
         </span>
       </button>
-      <p v-if="touched && !selectedFile" class="new-entry__error" role="alert">
+      <p
+        v-if="touched && !selectedFile"
+        class="new-entry__error"
+        role="alert"
+      >
         Haz una foto de tu pincho para continuar.
       </p>
 
-      <label class="new-entry__label" for="entry-name">Nombre del pincho (opcional)</label>
+      <label
+        class="new-entry__label"
+        for="entry-name"
+      >Nombre del pincho (opcional)</label>
       <input
         id="entry-name"
         v-model="name"
@@ -108,7 +133,10 @@ async function onSubmit(): Promise<void> {
         maxlength="80"
       >
 
-      <label class="new-entry__label" for="entry-description">Descripción (opcional)</label>
+      <label
+        class="new-entry__label"
+        for="entry-description"
+      >Descripción (opcional)</label>
       <textarea
         id="entry-description"
         v-model="description"
@@ -118,11 +146,19 @@ async function onSubmit(): Promise<void> {
         rows="3"
       />
 
-      <p v-if="submitError" class="new-entry__error" role="alert">
+      <p
+        v-if="submitError"
+        class="new-entry__error"
+        role="alert"
+      >
         {{ submitError }}
       </p>
 
-      <button class="button button--primary button--block" type="submit" :disabled="isSubmitting">
+      <button
+        class="button button--primary button--block"
+        type="submit"
+        :disabled="isSubmitting"
+      >
         {{ isSubmitting ? 'Subiendo tu pincho…' : 'Registrar pincho' }}
       </button>
     </form>
