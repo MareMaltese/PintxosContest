@@ -25,6 +25,10 @@ app.use('/api/tiebreak', tiebreakRouter);
 app.use('/api/results', resultsRouter);
 app.use('/api/admin', adminRouter);
 
+app.use('/api', (_req, res) => {
+  res.status(404).json({ code: 'NOT_FOUND', message: 'Ese endpoint no existe.' });
+});
+
 if (config.nodeEnv === 'production') {
   const clientDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
   app.use(express.static(clientDist));
