@@ -23,6 +23,8 @@ body {
 
 h1 {
   color: var(--color-title);
+  font-family: var(--font-title);
+  text-transform: uppercase;
 }
 
 button {

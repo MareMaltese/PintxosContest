@@ -29,7 +29,7 @@ describe('WaitingRoomView', () => {
   it('shows a started message once the phase leaves REGISTRATION', () => {
     useContestStore().phase = 'VOTING';
     const wrapper = mount(WaitingRoomView);
-    expect(wrapper.text()).toContain('¡El concurso ha empezado!');
+    expect(wrapper.text()).toContain('¡El concurso ha comenzado!');
   });
 
   it('navigates to the gallery once the phase changes while mounted', async () => {

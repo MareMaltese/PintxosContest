@@ -22,7 +22,7 @@ watch(
   <main class="waiting">
     <div class="waiting__card">
       <h1 class="waiting__title">
-        {{ contest.phase === 'REGISTRATION' ? 'Ya estás dentro' : '¡El concurso ha empezado!' }}
+        {{ contest.phase === 'REGISTRATION' ? 'Ya estás dentro' : '¡El concurso ha comenzado!' }}
       </h1>
       <p class="waiting__subtitle">
         <template v-if="contest.phase === 'REGISTRATION'">
@@ -30,7 +30,7 @@ watch(
           actualiza sola, no hace falta que recargues.
         </template>
         <template v-else>
-          Ya puedes probar los pinchos y elegir tus favoritos — la galería
+          Ya puedes probar las tapas y pinchos para elegir tus favoritos — la galería
           está al caer.
         </template>
       </p>
