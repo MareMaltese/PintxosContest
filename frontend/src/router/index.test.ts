@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useSessionStore } from '../stores/session';
 import { useContestStore } from '../stores/contest';
+import { useAdminAuthStore } from '../stores/adminAuth';
 import { router } from './index';
 
 beforeEach(async () => {
@@ -83,5 +84,36 @@ describe('router', () => {
     expect(router.currentRoute.value.name).toBe('gallery');
     await router.push('/galeria/e1');
     expect(router.currentRoute.value.name).toBe('entry-detail');
+  });
+
+  it('blocks an unauthenticated visitor from every admin route except /admin', async () => {
+    for (const path of ['/admin/dashboard', '/admin/participantes', '/admin/tapas', '/admin/fases']) {
+      await router.push(path);
+      expect(router.currentRoute.value.name).toBe('admin-login');
+    }
+  });
+
+  it('lets an unauthenticated visitor reach /admin', async () => {
+    await router.push('/admin');
+    expect(router.currentRoute.value.name).toBe('admin-login');
+  });
+
+  it('redirects an authenticated admin away from /admin to the dashboard', async () => {
+    useAdminAuthStore().pin = '1234';
+    await router.push('/admin');
+    expect(router.currentRoute.value.name).toBe('admin-dashboard');
+  });
+
+  it('lets an authenticated admin reach every admin route', async () => {
+    useAdminAuthStore().pin = '1234';
+    for (const [path, name] of [
+      ['/admin/dashboard', 'admin-dashboard'],
+      ['/admin/participantes', 'admin-participants'],
+      ['/admin/tapas', 'admin-entries'],
+      ['/admin/fases', 'admin-phases'],
+    ] as const) {
+      await router.push(path);
+      expect(router.currentRoute.value.name).toBe(name);
+    }
   });
 });

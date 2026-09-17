@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useSessionStore } from '../stores/session';
 import { useContestStore } from '../stores/contest';
+import { useAdminAuthStore } from '../stores/adminAuth';
 
 const SESSION_REQUIRED_ROUTES = [
   'has-entry',
@@ -12,6 +13,7 @@ const SESSION_REQUIRED_ROUTES = [
 ];
 const REGISTRATION_ONLY_ROUTES = ['has-entry', 'new-entry'];
 const GALLERY_ROUTES = ['gallery', 'entry-detail'];
+const ADMIN_ROUTES = ['admin-dashboard', 'admin-participants', 'admin-entries', 'admin-phases'];
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -28,6 +30,19 @@ export const router = createRouter({
     { path: '/esperando', name: 'waiting-room', component: () => import('../views/WaitingRoomView.vue') },
     { path: '/galeria', name: 'gallery', component: () => import('../views/GalleryView.vue') },
     { path: '/galeria/:id', name: 'entry-detail', component: () => import('../views/EntryDetailView.vue') },
+    { path: '/admin', name: 'admin-login', component: () => import('../views/admin/AdminLoginView.vue') },
+    {
+      path: '/admin/dashboard',
+      name: 'admin-dashboard',
+      component: () => import('../views/admin/AdminDashboardView.vue'),
+    },
+    {
+      path: '/admin/participantes',
+      name: 'admin-participants',
+      component: () => import('../views/admin/AdminParticipantsView.vue'),
+    },
+    { path: '/admin/tapas', name: 'admin-entries', component: () => import('../views/admin/AdminEntriesView.vue') },
+    { path: '/admin/fases', name: 'admin-phases', component: () => import('../views/admin/AdminPhasesView.vue') },
   ],
 });
 
@@ -56,5 +71,13 @@ router.beforeEach((to) => {
 
   if (GALLERY_ROUTES.includes(name) && registrationOpen) {
     return { name: 'waiting-room' };
+  }
+
+  const adminAuth = useAdminAuthStore();
+  if (ADMIN_ROUTES.includes(name) && !adminAuth.pin) {
+    return { name: 'admin-login' };
+  }
+  if (name === 'admin-login' && adminAuth.pin) {
+    return { name: 'admin-dashboard' };
   }
 });
