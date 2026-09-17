@@ -5,15 +5,18 @@ import { X } from '@lucide/vue';
 import { ApiError } from '../services/api';
 import { useEntriesStore, type EntryDetail } from '../stores/entries';
 import { useVotesStore } from '../stores/votes';
+import { useMedalVotesStore } from '../stores/medalVotes';
 import { useContestStore } from '../stores/contest';
 import { useSessionStore } from '../stores/session';
 import FavoriteButton from '../components/entries/FavoriteButton.vue';
 import FavoriteCounter from '../components/entries/FavoriteCounter.vue';
+import MedalButtons from '../components/entries/MedalButtons.vue';
 
 const route = useRoute();
 const router = useRouter();
 const entries = useEntriesStore();
 const votes = useVotesStore();
+const medals = useMedalVotesStore();
 const contest = useContestStore();
 const session = useSessionStore();
 
@@ -45,6 +48,9 @@ onMounted(() => {
   load();
   votes.init().catch(() => {
     // un fallo al cargar los favoritos no debe bloquear la vista de la tapa
+  });
+  medals.init().catch(() => {
+    // un fallo al cargar las medallas no debe bloquear la vista de la tapa
   });
 });
 </script>
@@ -118,6 +124,11 @@ onMounted(() => {
           :entry-id="entry.id"
           :disabled="selfVoteBlocked"
           disabled-reason="No puedes votar tu propio pincho."
+        />
+        <MedalButtons
+          :entry-id="entry.id"
+          :disabled="selfVoteBlocked"
+          disabled-reason="No puedes puntuar tu propio pincho."
         />
       </div>
     </div>

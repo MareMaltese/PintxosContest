@@ -11,7 +11,7 @@ vi.mock('vue-router', () => ({
 
 vi.mock('../services/api', async () => {
   const actual = await vi.importActual<typeof import('../services/api')>('../services/api');
-  return { ...actual, api: { ...actual.api, get: vi.fn(), post: vi.fn(), delete: vi.fn() } };
+  return { ...actual, api: { ...actual.api, get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } };
 });
 
 import { api } from '../services/api';
@@ -92,9 +92,11 @@ describe('EntryDetailView', () => {
   });
 
   it('shows the favorite button and counter during VOTING', async () => {
-    vi.mocked(api.get).mockImplementation((path: string) =>
-      path === '/api/votes/me' ? Promise.resolve({ entryIds: [], limit: 3 }) : Promise.resolve(mockEntry())
-    );
+    vi.mocked(api.get).mockImplementation((path: string) => {
+      if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });
+      if (path === '/api/medal-votes/me') return Promise.resolve({ gold: null, silver: null, bronze: null });
+      return Promise.resolve(mockEntry());
+    });
     useContestStore().phase = 'VOTING';
     useSessionStore().user = { id: 'me', name: 'Yo' };
     const wrapper = mount(EntryDetailView);
@@ -104,10 +106,28 @@ describe('EntryDetailView', () => {
     expect(wrapper.text()).toContain('Me encanta!');
   });
 
+  it('shows the medal buttons during VOTING', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) => {
+      if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });
+      if (path === '/api/medal-votes/me') return Promise.resolve({ gold: null, silver: null, bronze: null });
+      return Promise.resolve(mockEntry());
+    });
+    useContestStore().phase = 'VOTING';
+    useSessionStore().user = { id: 'me', name: 'Yo' };
+    const wrapper = mount(EntryDetailView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Oro');
+    expect(wrapper.text()).toContain('Plata');
+    expect(wrapper.text()).toContain('Bronce');
+  });
+
   it('hides voting UI outside the VOTING phase', async () => {
-    vi.mocked(api.get).mockImplementation((path: string) =>
-      path === '/api/votes/me' ? Promise.resolve({ entryIds: [], limit: 3 }) : Promise.resolve(mockEntry())
-    );
+    vi.mocked(api.get).mockImplementation((path: string) => {
+      if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });
+      if (path === '/api/medal-votes/me') return Promise.resolve({ gold: null, silver: null, bronze: null });
+      return Promise.resolve(mockEntry());
+    });
     useContestStore().phase = 'RESULTS';
     useSessionStore().user = { id: 'me', name: 'Yo' };
     const wrapper = mount(EntryDetailView);
@@ -118,9 +138,11 @@ describe('EntryDetailView', () => {
   });
 
   it('disables voting on your own entry when self-vote is not allowed', async () => {
-    vi.mocked(api.get).mockImplementation((path: string) =>
-      path === '/api/votes/me' ? Promise.resolve({ entryIds: [], limit: 3 }) : Promise.resolve(mockEntry({ creatorId: 'me' }))
-    );
+    vi.mocked(api.get).mockImplementation((path: string) => {
+      if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });
+      if (path === '/api/medal-votes/me') return Promise.resolve({ gold: null, silver: null, bronze: null });
+      return Promise.resolve(mockEntry({ creatorId: 'me' }));
+    });
     const contest = useContestStore();
     contest.phase = 'VOTING';
     contest.allowSelfVote = false;
@@ -133,9 +155,11 @@ describe('EntryDetailView', () => {
   });
 
   it('closing the detail view navigates back to the gallery', async () => {
-    vi.mocked(api.get).mockImplementation((path: string) =>
-      path === '/api/votes/me' ? Promise.resolve({ entryIds: [], limit: 3 }) : Promise.resolve(mockEntry())
-    );
+    vi.mocked(api.get).mockImplementation((path: string) => {
+      if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });
+      if (path === '/api/medal-votes/me') return Promise.resolve({ gold: null, silver: null, bronze: null });
+      return Promise.resolve(mockEntry());
+    });
     const wrapper = mount(EntryDetailView);
     await flushPromises();
 
