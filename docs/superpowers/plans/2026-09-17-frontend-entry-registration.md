@@ -1359,12 +1359,43 @@ async function onSubmit(): Promise<void> {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `cd frontend && npx vitest run src/views/NewEntryView.test.ts`
-Expected: PASS (3 tests).
+Expected: 3 tests pass, but two **uncaught exceptions** are logged:
+`TypeError: URL.createObjectURL is not a function`. jsdom does not
+implement the Blob URL APIs, and `onFileChange` calls
+`URL.createObjectURL`/`revokeObjectURL` for the photo preview. This is a
+real gap, not a false-positive lib diagnostic — fix it before continuing.
+
+- [ ] **Step 4b: Add a jsdom polyfill — create `frontend/src/test-setup.ts`**
+
+```ts
+// jsdom does not implement the Blob URL APIs. Stub them so components that
+// preview a selected file (e.g. NewEntryView) don't crash under test.
+if (typeof URL.createObjectURL !== 'function') {
+  URL.createObjectURL = () => 'blob:mock-url';
+}
+if (typeof URL.revokeObjectURL !== 'function') {
+  URL.revokeObjectURL = () => {};
+}
+```
+
+Wire it into `frontend/vite.config.ts`'s `test` block:
+
+```ts
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test-setup.ts'],
+  },
+```
+
+- [ ] **Step 4c: Re-run to confirm the exceptions are gone**
+
+Run: `cd frontend && npx vitest run src/views/NewEntryView.test.ts`
+Expected: PASS (3 tests), zero uncaught exceptions.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/views/NewEntryView.vue frontend/src/views/NewEntryView.test.ts
+git add frontend/src/views/NewEntryView.vue frontend/src/views/NewEntryView.test.ts frontend/src/test-setup.ts frontend/vite.config.ts
 git commit -m "Add NewEntryView: camera capture, compression, upload"
 ```
 
