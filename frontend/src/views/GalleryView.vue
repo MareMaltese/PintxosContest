@@ -69,6 +69,7 @@ function openEntry(id: string): void {
         v-for="entry in entries.list"
         :key="entry.id"
         class="gallery__card"
+        :class="{ 'gallery__card--favorite': votes.isFavorite(entry.id) }"
         type="button"
         @click="openEntry(entry.id)"
       >
@@ -141,6 +142,10 @@ function openEntry(id: string): void {
   cursor: pointer;
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
+}
+
+.gallery__card--favorite {
+  box-shadow: 0 0 0 3px var(--color-primary);
 }
 
 .gallery__photo {

@@ -96,4 +96,21 @@ describe('GalleryView', () => {
 
     expect(wrapper.text()).not.toContain('favoritos');
   });
+
+  it('highlights cards that are already favorited', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/votes/me'
+        ? Promise.resolve({ entryIds: ['e1'], limit: 3 })
+        : Promise.resolve([
+            { id: 'e1', number: 1, creatorId: 'u1', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+            { id: 'e2', number: 2, creatorId: 'u2', name: null, description: null, imagePath: 'b.webp', createdAt: 'x' },
+          ])
+    );
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    const cards = wrapper.findAll('.gallery__card');
+    expect(cards[0].classes()).toContain('gallery__card--favorite');
+    expect(cards[1].classes()).not.toContain('gallery__card--favorite');
+  });
 });
