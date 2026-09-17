@@ -57,6 +57,12 @@ async function toggleSelfVote(): Promise<void> {
 async function toggleVotingMode(): Promise<void> {
   if (!data.value) return;
   const next = data.value.votingMode === 'FAVORITES' ? 'MEDALS' : 'FAVORITES';
+  if (data.value.phase !== 'REGISTRATION') {
+    const confirmed = window.confirm(
+      'Ya se ha empezado a votar. Los votos ya emitidos con el sistema actual no se perderán, pero quedarán ocultos y no contarán para el resultado que se muestre. ¿Seguro que quieres cambiar el tipo de puntuación?'
+    );
+    if (!confirmed) return;
+  }
   try {
     await api.patch('/api/admin/contest', { votingMode: next });
     await refetch();

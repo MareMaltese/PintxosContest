@@ -107,8 +107,9 @@ describe('AdminPhasesView', () => {
     expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { allowSelfVote: true });
   });
 
-  it('toggles votingMode between FAVORITES and MEDALS', async () => {
+  it('asks for confirmation before toggling votingMode once voting has started', async () => {
     vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING', false, 'FAVORITES'));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     vi.mocked(api.patch).mockResolvedValue({});
     const wrapper = mount(AdminPhasesView);
     await flushPromises();
@@ -117,6 +118,33 @@ describe('AdminPhasesView', () => {
     await wrapper.find('.admin-phases__voting-mode').trigger('click');
     await flushPromises();
 
+    expect(window.confirm).toHaveBeenCalled();
+    expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { votingMode: 'MEDALS' });
+  });
+
+  it('does not toggle votingMode when the confirmation is declined', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING', false, 'FAVORITES'));
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    await wrapper.find('.admin-phases__voting-mode').trigger('click');
+    await flushPromises();
+
+    expect(api.patch).not.toHaveBeenCalled();
+  });
+
+  it('toggles votingMode without asking during REGISTRATION', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('REGISTRATION', false, 'FAVORITES'));
+    const confirmSpy = vi.spyOn(window, 'confirm');
+    vi.mocked(api.patch).mockResolvedValue({});
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    await wrapper.find('.admin-phases__voting-mode').trigger('click');
+    await flushPromises();
+
+    expect(confirmSpy).not.toHaveBeenCalled();
     expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { votingMode: 'MEDALS' });
   });
 
