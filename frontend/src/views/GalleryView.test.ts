@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { setActivePinia, createPinia } from 'pinia';
 import GalleryView from './GalleryView.vue';
@@ -19,11 +19,17 @@ vi.mock('../services/api', async () => {
 
 import { api } from '../services/api';
 import { useContestStore } from '../stores/contest';
+import { useSessionStore } from '../stores/session';
 
 beforeEach(() => {
+  localStorage.clear();
   setActivePinia(createPinia());
   pushMock.mockClear();
   vi.clearAllMocks();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe('GalleryView', () => {
@@ -125,5 +131,135 @@ describe('GalleryView', () => {
     const cards = wrapper.findAll('.gallery__card');
     expect(cards[0].classes()).toContain('gallery__card--favorite');
     expect(cards[1].classes()).not.toContain('gallery__card--favorite');
+  });
+
+  it('marks your own entries with a black border, in any phase', async () => {
+    useSessionStore().user = { id: 'me', name: 'Laura' };
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 1, creatorId: 'me', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+      { id: 'e2', number: 2, creatorId: 'other', name: null, description: null, imagePath: 'b.webp', createdAt: 'x' },
+    ]);
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    const cards = wrapper.findAll('.gallery__card');
+    expect(cards[0].classes()).toContain('gallery__card--own');
+    expect(cards[1].classes()).not.toContain('gallery__card--own');
+  });
+
+  it('shows a pencil overlay on your own entries during REGISTRATION and edits on click', async () => {
+    useSessionStore().user = { id: 'me', name: 'Laura' };
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 1, creatorId: 'me', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+    ]);
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    expect(wrapper.find('.gallery__own-overlay').exists()).toBe(true);
+    await wrapper.find('.gallery__card').trigger('click');
+    expect(pushMock).toHaveBeenCalledWith({ name: 'edit-entry', params: { id: 'e1' } });
+  });
+
+  it('shows a lock overlay on your own entries once voting starts if self-vote is disallowed', async () => {
+    useSessionStore().user = { id: 'me', name: 'Laura' };
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.allowSelfVote = false;
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/votes/me'
+        ? Promise.resolve({ entryIds: [], limit: 3 })
+        : Promise.resolve([
+            { id: 'e1', number: 1, creatorId: 'me', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+          ])
+    );
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    expect(wrapper.find('.gallery__own-overlay').exists()).toBe(true);
+    await wrapper.find('.gallery__card').trigger('click');
+    expect(pushMock).toHaveBeenCalledWith({ name: 'entry-detail', params: { id: 'e1' } });
+  });
+
+  it('shows no overlay on your own entries once voting starts if self-vote is allowed', async () => {
+    useSessionStore().user = { id: 'me', name: 'Laura' };
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.allowSelfVote = true;
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/votes/me'
+        ? Promise.resolve({ entryIds: [], limit: 3 })
+        : Promise.resolve([
+            { id: 'e1', number: 1, creatorId: 'me', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+          ])
+    );
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    expect(wrapper.find('.gallery__own-overlay').exists()).toBe(false);
+    expect(wrapper.find('.gallery__card').classes()).toContain('gallery__card--own');
+  });
+
+  it('rings a card gold/silver/bronze and shows a medal badge in MEDALS mode', async () => {
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.votingMode = 'MEDALS';
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/medal-votes/me'
+        ? Promise.resolve({ gold: 'e1', silver: null, bronze: null })
+        : Promise.resolve([
+            { id: 'e1', number: 1, creatorId: 'u1', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+            { id: 'e2', number: 2, creatorId: 'u2', name: null, description: null, imagePath: 'b.webp', createdAt: 'x' },
+          ])
+    );
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    const cards = wrapper.findAll('.gallery__card');
+    expect(cards[0].classes()).toContain('gallery__card--gold');
+    expect(cards[0].find('.gallery__medal-badge').exists()).toBe(true);
+    expect(cards[1].classes()).not.toContain('gallery__card--gold');
+    expect(cards[1].find('.gallery__medal-badge').exists()).toBe(false);
+  });
+
+  it('refreshes the list when the refresh button is clicked', async () => {
+    vi.mocked(api.get).mockResolvedValue([]);
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+    vi.mocked(api.get).mockClear();
+
+    await wrapper.find('.gallery__refresh').trigger('click');
+    await flushPromises();
+
+    expect(api.get).toHaveBeenCalledWith('/api/entries');
+  });
+
+  it('warns instead of refreshing again if clicked too soon', async () => {
+    vi.useFakeTimers();
+    vi.mocked(api.get).mockResolvedValue([]);
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    await wrapper.find('.gallery__refresh').trigger('click');
+    vi.mocked(api.get).mockClear();
+    await wrapper.find('.gallery__refresh').trigger('click');
+    await flushPromises();
+
+    expect(api.get).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('No me satures');
+  });
+
+  it('allows refreshing again once the cooldown has passed', async () => {
+    vi.useFakeTimers();
+    vi.mocked(api.get).mockResolvedValue([]);
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    await wrapper.find('.gallery__refresh').trigger('click');
+    vi.advanceTimersByTime(3100);
+    vi.mocked(api.get).mockClear();
+    await wrapper.find('.gallery__refresh').trigger('click');
+    await flushPromises();
+
+    expect(api.get).toHaveBeenCalledWith('/api/entries');
   });
 });

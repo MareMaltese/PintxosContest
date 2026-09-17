@@ -1,17 +1,29 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import { useEntriesStore } from '../stores/entries';
+import { RefreshCw, Lock } from '@lucide/vue';
+import Icon from '../components/common/Icon.vue';
+import { useEntriesStore, type EntrySummary } from '../stores/entries';
 import { useVotesStore } from '../stores/votes';
+import { useMedalVotesStore } from '../stores/medalVotes';
 import { useContestStore } from '../stores/contest';
+import { useSessionStore } from '../stores/session';
 import { useHeartbeat } from '../composables/useHeartbeat';
 import FavoriteCounter from '../components/entries/FavoriteCounter.vue';
+
+const REFRESH_COOLDOWN_MS = 3000;
 
 useHeartbeat();
 const router = useRouter();
 const entries = useEntriesStore();
 const votes = useVotesStore();
+const medals = useMedalVotesStore();
 const contest = useContestStore();
+const session = useSessionStore();
+
+const refreshWarning = ref<string | null>(null);
+let lastRefreshAt = 0;
+let warningTimer: ReturnType<typeof setTimeout> | undefined;
 
 onMounted(() => {
   entries.fetchList().catch(() => {
@@ -20,10 +32,53 @@ onMounted(() => {
   votes.init().catch(() => {
     // un fallo al cargar los favoritos no debe bloquear la galería
   });
+  medals.init().catch(() => {
+    // un fallo al cargar las medallas no debe bloquear la galería
+  });
 });
 
-function openEntry(id: string): void {
-  router.push({ name: 'entry-detail', params: { id } });
+onBeforeUnmount(() => {
+  if (warningTimer) clearTimeout(warningTimer);
+});
+
+function refresh(): void {
+  const now = Date.now();
+  if (now - lastRefreshAt < REFRESH_COOLDOWN_MS) {
+    refreshWarning.value = '¡No me satures! Ya estoy trabajando en ello…';
+    if (warningTimer) clearTimeout(warningTimer);
+    warningTimer = setTimeout(() => {
+      refreshWarning.value = null;
+    }, REFRESH_COOLDOWN_MS);
+    return;
+  }
+  lastRefreshAt = now;
+  refreshWarning.value = null;
+  entries.refreshList();
+}
+
+function isOwn(entry: EntrySummary): boolean {
+  return entry.creatorId === session.user?.id;
+}
+
+function ownOverlayIcon(entry: EntrySummary): 'pencil' | 'lock' | null {
+  if (!isOwn(entry)) return null;
+  if (contest.phase === 'REGISTRATION') return 'pencil';
+  if (!contest.allowSelfVote) return 'lock';
+  return null;
+}
+
+function medalClass(entry: EntrySummary): string | null {
+  if (contest.votingMode !== 'MEDALS') return null;
+  const medal = medals.medalFor(entry.id);
+  return medal ? medal.toLowerCase() : null;
+}
+
+function openEntry(entry: EntrySummary): void {
+  if (isOwn(entry) && contest.phase === 'REGISTRATION') {
+    router.push({ name: 'edit-entry', params: { id: entry.id } });
+    return;
+  }
+  router.push({ name: 'entry-detail', params: { id: entry.id } });
 }
 </script>
 
@@ -33,8 +88,28 @@ function openEntry(id: string): void {
       <h1 class="gallery__title">
         Galería de tapas
       </h1>
-      <FavoriteCounter v-if="contest.phase === 'VOTING' && contest.votingMode === 'FAVORITES'" />
+      <div class="gallery__header-actions">
+        <FavoriteCounter v-if="contest.phase === 'VOTING' && contest.votingMode === 'FAVORITES'" />
+        <button
+          class="gallery__refresh"
+          type="button"
+          aria-label="Actualizar"
+          @click="refresh"
+        >
+          <RefreshCw
+            :size="20"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
     </div>
+
+    <p
+      v-if="refreshWarning"
+      class="gallery__refresh-warning"
+    >
+      {{ refreshWarning }}
+    </p>
 
     <p
       v-if="entries.isLoadingList"
@@ -69,9 +144,13 @@ function openEntry(id: string): void {
         v-for="entry in entries.list"
         :key="entry.id"
         class="gallery__card"
-        :class="{ 'gallery__card--favorite': votes.isFavorite(entry.id) }"
+        :class="{
+          'gallery__card--favorite': contest.votingMode === 'FAVORITES' && votes.isFavorite(entry.id),
+          'gallery__card--own': isOwn(entry),
+          [`gallery__card--${medalClass(entry)}`]: medalClass(entry),
+        }"
         type="button"
-        @click="openEntry(entry.id)"
+        @click="openEntry(entry)"
       >
         <img
           :src="`/uploads/${entry.imagePath}`"
@@ -79,6 +158,33 @@ function openEntry(id: string): void {
           class="gallery__photo"
         >
         <span class="gallery__number">#{{ String(entry.number).padStart(2, '0') }}</span>
+
+        <div
+          v-if="ownOverlayIcon(entry)"
+          class="gallery__own-overlay"
+        >
+          <Icon
+            v-if="ownOverlayIcon(entry) === 'pencil'"
+            name="pencil"
+            :size="28"
+          />
+          <Lock
+            v-else
+            :size="28"
+            aria-hidden="true"
+          />
+        </div>
+
+        <div
+          v-if="medalClass(entry)"
+          class="gallery__medal-badge"
+          :class="`gallery__medal-badge--${medalClass(entry)}`"
+        >
+          <Icon
+            name="medal"
+            :size="18"
+          />
+        </div>
       </button>
     </div>
   </main>
@@ -96,12 +202,39 @@ function openEntry(id: string): void {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  margin: 0 0 var(--space-5);
+  margin: 0 0 var(--space-2);
+}
+
+.gallery__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .gallery__title {
   font-size: 1.5rem;
   margin: 0;
+}
+
+.gallery__refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.gallery__refresh-warning {
+  color: var(--color-danger);
+  text-align: center;
+  margin: 0 0 var(--space-3);
+  font-size: 0.9rem;
 }
 
 .gallery__status {
@@ -148,6 +281,23 @@ function openEntry(id: string): void {
   box-shadow: 0 0 0 3px var(--color-primary);
 }
 
+.gallery__card--gold {
+  box-shadow: 0 0 0 3px var(--color-gold);
+}
+
+.gallery__card--silver {
+  box-shadow: 0 0 0 3px var(--color-silver);
+}
+
+.gallery__card--bronze {
+  box-shadow: 0 0 0 3px var(--color-bronze);
+}
+
+.gallery__card--own {
+  outline: 3px solid #000;
+  outline-offset: -3px;
+}
+
 .gallery__photo {
   width: 100%;
   height: 100%;
@@ -166,5 +316,43 @@ function openEntry(id: string): void {
   padding: 2px 8px;
   border-radius: 999px;
   letter-spacing: 0.02em;
+}
+
+.gallery__own-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+}
+
+.gallery__medal-badge {
+  position: absolute;
+  z-index: 2;
+  bottom: var(--space-2);
+  right: var(--space-2);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.gallery__medal-badge--gold {
+  color: var(--color-gold);
+}
+
+.gallery__medal-badge--silver {
+  color: var(--color-silver);
+}
+
+.gallery__medal-badge--bronze {
+  color: var(--color-bronze);
 }
 </style>
