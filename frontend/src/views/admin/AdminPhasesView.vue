@@ -83,18 +83,28 @@ async function revealResults(): Promise<void> {
         Control de fases
       </h1>
 
-      <p v-if="isLoading" class="admin-phases__status">
+      <p
+        v-if="isLoading"
+        class="admin-phases__status"
+      >
         Cargando…
       </p>
       <template v-else-if="error">
         <p class="admin-phases__status admin-phases__status--error">
           {{ error }}
         </p>
-        <button class="button button--secondary" type="button" @click="refetch">
+        <button
+          class="button button--secondary"
+          type="button"
+          @click="refetch"
+        >
           Reintentar
         </button>
       </template>
-      <div v-else-if="data" class="admin-phases__actions">
+      <div
+        v-else-if="data"
+        class="admin-phases__actions"
+      >
         <button
           v-if="data.phase === 'REGISTRATION'"
           class="button button--primary admin-phases__start"
@@ -131,7 +141,11 @@ async function revealResults(): Promise<void> {
           Mostrar resultados
         </button>
 
-        <button class="button button--secondary admin-phases__self-vote" type="button" @click="toggleSelfVote">
+        <button
+          class="button button--secondary admin-phases__self-vote"
+          type="button"
+          @click="toggleSelfVote"
+        >
           Autovoto: {{ data.allowSelfVote ? 'permitido' : 'no permitido' }} (cambiar)
         </button>
       </div>

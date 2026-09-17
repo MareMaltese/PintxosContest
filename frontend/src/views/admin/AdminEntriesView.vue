@@ -68,38 +68,59 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
         Tapas
       </h1>
 
-      <p v-if="isLoading" class="admin-entries__status">
+      <p
+        v-if="isLoading"
+        class="admin-entries__status"
+      >
         Cargando…
       </p>
       <template v-else-if="error">
         <p class="admin-entries__status admin-entries__status--error">
           {{ error }}
         </p>
-        <button class="button button--secondary" type="button" @click="fetchEntries">
+        <button
+          class="button button--secondary"
+          type="button"
+          @click="fetchEntries"
+        >
           Reintentar
         </button>
       </template>
-      <table v-else class="admin-table">
+      <table
+        v-else
+        class="admin-table"
+      >
         <thead>
           <tr>
             <th>Nº</th>
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Creador</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="entry in entries" :key="entry.id">
+          <tr
+            v-for="entry in entries"
+            :key="entry.id"
+          >
             <td>#{{ String(entry.number).padStart(2, '0') }}</td>
             <td>{{ entry.name ?? '—' }}</td>
             <td>{{ entry.description ?? '—' }}</td>
             <td>{{ entry.creatorName }}</td>
             <td>
-              <button class="admin-table__edit" type="button" @click="editEntry(entry)">
+              <button
+                class="admin-table__edit"
+                type="button"
+                @click="editEntry(entry)"
+              >
                 Editar
               </button>
-              <button class="admin-table__delete" type="button" @click="deleteEntry(entry)">
+              <button
+                class="admin-table__delete"
+                type="button"
+                @click="deleteEntry(entry)"
+              >
                 Eliminar
               </button>
             </td>

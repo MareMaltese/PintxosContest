@@ -16,18 +16,28 @@ const PHASE_LABELS: Record<string, string> = {
   <div>
     <AdminNav />
     <main class="admin-dashboard">
-      <p v-if="isLoading" class="admin-dashboard__status">
+      <p
+        v-if="isLoading"
+        class="admin-dashboard__status"
+      >
         Cargando…
       </p>
       <template v-else-if="error">
         <p class="admin-dashboard__status admin-dashboard__status--error">
           {{ error }}
         </p>
-        <button class="button button--secondary" type="button" @click="refetch">
+        <button
+          class="button button--secondary"
+          type="button"
+          @click="refetch"
+        >
           Reintentar
         </button>
       </template>
-      <div v-else-if="data" class="admin-dashboard__grid">
+      <div
+        v-else-if="data"
+        class="admin-dashboard__grid"
+      >
         <div class="admin-card">
           <p class="admin-card__label">
             Fase actual

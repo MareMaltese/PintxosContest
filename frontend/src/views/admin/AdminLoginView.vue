@@ -22,7 +22,10 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <main class="admin-login">
-    <form class="admin-login__card" @submit.prevent="onSubmit">
+    <form
+      class="admin-login__card"
+      @submit.prevent="onSubmit"
+    >
       <h1 class="admin-login__title">
         Panel de administración
       </h1>
@@ -30,7 +33,10 @@ async function onSubmit(): Promise<void> {
         Introduce el PIN del anfitrión.
       </p>
 
-      <label class="admin-login__label" for="admin-pin">PIN</label>
+      <label
+        class="admin-login__label"
+        for="admin-pin"
+      >PIN</label>
       <input
         id="admin-pin"
         v-model="pin"
@@ -39,14 +45,26 @@ async function onSubmit(): Promise<void> {
         inputmode="numeric"
         autocomplete="off"
       >
-      <p v-if="touched && !pin.trim()" class="admin-login__error" role="alert">
+      <p
+        v-if="touched && !pin.trim()"
+        class="admin-login__error"
+        role="alert"
+      >
         Escribe el PIN para continuar.
       </p>
-      <p v-if="adminAuth.loginError" class="admin-login__error" role="alert">
+      <p
+        v-if="adminAuth.loginError"
+        class="admin-login__error"
+        role="alert"
+      >
         {{ adminAuth.loginError }}
       </p>
 
-      <button class="button button--primary button--block" type="submit" :disabled="adminAuth.isLoggingIn">
+      <button
+        class="button button--primary button--block"
+        type="submit"
+        :disabled="adminAuth.isLoggingIn"
+      >
         {{ adminAuth.isLoggingIn ? 'Comprobando…' : 'Entrar' }}
       </button>
     </form>

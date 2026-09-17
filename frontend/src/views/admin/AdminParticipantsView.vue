@@ -44,38 +44,59 @@ async function deletePerson(person: AdminPerson): Promise<void> {
         Participantes
       </h1>
 
-      <p v-if="isLoading" class="admin-participants__status">
+      <p
+        v-if="isLoading"
+        class="admin-participants__status"
+      >
         Cargando…
       </p>
       <template v-else-if="error">
         <p class="admin-participants__status admin-participants__status--error">
           {{ error }}
         </p>
-        <button class="button button--secondary" type="button" @click="refetch">
+        <button
+          class="button button--secondary"
+          type="button"
+          @click="refetch"
+        >
           Reintentar
         </button>
       </template>
-      <table v-else-if="data" class="admin-table">
+      <table
+        v-else-if="data"
+        class="admin-table"
+      >
         <thead>
           <tr>
             <th>Nombre</th>
             <th>Pinchos</th>
             <th>Votos</th>
             <th>Última actividad</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="person in data.people" :key="person.id">
+          <tr
+            v-for="person in data.people"
+            :key="person.id"
+          >
             <td>{{ person.name }}</td>
             <td>{{ entryLabels(person) }}</td>
             <td>{{ person.votedCount }} / {{ person.voteLimit }} — {{ person.hasFinishedVoting ? 'Completo' : 'Pendiente' }}</td>
             <td>{{ formatRelativeTime(person.lastSeen) }}</td>
             <td>
-              <button class="admin-table__edit" type="button" @click="renamePerson(person)">
+              <button
+                class="admin-table__edit"
+                type="button"
+                @click="renamePerson(person)"
+              >
                 Editar
               </button>
-              <button class="admin-table__delete" type="button" @click="deletePerson(person)">
+              <button
+                class="admin-table__delete"
+                type="button"
+                @click="deletePerson(person)"
+              >
                 Eliminar
               </button>
             </td>

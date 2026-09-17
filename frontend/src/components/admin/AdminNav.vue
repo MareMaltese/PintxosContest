@@ -10,16 +10,28 @@ function goTo(name: string): void {
 
 <template>
   <nav class="admin-nav">
-    <button type="button" @click="goTo('admin-dashboard')">
+    <button
+      type="button"
+      @click="goTo('admin-dashboard')"
+    >
       Dashboard
     </button>
-    <button type="button" @click="goTo('admin-participants')">
+    <button
+      type="button"
+      @click="goTo('admin-participants')"
+    >
       Participantes
     </button>
-    <button type="button" @click="goTo('admin-entries')">
+    <button
+      type="button"
+      @click="goTo('admin-entries')"
+    >
       Tapas
     </button>
-    <button type="button" @click="goTo('admin-phases')">
+    <button
+      type="button"
+      @click="goTo('admin-phases')"
+    >
       Fases
     </button>
   </nav>
