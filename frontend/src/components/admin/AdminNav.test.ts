@@ -15,7 +15,7 @@ describe('AdminNav', () => {
   it('navigates to each admin route by name when its button is clicked', async () => {
     const wrapper = mount(AdminNav);
     const buttons = wrapper.findAll('button');
-    expect(buttons).toHaveLength(4);
+    expect(buttons).toHaveLength(5);
 
     await buttons[0].trigger('click');
     expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-dashboard' });
@@ -25,5 +25,7 @@ describe('AdminNav', () => {
     expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-entries' });
     await buttons[3].trigger('click');
     expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-phases' });
+    await buttons[4].trigger('click');
+    expect(pushMock).toHaveBeenLastCalledWith({ name: 'admin-medal-votes' });
   });
 });

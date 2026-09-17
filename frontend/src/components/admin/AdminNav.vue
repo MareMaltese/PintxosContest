@@ -34,6 +34,12 @@ function goTo(name: string): void {
     >
       Fases
     </button>
+    <button
+      type="button"
+      @click="goTo('admin-medal-votes')"
+    >
+      Pintx-o-visión
+    </button>
   </nav>
 </template>
 
