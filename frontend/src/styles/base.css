@@ -21,6 +21,10 @@ body {
   min-height: 100vh;
 }
 
+h1 {
+  color: var(--color-title);
+}
+
 button {
   font-family: inherit;
 }
