@@ -4,11 +4,11 @@ import { db } from '../db';
 import { adminAuth } from '../middleware/adminAuth';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errors';
-import { getContest, startContest, setAllowSelfVote, revealResults } from '../services/contestService';
+import { getContest, startContest, setAllowSelfVote, setVotingMode, revealResults } from '../services/contestService';
 import { listUsers, getUser } from '../services/userService';
 import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
-import { computeMedalStandings } from '../services/rankingService';
+import { computeStandings, computeMedalStandings } from '../services/rankingService';
 import { advance, closeRound, getOpenRoundId } from '../services/tiebreakService';
 import { deleteEntryImage } from '../images/imageProcessor';
 import { broadcast } from '../realtime/sse';
@@ -19,7 +19,21 @@ adminRouter.use(adminAuth);
 adminRouter.get(
   '/entries',
   asyncHandler(async (_req, res) => {
-    res.json(listEntriesForAdmin(db));
+    const entries = listEntriesForAdmin(db);
+    const voteCountById = new Map(computeStandings(db).map((s) => [s.entryId, s.voteCount]));
+    const medalsById = new Map(computeMedalStandings(db).map((s) => [s.entryId, s]));
+    res.json(
+      entries.map((entry) => {
+        const medal = medalsById.get(entry.id);
+        return {
+          ...entry,
+          voteCount: voteCountById.get(entry.id) ?? 0,
+          gold: medal?.gold ?? 0,
+          silver: medal?.silver ?? 0,
+          bronze: medal?.bronze ?? 0,
+        };
+      })
+    );
   })
 );
 
@@ -53,6 +67,7 @@ adminRouter.get(
     res.json({
       phase: contest.phase,
       allowSelfVote: contest.allowSelfVote,
+      votingMode: contest.votingMode,
       participantCount: users.length,
       entryCount,
       votersFinished: people.filter((p) => p.hasFinishedVoting).length,
@@ -145,13 +160,18 @@ adminRouter.post(
   })
 );
 
-const allowSelfVoteSchema = z.object({ allowSelfVote: z.boolean() });
+const contestSettingsSchema = z.object({
+  allowSelfVote: z.boolean().optional(),
+  votingMode: z.enum(['FAVORITES', 'MEDALS']).optional(),
+});
 
 adminRouter.patch(
   '/contest',
   asyncHandler(async (req, res) => {
-    const { allowSelfVote } = allowSelfVoteSchema.parse(req.body);
-    res.json(setAllowSelfVote(db, allowSelfVote));
+    const { allowSelfVote, votingMode } = contestSettingsSchema.parse(req.body);
+    if (allowSelfVote !== undefined) setAllowSelfVote(db, allowSelfVote);
+    if (votingMode !== undefined) setVotingMode(db, votingMode);
+    res.json(getContest(db));
   })
 );
 

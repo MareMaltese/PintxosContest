@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type Database from 'better-sqlite3';
 import { createDb } from '../db/connection';
-import { getContest, startContest, setAllowSelfVote, revealResults, setPhase } from './contestService';
+import { getContest, startContest, setAllowSelfVote, setVotingMode, revealResults, setPhase } from './contestService';
 import { AppError } from '../middleware/errors';
 
 let db: Database.Database;
@@ -11,11 +11,17 @@ beforeEach(() => {
 });
 
 describe('contestService', () => {
-  it('starts in REGISTRATION with allowSelfVote false', () => {
+  it('starts in REGISTRATION with allowSelfVote false and votingMode FAVORITES', () => {
     const contest = getContest(db);
     expect(contest.phase).toBe('REGISTRATION');
     expect(contest.allowSelfVote).toBe(false);
     expect(contest.resultsRevealedAt).toBeNull();
+    expect(contest.votingMode).toBe('FAVORITES');
+  });
+
+  it('setVotingMode switches between FAVORITES and MEDALS', () => {
+    expect(setVotingMode(db, 'MEDALS').votingMode).toBe('MEDALS');
+    expect(setVotingMode(db, 'FAVORITES').votingMode).toBe('FAVORITES');
   });
 
   it('startContest moves REGISTRATION -> VOTING', () => {
