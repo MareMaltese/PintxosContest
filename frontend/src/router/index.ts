@@ -39,7 +39,7 @@ export const router = createRouter({
     { path: '/galeria', name: 'gallery', component: () => import('../views/GalleryView.vue') },
     { path: '/galeria/:id', name: 'entry-detail', component: () => import('../views/EntryDetailView.vue') },
     { path: '/desempate', name: 'tiebreak', component: () => import('../views/TiebreakVoteView.vue') },
-    { path: '/pintx-o-vision', name: 'medal-results', component: () => import('../views/MedalPodiumView.vue') },
+    { path: '/pinch-o-vision', name: 'medal-results', component: () => import('../views/MedalPodiumView.vue') },
     { path: '/admin', name: 'admin-login', component: () => import('../views/admin/AdminLoginView.vue') },
     {
       path: '/admin/dashboard',
@@ -54,7 +54,7 @@ export const router = createRouter({
     { path: '/admin/tapas', name: 'admin-entries', component: () => import('../views/admin/AdminEntriesView.vue') },
     { path: '/admin/fases', name: 'admin-phases', component: () => import('../views/admin/AdminPhasesView.vue') },
     {
-      path: '/admin/pintx-o-vision',
+      path: '/admin/pinch-o-vision',
       name: 'admin-medal-votes',
       component: () => import('../views/admin/AdminMedalVotesView.vue'),
     },

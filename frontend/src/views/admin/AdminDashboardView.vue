@@ -61,7 +61,7 @@ const VOTING_MODE_LABELS: Record<string, string> = {
         </div>
         <div class="admin-card">
           <p class="admin-card__label">
-            Pinchos
+            Tapas y Pinchos
           </p>
           <p class="admin-card__value">
             {{ data.entryCount }}

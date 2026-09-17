@@ -37,7 +37,7 @@ describe('TiebreakVoteView', () => {
     expect(wrapper.text()).toContain('#05');
   });
 
-  it('shows the Pintx-o-visión label for a MEDAL round', async () => {
+  it('shows the Pinch-o-visión label for a MEDAL round', async () => {
     vi.mocked(api.get).mockResolvedValue({
       round: { id: 'r1', targetRank: 1, kind: 'MEDAL', status: 'OPEN' },
       candidates: [{ id: 'e1', number: 1, name: null, imagePath: 'a.webp' }],
@@ -45,7 +45,7 @@ describe('TiebreakVoteView', () => {
     const wrapper = mount(TiebreakVoteView);
     await flushPromises();
 
-    expect(wrapper.text()).toContain('Desempate de Pintx-o-visión');
+    expect(wrapper.text()).toContain('Desempate de Pinch-o-visión');
   });
 
   it('casts a vote and shows a thank-you message', async () => {

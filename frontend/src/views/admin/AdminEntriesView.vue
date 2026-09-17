@@ -79,7 +79,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
     <AdminNav />
     <main class="admin-entries">
       <h1 class="admin-entries__title">
-        Tapas
+        Tapas y Pinchos
       </h1>
 
       <p

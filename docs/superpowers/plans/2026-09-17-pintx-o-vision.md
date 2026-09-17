@@ -1,4 +1,4 @@
-# Pintx-o-visión Implementation Plan
+# Pinch-o-visión Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -22,7 +22,7 @@ a medal podium screen.
 `better-sqlite3` + `zod` (backend), Vue 3 `<script setup>` + TypeScript +
 Pinia + `@lucide/vue` + Vitest (frontend).
 
-**Spec:** `docs/superpowers/specs/2026-09-17-pintx-o-vision-design.md`
+**Spec:** `docs/superpowers/specs/2026-09-17-pinch-o-vision-design.md`
 (depends on `docs/superpowers/specs/2026-09-16-pincho-party-design.md` for
 the base schema/phase machine/auth conventions).
 
@@ -1897,7 +1897,7 @@ git commit -m "Wire MedalButtons into EntryDetailView"
 
 **Interfaces:**
 - Produces routes named `tiebreak` (`/desempate`), `medal-results`
-  (`/pintx-o-vision`), `admin-medal-votes` (`/admin/pintx-o-vision`).
+  (`/pinch-o-vision`), `admin-medal-votes` (`/admin/pinch-o-vision`).
   Tasks 13, 14 and 17 point their `component:` imports at these exact
   names.
 
@@ -1906,15 +1906,15 @@ git commit -m "Wire MedalButtons into EntryDetailView"
 Add to `frontend/src/router/index.test.ts`:
 
 ```ts
-it('lets a registered visitor reach /pintx-o-vision once voting has started', async () => {
+it('lets a registered visitor reach /pinch-o-vision once voting has started', async () => {
   useSessionStore().user = { id: 'u1', name: 'Laura' };
   useContestStore().phase = 'VOTING';
-  await router.push('/pintx-o-vision');
+  await router.push('/pinch-o-vision');
   expect(router.currentRoute.value.name).toBe('medal-results');
 });
 
-it('blocks an anonymous visitor from /pintx-o-vision and /desempate', async () => {
-  for (const path of ['/pintx-o-vision', '/desempate']) {
+it('blocks an anonymous visitor from /pinch-o-vision and /desempate', async () => {
+  for (const path of ['/pinch-o-vision', '/desempate']) {
     await router.push(path);
     expect(router.currentRoute.value.name).toBe('welcome');
   }
@@ -1939,14 +1939,14 @@ it('redirects away from /desempate back to the gallery once the tiebreak is over
   expect(router.currentRoute.value.name).toBe('gallery');
 });
 
-it('blocks an unauthenticated visitor from /admin/pintx-o-vision', async () => {
-  await router.push('/admin/pintx-o-vision');
+it('blocks an unauthenticated visitor from /admin/pinch-o-vision', async () => {
+  await router.push('/admin/pinch-o-vision');
   expect(router.currentRoute.value.name).toBe('admin-login');
 });
 
-it('lets an authenticated admin reach /admin/pintx-o-vision', async () => {
+it('lets an authenticated admin reach /admin/pinch-o-vision', async () => {
   useAdminAuthStore().pin = '1234';
-  await router.push('/admin/pintx-o-vision');
+  await router.push('/admin/pinch-o-vision');
   expect(router.currentRoute.value.name).toBe('admin-medal-votes');
 });
 ```
@@ -1954,7 +1954,7 @@ it('lets an authenticated admin reach /admin/pintx-o-vision', async () => {
 Also update the existing
 `'blocks an unauthenticated visitor from every admin route except /admin'`
 and `'lets an authenticated admin reach every admin route'` tests' path
-lists to include `/admin/pintx-o-vision` / `'admin-medal-votes'` — read
+lists to include `/admin/pinch-o-vision` / `'admin-medal-votes'` — read
 the current test bodies (Task 12 Step 1 above shows the exact current
 lines) before editing them, since editing must preserve every other path
 in those two loops unchanged.
@@ -2009,7 +2009,7 @@ export const router = createRouter({
     { path: '/galeria', name: 'gallery', component: () => import('../views/GalleryView.vue') },
     { path: '/galeria/:id', name: 'entry-detail', component: () => import('../views/EntryDetailView.vue') },
     { path: '/desempate', name: 'tiebreak', component: () => import('../views/TiebreakVoteView.vue') },
-    { path: '/pintx-o-vision', name: 'medal-results', component: () => import('../views/MedalPodiumView.vue') },
+    { path: '/pinch-o-vision', name: 'medal-results', component: () => import('../views/MedalPodiumView.vue') },
     { path: '/admin', name: 'admin-login', component: () => import('../views/admin/AdminLoginView.vue') },
     {
       path: '/admin/dashboard',
@@ -2024,7 +2024,7 @@ export const router = createRouter({
     { path: '/admin/tapas', name: 'admin-entries', component: () => import('../views/admin/AdminEntriesView.vue') },
     { path: '/admin/fases', name: 'admin-phases', component: () => import('../views/admin/AdminPhasesView.vue') },
     {
-      path: '/admin/pintx-o-vision',
+      path: '/admin/pinch-o-vision',
       name: 'admin-medal-votes',
       component: () => import('../views/admin/AdminMedalVotesView.vue'),
     },
@@ -2151,7 +2151,7 @@ describe('TiebreakVoteView', () => {
     expect(wrapper.text()).toContain('#05');
   });
 
-  it('shows the Pintx-o-visión label for a MEDAL round', async () => {
+  it('shows the Pinch-o-visión label for a MEDAL round', async () => {
     vi.mocked(api.get).mockResolvedValue({
       round: { id: 'r1', targetRank: 1, kind: 'MEDAL', status: 'OPEN' },
       candidates: [{ id: 'e1', number: 1, name: null, imagePath: 'a.webp' }],
@@ -2159,7 +2159,7 @@ describe('TiebreakVoteView', () => {
     const wrapper = mount(TiebreakVoteView);
     await flushPromises();
 
-    expect(wrapper.text()).toContain('Desempate de Pintx-o-visión');
+    expect(wrapper.text()).toContain('Desempate de Pinch-o-visión');
   });
 
   it('casts a vote and shows a thank-you message', async () => {
@@ -2221,7 +2221,7 @@ interface CurrentRound {
 
 const KIND_LABELS: Record<string, string> = {
   MAIN: 'Desempate del concurso',
-  MEDAL: 'Desempate de Pintx-o-visión',
+  MEDAL: 'Desempate de Pinch-o-visión',
 };
 
 const current = ref<CurrentRound | null>(null);
@@ -2523,7 +2523,7 @@ onMounted(load);
 <template>
   <main class="medal-podium">
     <h1 class="medal-podium__title">
-      Pintx-o-visión
+      Pinch-o-visión
     </h1>
     <p
       v-if="isLoading"
@@ -2535,7 +2535,7 @@ onMounted(load);
       v-else-if="notReady"
       class="medal-podium__status"
     >
-      Todavía no se ha revelado el podium de Pintx-o-visión.
+      Todavía no se ha revelado el podium de Pinch-o-visión.
     </p>
     <template v-else-if="loadError">
       <p class="medal-podium__status medal-podium__status--error">
@@ -2687,7 +2687,7 @@ git commit -m "Add tiebreak, medal-results and admin-medal-votes routes"
 
 ---
 
-### Task 16: `AdminNav` — add the Pintx-o-visión tab
+### Task 16: `AdminNav` — add the Pinch-o-visión tab
 
 **Files:**
 - Modify: `frontend/src/components/admin/AdminNav.vue`
@@ -2730,7 +2730,7 @@ Add a 5th button to `AdminNav.vue`, right after the "Fases" button:
   type="button"
   @click="goTo('admin-medal-votes')"
 >
-  Pintx-o-visión
+  Pinch-o-visión
 </button>
 ```
 
@@ -2743,7 +2743,7 @@ Expected: PASS.
 
 ```bash
 git add src/components/admin/AdminNav.vue src/components/admin/AdminNav.test.ts
-git commit -m "Add Pintx-o-visión tab to AdminNav"
+git commit -m "Add Pinch-o-visión tab to AdminNav"
 ```
 
 ---
@@ -2961,7 +2961,7 @@ const { data, isLoading, error, refetch } = useAdminMedalVotes();
     <AdminNav />
     <main class="admin-medal-votes">
       <h1 class="admin-medal-votes__title">
-        Pintx-o-visión
+        Pinch-o-visión
       </h1>
 
       <p
@@ -3074,7 +3074,7 @@ Expected: PASS (3 tests).
 
 ```bash
 git add src/composables/useAdminMedalVotes.ts src/composables/useAdminMedalVotes.test.ts src/views/admin/AdminMedalVotesView.vue src/views/admin/AdminMedalVotesView.test.ts
-git commit -m "Add admin Pintx-o-visión scoreboard view"
+git commit -m "Add admin Pinch-o-visión scoreboard view"
 ```
 
 ---
@@ -3131,14 +3131,14 @@ Edit the "Estado actual" block in `README.md`:
 
 ```markdown
 > **Estado actual:** el backend está completo y probado, incluyendo
-> Pintx-o-visión (segundo sistema de puntuación por medallas de oro,
+> Pinch-o-visión (segundo sistema de puntuación por medallas de oro,
 > plata y bronce, con su propio desempate reutilizando la infraestructura
 > de desempate existente). El frontend cubre el registro de participante y
 > de tapas, la galería de tapas con sistema de favoritos y medallas
-> Pintx-o-visión, la pantalla de desempate (para ambos sistemas), el
-> podium de Pintx-o-visión, y el panel de administración completo
+> Pinch-o-visión, la pantalla de desempate (para ambos sistemas), el
+> podium de Pinch-o-visión, y el panel de administración completo
 > (login por PIN, dashboard en vivo, gestión de participantes y tapas,
-> control de fases, recuento en vivo de Pintx-o-visión). La pantalla de
+> control de fases, recuento en vivo de Pinch-o-visión). La pantalla de
 > resultados del ranking principal todavía no existe en el frontend — se
 > prueba directamente contra la API REST.
 ```
@@ -3147,7 +3147,7 @@ Edit the "Estado actual" block in `README.md`:
 
 ```bash
 git add README.md
-git commit -m "Update README: Pintx-o-visión is live"
+git commit -m "Update README: Pinch-o-visión is live"
 ```
 
 ---

@@ -13,14 +13,14 @@ El nombre "Pincho Party" está centralizado en `server/src/config.ts`
 (`APP_NAME`) por si se quiere cambiar más adelante.
 
 > **Estado actual:** el backend está completo y probado, incluyendo
-> Pintx-o-visión (segundo sistema de puntuación por medallas de oro,
+> Pinch-o-visión (segundo sistema de puntuación por medallas de oro,
 > plata y bronce, con su propio desempate reutilizando la infraestructura
 > de desempate existente). El frontend cubre el registro de participante y
 > de tapas, la galería de tapas con sistema de favoritos y medallas
-> Pintx-o-visión, la pantalla de desempate (para ambos sistemas), el
-> podium de Pintx-o-visión, y el panel de administración completo
+> Pinch-o-visión, la pantalla de desempate (para ambos sistemas), el
+> podium de Pinch-o-visión, y el panel de administración completo
 > (login por PIN, dashboard en vivo, gestión de participantes y tapas,
-> control de fases, recuento en vivo de Pintx-o-visión). La pantalla de
+> control de fases, recuento en vivo de Pinch-o-visión). La pantalla de
 > resultados del ranking principal todavía no existe en el frontend — se
 > prueba directamente contra la API REST.
 

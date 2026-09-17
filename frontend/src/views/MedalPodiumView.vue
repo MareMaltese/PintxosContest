@@ -42,7 +42,7 @@ onMounted(load);
 <template>
   <main class="medal-podium">
     <h1 class="medal-podium__title">
-      Pintx-o-visión
+      Pinch-o-visión
     </h1>
     <p
       v-if="isLoading"
@@ -54,7 +54,7 @@ onMounted(load);
       v-else-if="notReady"
       class="medal-podium__status"
     >
-      Todavía no se ha revelado el podium de Pintx-o-visión.
+      Todavía no se ha revelado el podium de Pinch-o-visión.
     </p>
     <template v-else-if="loadError">
       <p class="medal-podium__status medal-podium__status--error">

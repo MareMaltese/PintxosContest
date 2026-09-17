@@ -23,7 +23,7 @@ interface CurrentRound {
 
 const KIND_LABELS: Record<string, string> = {
   MAIN: 'Desempate del concurso',
-  MEDAL: 'Desempate de Pintx-o-visión',
+  MEDAL: 'Desempate de Pinch-o-visión',
 };
 
 const current = ref<CurrentRound | null>(null);

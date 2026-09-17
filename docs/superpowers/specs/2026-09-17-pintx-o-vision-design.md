@@ -1,4 +1,4 @@
-# Pintx-o-visión — diseño
+# Pinch-o-visión — diseño
 
 **Fecha:** 2026-09-17
 **Estado:** aprobado por el usuario, pendiente de plan de implementación
@@ -156,21 +156,21 @@ le añade el campo `kind` para que el frontend sepa qué rotular.
   `size`, `fill="currentColor"`), siguiendo el mismo patrón que los iconos
   de `@lucide/vue` ya en uso.
 - **Pantalla de podio:** nueva vista `PintxOVisionResultsView.vue`
-  (ruta `/pintx-o-vision`). Si `resultsRevealedAt` es `null`, muestra un
+  (ruta `/pinch-o-vision`). Si `resultsRevealedAt` es `null`, muestra un
   mensaje de espera ("Todavía no se ha revelado el podio de
-  Pintx-o-visión"). Si ya está revelado, muestra los 3 puestos: número de
+  Pinch-o-visión"). Si ya está revelado, muestra los 3 puestos: número de
   pincho, nombre de quien lo registró, e icono `MedalIcon` dentro de un
   círculo del color del metal correspondiente (oro/plata/bronce).
 - **Desempate de medallas:** reutiliza la vista de desempate ya prevista
   para el ranking principal (Fase G, todavía sin construir en frontend) —
   el mismo componente sirve para ambos `kind`, mostrando una etiqueta
   distinta según el campo `kind` de la ronda ("Desempate del concurso" vs.
-  "Desempate de Pintx-o-visión").
+  "Desempate de Pinch-o-visión").
 
 ## 7. Frontend — admin
 
-- Nueva pestaña **"Pintx-o-visión"** en `AdminNav.vue`, ruta
-  `/admin/pintx-o-vision`, vista `AdminMedalVotesView.vue`: tabla en vivo
+- Nueva pestaña **"Pinch-o-visión"** en `AdminNav.vue`, ruta
+  `/admin/pinch-o-vision`, vista `AdminMedalVotesView.vue`: tabla en vivo
   (sin restricción de fase) con columnas Nº, nombre, ORO, PLATA, BRONCE,
   Total, ordenada por Total descendente. Reutiliza el patrón de polling o
   carga simple ya usado en el resto del panel de admin.

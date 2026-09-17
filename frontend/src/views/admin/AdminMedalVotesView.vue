@@ -10,7 +10,7 @@ const { data, isLoading, error, refetch } = useAdminMedalVotes();
     <AdminNav />
     <main class="admin-medal-votes">
       <h1 class="admin-medal-votes__title">
-        Pintx-o-visión
+        Pinch-o-visión
       </h1>
 
       <p

@@ -171,7 +171,7 @@ async function revealResults(): Promise<void> {
           type="button"
           @click="toggleVotingMode"
         >
-          Modo de puntuación: {{ data.votingMode === 'FAVORITES' ? 'Favoritos' : 'Pintx-o-visión' }} (cambiar)
+          Modo de puntuación: {{ data.votingMode === 'FAVORITES' ? 'Favoritos' : 'Pinch-o-visión' }} (cambiar)
         </button>
       </div>
     </main>
