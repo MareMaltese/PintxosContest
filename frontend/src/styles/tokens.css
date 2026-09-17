@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   --color-bg: #faf9f7;
   --color-surface: #ffffff;
   --color-text: #1f1b16;
@@ -26,16 +27,4 @@
   --space-8: 48px;
 
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #14110d;
-    --color-surface: #1f1b16;
-    --color-text: #f5f1ea;
-    --color-text-muted: #b3aa9c;
-    --color-border: #322c24;
-    --color-silver: #c2c7cc;
-    --color-bronze: #cd8a52;
-  }
 }

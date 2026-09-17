@@ -54,10 +54,6 @@ function goToRegister(): void {
   align-items: center;
   justify-content: center;
   padding: var(--space-5);
-  
-  background-image: url('../assets/background.png');
-  background-size: cover;
-  background-position: center;
 }
 
 .welcome__card {

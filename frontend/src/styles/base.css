@@ -11,7 +11,7 @@ body {
 }
 
 body {
-  background: var(--color-bg);
+  background: var(--color-bg) url('../assets/background.png') center / cover no-repeat;
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
