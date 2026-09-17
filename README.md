@@ -13,16 +13,18 @@ El nombre "Pincho Party" está centralizado en `server/src/config.ts`
 (`APP_NAME`) por si se quiere cambiar más adelante.
 
 > **Estado actual:** el backend (API + base de datos + lógica del concurso)
-> está completo y probado. El frontend todavía no existe — por ahora la
-> aplicación se usa y se prueba a través de su API REST (con `curl`, Postman,
-> etc.) y del panel de administración por API. Este documento describe lo que
-> ya funciona hoy.
+> y el arranque del frontend (bienvenida + registro de participante por
+> nombre) están completos y probados. El resto de pantallas del frontend
+> (registro de tapas, galería, votación, resultados, admin) todavía no
+> existen — por ahora se prueban directamente contra la API REST (con
+> `curl`, Postman, etc.).
 
 ## Stack técnico
 
 - **Backend:** Node.js + Express + TypeScript, `better-sqlite3` (SQLite),
   `sharp` (procesado de imágenes), `zod` (validación), Vitest (tests).
-- **Frontend (previsto):** Vue 3 + Composition API + TypeScript + Vite.
+- **Frontend:** Vue 3 + Composition API + TypeScript + Vite + Vue Router +
+  Pinia + `@lucide/vue` (iconos), Vitest + `@vue/test-utils` (tests).
 - Todo pensado para ejecutarse en un único ordenador de la red local, sin
   dependencias de servicios en la nube.
 
@@ -34,8 +36,9 @@ endpoints) vive en [`docs/superpowers/specs/2026-09-16-pincho-party-design.md`](
 ```
 PintxosContest/
   server/          Backend: API REST + SQLite + procesado de imágenes
+  frontend/        Frontend: Vue 3 + Vite + TypeScript
   docs/            Specs y planes de implementación
-  package.json     Scripts de conveniencia que delegan en server/
+  package.json     Scripts de conveniencia que delegan en server/ y frontend/
 ```
 
 ---
@@ -71,8 +74,7 @@ cd PintxosContest
 npm run install:all
 ```
 
-Esto instala las dependencias del backend (`server/`). Cuando exista el
-frontend, este mismo comando lo cubrirá también.
+Esto instala las dependencias de `server/` y `frontend/`.
 
 ## Desarrollo
 
@@ -80,17 +82,16 @@ frontend, este mismo comando lo cubrirá también.
 npm run dev
 ```
 
-Levanta el backend en modo desarrollo (recarga automática con `tsx watch`)
-escuchando en `http://localhost:3000`. Verás en consola:
+Levanta backend y frontend a la vez: la API en `http://localhost:3000`
+(recarga automática con `tsx watch`) y el frontend en
+`http://localhost:5173` (recarga automática de Vite). Mientras desarrollas,
+abre **`http://localhost:5173`** en el navegador — no `:3000` — el frontend
+redirige por su cuenta las peticiones `/api` y `/uploads` a la API.
 
-```
-Pincho Party escuchando en http://0.0.0.0:3000
-```
-
-Para trabajar solo dentro de `server/`:
+Para trabajar solo dentro de un paquete:
 
 ```bash
-cd server
+cd server    # o: cd frontend
 npm run dev         # servidor con recarga automática
 npm test             # suite de tests (Vitest)
 npm run typecheck    # comprobación de tipos, sin emitir nada
@@ -103,9 +104,10 @@ npm run lint         # ESLint
 npm run build
 ```
 
-Compila el backend TypeScript a `server/dist/`. (Cuando exista el frontend,
-este comando generará también `frontend/dist/`, que el backend sirve
-automáticamente en producción.)
+Compila el frontend a `frontend/dist/` y el backend TypeScript a
+`server/dist/`. En producción (`NODE_ENV=production`), el backend sirve
+`frontend/dist/` automáticamente — no hace falta un servidor aparte para el
+frontend.
 
 ## Arrancar el servidor (producción)
 
@@ -253,9 +255,9 @@ directamente.
 
 ## API
 
-Mientras no existe el frontend, la aplicación se ejerce directamente contra
-su API REST. Referencia completa de endpoints, reglas de negocio y máquina de
-estados del concurso en la spec:
+Mientras el frontend no cubre todas las pantallas, las partes que faltan se
+ejercen directamente contra la API REST. Referencia completa de endpoints,
+reglas de negocio y máquina de estados del concurso en la spec:
 [`docs/superpowers/specs/2026-09-16-pincho-party-design.md`](docs/superpowers/specs/2026-09-16-pincho-party-design.md).
 
 Comprobación rápida de que el servidor responde:
