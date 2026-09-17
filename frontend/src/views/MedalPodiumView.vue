@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Medal } from '@lucide/vue';
+import Icon from '../components/common/Icon.vue';
 import { api, ApiError } from '../services/api';
 
 interface PodiumEntry {
@@ -81,9 +81,9 @@ onMounted(load);
           class="medal-podium__circle"
           :class="`medal-podium__circle--${entry.medal.toLowerCase()}`"
         >
-          <Medal
+          <Icon
+            name="medal"
             :size="24"
-            aria-hidden="true"
           />
         </span>
         <span class="medal-podium__number">#{{ String(entry.number).padStart(2, '0') }}</span>

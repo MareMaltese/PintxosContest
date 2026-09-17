@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Medal as MedalIcon } from '@lucide/vue';
+import Icon from '../common/Icon.vue';
 import { useMedalVotesStore, type Medal } from '../../stores/medalVotes';
 
 const props = withDefaults(
@@ -46,9 +46,9 @@ async function choose(medal: Medal): Promise<void> {
         ]"
         @click="choose(option.medal)"
       >
-        <MedalIcon
+        <Icon
+          name="medal"
           :size="18"
-          aria-hidden="true"
         />
         {{ option.label }}
       </button>
