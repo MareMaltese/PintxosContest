@@ -176,4 +176,9 @@ describe('router', () => {
     await router.push('/mis-pinchos/e1/editar');
     expect(router.currentRoute.value.name).toBe('gallery');
   });
+
+  it('shows the not-found page for an unknown path', async () => {
+    await router.push('/esto-no-existe');
+    expect(router.currentRoute.value.name).toBe('not-found');
+  });
 });

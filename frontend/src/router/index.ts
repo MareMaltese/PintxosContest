@@ -64,6 +64,7 @@ export const router = createRouter({
       name: 'admin-medal-votes',
       component: () => import('../views/admin/AdminMedalVotesView.vue'),
     },
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') },
   ],
 });
 
