@@ -10,6 +10,11 @@ const PHASE_LABELS: Record<string, string> = {
   TIEBREAK: 'Desempate',
   RESULTS: 'Resultados',
 };
+
+const VOTING_MODE_LABELS: Record<string, string> = {
+  FAVORITES: 'Favoritos',
+  MEDALS: 'Medallas',
+};
 </script>
 
 <template>
@@ -60,6 +65,14 @@ const PHASE_LABELS: Record<string, string> = {
           </p>
           <p class="admin-card__value">
             {{ data.entryCount }}
+          </p>
+        </div>
+        <div class="admin-card">
+          <p class="admin-card__label">
+            Tipo de puntuación
+          </p>
+          <p class="admin-card__value">
+            {{ VOTING_MODE_LABELS[data.votingMode] }}
           </p>
         </div>
         <div

@@ -45,6 +45,24 @@ describe('AdminDashboardView', () => {
     expect(wrapper.text()).toContain('12');
     expect(wrapper.text()).toContain('17');
     expect(wrapper.text()).toContain('3 / 18');
+    expect(wrapper.text()).toContain('Favoritos');
+  });
+
+  it('shows "Medallas" as the scoring type when votingMode is MEDALS', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      phase: 'VOTING',
+      allowSelfVote: false,
+      votingMode: 'MEDALS',
+      participantCount: 12,
+      entryCount: 17,
+      votersFinished: 3,
+      votersTotal: 18,
+      people: [],
+    });
+    const wrapper = mount(AdminDashboardView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Medallas');
   });
 
   it('hides the "han terminado de votar" card when votingMode is MEDALS', async () => {
