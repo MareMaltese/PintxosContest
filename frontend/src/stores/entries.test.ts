@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia';
 
 vi.mock('../services/api', async () => {
   const actual = await vi.importActual<typeof import('../services/api')>('../services/api');
-  return { ...actual, api: { ...actual.api, get: vi.fn() } };
+  return { ...actual, api: { ...actual.api, get: vi.fn(), patch: vi.fn() } };
 });
 
 import { api, ApiError } from '../services/api';
@@ -73,5 +73,42 @@ describe('useEntriesStore', () => {
     expect(detail.creatorName).toBe('Laura');
     expect(api.get).toHaveBeenCalledWith('/api/entries/e1');
     expect(store.list).toEqual([]);
+  });
+
+  it('fetchMine populates myList on success', async () => {
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta', description: null, imagePath: 'a.webp', createdAt: 'x' },
+    ]);
+    const store = useEntriesStore();
+
+    await store.fetchMine();
+
+    expect(store.myList).toHaveLength(1);
+    expect(store.isLoadingMine).toBe(false);
+    expect(store.mineError).toBeNull();
+    expect(api.get).toHaveBeenCalledWith('/api/entries/mine');
+  });
+
+  it('fetchMine surfaces a friendly error on failure', async () => {
+    vi.mocked(api.get).mockRejectedValue(new ApiError(500, 'INTERNAL_ERROR', 'Ha ocurrido un error inesperado.'));
+    const store = useEntriesStore();
+
+    await store.fetchMine();
+
+    expect(store.mineError).toBe('Ha ocurrido un error inesperado.');
+    expect(store.isLoadingMine).toBe(false);
+  });
+
+  it('updateMine patches the entry and refreshes myList', async () => {
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta de jamón', description: null, imagePath: 'a.webp', createdAt: 'x' },
+    ]);
+    vi.mocked(api.patch).mockResolvedValue({});
+    const store = useEntriesStore();
+
+    await store.updateMine('e1', { name: 'Croqueta de jamón' });
+
+    expect(api.patch).toHaveBeenCalledWith('/api/entries/e1', { name: 'Croqueta de jamón' });
+    expect(store.myList[0].name).toBe('Croqueta de jamón');
   });
 });

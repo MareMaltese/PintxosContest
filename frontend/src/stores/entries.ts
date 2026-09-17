@@ -24,11 +24,19 @@ export interface EntryDetail extends EntrySummary {
   creatorName: string;
 }
 
+export interface UpdateEntryFields {
+  name?: string | null;
+  description?: string | null;
+}
+
 export const useEntriesStore = defineStore('entries', () => {
   const lastCreated = ref<CreatedEntry | null>(null);
   const list = ref<EntrySummary[]>([]);
   const isLoadingList = ref(false);
   const listError = ref<string | null>(null);
+  const myList = ref<EntrySummary[]>([]);
+  const isLoadingMine = ref(false);
+  const mineError = ref<string | null>(null);
 
   function setLastCreated(entry: CreatedEntry): void {
     lastCreated.value = entry;
@@ -51,5 +59,35 @@ export const useEntriesStore = defineStore('entries', () => {
     return api.get<EntryDetail>(`/api/entries/${id}`);
   }
 
-  return { lastCreated, list, isLoadingList, listError, setLastCreated, fetchList, fetchDetail };
+  async function fetchMine(): Promise<void> {
+    isLoadingMine.value = true;
+    mineError.value = null;
+    try {
+      myList.value = await api.get<EntrySummary[]>('/api/entries/mine');
+    } catch (err) {
+      mineError.value = err instanceof ApiError ? err.message : 'No hemos podido cargar tus tapas.';
+    } finally {
+      isLoadingMine.value = false;
+    }
+  }
+
+  async function updateMine(id: string, fields: UpdateEntryFields): Promise<void> {
+    await api.patch(`/api/entries/${id}`, fields);
+    await fetchMine();
+  }
+
+  return {
+    lastCreated,
+    list,
+    isLoadingList,
+    listError,
+    myList,
+    isLoadingMine,
+    mineError,
+    setLastCreated,
+    fetchList,
+    fetchDetail,
+    fetchMine,
+    updateMine,
+  };
 });
