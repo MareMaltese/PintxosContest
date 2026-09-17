@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3';
 import { createDb } from '../db/connection';
 import { createUser } from './userService';
 import { startContest } from './contestService';
-import { createEntry, listEntries, getEntry, getEntryUnchecked } from './entryService';
+import { createEntry, listEntries, getEntry, getEntryUnchecked, listEntriesForAdmin } from './entryService';
 import { AppError } from '../middleware/errors';
 
 let db: Database.Database;
@@ -55,5 +55,13 @@ describe('entryService', () => {
     startContest(db);
     const detail = getEntry(db, entry.id);
     expect(detail.creatorName).toBe('Laura');
+  });
+
+  it('listEntriesForAdmin returns every entry with creator name, even during REGISTRATION', () => {
+    const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    const list = listEntriesForAdmin(db);
+    expect(list).toHaveLength(1);
+    expect(list[0].number).toBe(entry.number);
+    expect(list[0].creatorName).toBe('Laura');
   });
 });

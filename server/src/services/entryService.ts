@@ -89,3 +89,14 @@ export function getEntry(db: Database.Database, id: string): EntryDetail {
 export function getEntryUnchecked(db: Database.Database, id: string): Entry | undefined {
   return db.prepare('SELECT * FROM Entry WHERE id = ?').get(id) as Entry | undefined;
 }
+
+export function listEntriesForAdmin(db: Database.Database): EntryDetail[] {
+  return db
+    .prepare(
+      `SELECT e.*, u.name as creatorName
+       FROM Entry e
+       JOIN User u ON u.id = e.creatorId
+       ORDER BY e.number ASC`
+    )
+    .all() as EntryDetail[];
+}

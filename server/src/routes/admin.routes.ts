@@ -6,6 +6,7 @@ import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errors';
 import { getContest, startContest, setAllowSelfVote, revealResults } from '../services/contestService';
 import { listUsers, getUser } from '../services/userService';
+import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
 import { advance, closeRound, getOpenRoundId } from '../services/tiebreakService';
 import { deleteEntryImage } from '../images/imageProcessor';
@@ -13,6 +14,13 @@ import { broadcast } from '../realtime/sse';
 
 export const adminRouter = Router();
 adminRouter.use(adminAuth);
+
+adminRouter.get(
+  '/entries',
+  asyncHandler(async (_req, res) => {
+    res.json(listEntriesForAdmin(db));
+  })
+);
 
 adminRouter.get(
   '/dashboard',
