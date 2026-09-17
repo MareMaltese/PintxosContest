@@ -100,12 +100,12 @@ describe('MyEntriesView', () => {
     expect(api.delete).not.toHaveBeenCalled();
   });
 
-  it('closing the view navigates back to the waiting room', async () => {
+  it('closing the view navigates back to the gallery', async () => {
     vi.mocked(api.get).mockResolvedValue([]);
     const wrapper = mount(MyEntriesView);
     await flushPromises();
 
     await wrapper.find('.my-entries__close').trigger('click');
-    expect(push).toHaveBeenCalledWith({ name: 'waiting-room' });
+    expect(push).toHaveBeenCalledWith({ name: 'gallery' });
   });
 });

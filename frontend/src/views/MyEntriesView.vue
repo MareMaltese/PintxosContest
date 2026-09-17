@@ -14,7 +14,7 @@ onMounted(() => {
 });
 
 function close(): void {
-  router.push({ name: 'waiting-room' });
+  router.push({ name: 'gallery' });
 }
 
 function addAnother(): void {

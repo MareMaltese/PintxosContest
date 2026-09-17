@@ -25,9 +25,9 @@ describe('HasEntryQuestionView', () => {
     expect(pushMock).toHaveBeenCalledWith({ name: 'new-entry' });
   });
 
-  it('navigates to waiting-room when answering no', async () => {
+  it('navigates to the gallery when answering no', async () => {
     const wrapper = mount(HasEntryQuestionView);
     await wrapper.findAll('button')[1].trigger('click');
-    expect(pushMock).toHaveBeenCalledWith({ name: 'waiting-room' });
+    expect(pushMock).toHaveBeenCalledWith({ name: 'gallery' });
   });
 });

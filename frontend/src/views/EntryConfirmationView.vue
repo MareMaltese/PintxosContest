@@ -16,7 +16,7 @@ function registerAnother(): void {
 }
 
 function finish(): void {
-  router.push({ name: 'waiting-room' });
+  router.push({ name: 'gallery' });
 }
 </script>
 

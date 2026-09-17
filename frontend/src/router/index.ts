@@ -7,7 +7,6 @@ const SESSION_REQUIRED_ROUTES = [
   'has-entry',
   'new-entry',
   'entry-confirmation',
-  'waiting-room',
   'my-entries',
   'edit-entry',
   'gallery',
@@ -37,7 +36,6 @@ export const router = createRouter({
       name: 'entry-confirmation',
       component: () => import('../views/EntryConfirmationView.vue'),
     },
-    { path: '/esperando', name: 'waiting-room', component: () => import('../views/WaitingRoomView.vue') },
     { path: '/mis-pinchos', name: 'my-entries', component: () => import('../views/MyEntriesView.vue') },
     {
       path: '/mis-pinchos/:id/editar',
@@ -86,14 +84,6 @@ router.beforeEach((to) => {
 
   if (REGISTRATION_ONLY_ROUTES.includes(name) && !registrationOpen) {
     return { name: 'gallery' };
-  }
-
-  if (name === 'waiting-room' && !registrationOpen) {
-    return { name: 'gallery' };
-  }
-
-  if (GALLERY_ROUTES.includes(name) && registrationOpen) {
-    return { name: 'waiting-room' };
   }
 
   const isTiebreak = contest.phase === 'TIEBREAK';

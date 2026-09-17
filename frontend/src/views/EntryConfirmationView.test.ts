@@ -42,9 +42,9 @@ describe('EntryConfirmationView', () => {
     expect(pushMock).toHaveBeenCalledWith({ name: 'new-entry' });
   });
 
-  it('navigates to waiting-room on "Terminar"', async () => {
+  it('navigates to the gallery on "Terminar"', async () => {
     const wrapper = mount(EntryConfirmationView);
     await wrapper.findAll('button')[1].trigger('click');
-    expect(pushMock).toHaveBeenCalledWith({ name: 'waiting-room' });
+    expect(pushMock).toHaveBeenCalledWith({ name: 'gallery' });
   });
 });

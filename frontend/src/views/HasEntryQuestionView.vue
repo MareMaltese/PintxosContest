@@ -8,7 +8,7 @@ function yes(): void {
 }
 
 function no(): void {
-  router.push({ name: 'waiting-room' });
+  router.push({ name: 'gallery' });
 }
 </script>
 
