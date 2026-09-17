@@ -42,6 +42,7 @@ export function createEntry(db: Database.Database, input: CreateEntryInput): Ent
     return number;
   });
   const number = tx();
+  console.log(`[registro] Nueva tapa #${number}${input.name ? ` "${input.name}"` : ''} (creador ${input.creatorId})`);
   return {
     id,
     number,

@@ -12,6 +12,7 @@ export function createUser(db: Database.Database, name: string): User {
   const id = randomUUID();
   const now = new Date().toISOString();
   db.prepare('INSERT INTO User (id, name, createdAt, lastSeen) VALUES (?, ?, ?, ?)').run(id, name, now, now);
+  console.log(`[registro] Nuevo participante: ${name} (${id})`);
   return { id, name, createdAt: now, lastSeen: now };
 }
 
