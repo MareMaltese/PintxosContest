@@ -87,7 +87,13 @@ describe('router', () => {
   });
 
   it('blocks an unauthenticated visitor from every admin route except /admin', async () => {
-    for (const path of ['/admin/dashboard', '/admin/participantes', '/admin/tapas', '/admin/fases']) {
+    for (const path of [
+      '/admin/dashboard',
+      '/admin/participantes',
+      '/admin/tapas',
+      '/admin/fases',
+      '/admin/pintx-o-vision',
+    ]) {
       await router.push(path);
       expect(router.currentRoute.value.name).toBe('admin-login');
     }
@@ -111,9 +117,38 @@ describe('router', () => {
       ['/admin/participantes', 'admin-participants'],
       ['/admin/tapas', 'admin-entries'],
       ['/admin/fases', 'admin-phases'],
+      ['/admin/pintx-o-vision', 'admin-medal-votes'],
     ] as const) {
       await router.push(path);
       expect(router.currentRoute.value.name).toBe(name);
     }
+  });
+
+  it('lets a registered visitor reach /pintx-o-vision once voting has started', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    useContestStore().phase = 'VOTING';
+    await router.push('/pintx-o-vision');
+    expect(router.currentRoute.value.name).toBe('medal-results');
+  });
+
+  it('blocks an anonymous visitor from /pintx-o-vision and /desempate', async () => {
+    for (const path of ['/pintx-o-vision', '/desempate']) {
+      await router.push(path);
+      expect(router.currentRoute.value.name).toBe('welcome');
+    }
+  });
+
+  it('redirects a registered visitor from the gallery to /desempate when a tiebreak round opens', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    useContestStore().phase = 'TIEBREAK';
+    await router.push('/galeria');
+    expect(router.currentRoute.value.name).toBe('tiebreak');
+  });
+
+  it('redirects away from /desempate to the gallery outside the TIEBREAK phase', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    useContestStore().phase = 'RESULTS';
+    await router.push('/desempate');
+    expect(router.currentRoute.value.name).toBe('gallery');
   });
 });

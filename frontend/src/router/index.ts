@@ -10,10 +10,18 @@ const SESSION_REQUIRED_ROUTES = [
   'waiting-room',
   'gallery',
   'entry-detail',
+  'tiebreak',
+  'medal-results',
 ];
 const REGISTRATION_ONLY_ROUTES = ['has-entry', 'new-entry'];
 const GALLERY_ROUTES = ['gallery', 'entry-detail'];
-const ADMIN_ROUTES = ['admin-dashboard', 'admin-participants', 'admin-entries', 'admin-phases'];
+const ADMIN_ROUTES = [
+  'admin-dashboard',
+  'admin-participants',
+  'admin-entries',
+  'admin-phases',
+  'admin-medal-votes',
+];
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -30,6 +38,8 @@ export const router = createRouter({
     { path: '/esperando', name: 'waiting-room', component: () => import('../views/WaitingRoomView.vue') },
     { path: '/galeria', name: 'gallery', component: () => import('../views/GalleryView.vue') },
     { path: '/galeria/:id', name: 'entry-detail', component: () => import('../views/EntryDetailView.vue') },
+    { path: '/desempate', name: 'tiebreak', component: () => import('../views/TiebreakVoteView.vue') },
+    { path: '/pintx-o-vision', name: 'medal-results', component: () => import('../views/MedalPodiumView.vue') },
     { path: '/admin', name: 'admin-login', component: () => import('../views/admin/AdminLoginView.vue') },
     {
       path: '/admin/dashboard',
@@ -43,6 +53,11 @@ export const router = createRouter({
     },
     { path: '/admin/tapas', name: 'admin-entries', component: () => import('../views/admin/AdminEntriesView.vue') },
     { path: '/admin/fases', name: 'admin-phases', component: () => import('../views/admin/AdminPhasesView.vue') },
+    {
+      path: '/admin/pintx-o-vision',
+      name: 'admin-medal-votes',
+      component: () => import('../views/admin/AdminMedalVotesView.vue'),
+    },
   ],
 });
 
@@ -71,6 +86,14 @@ router.beforeEach((to) => {
 
   if (GALLERY_ROUTES.includes(name) && registrationOpen) {
     return { name: 'waiting-room' };
+  }
+
+  const isTiebreak = contest.phase === 'TIEBREAK';
+  if (GALLERY_ROUTES.includes(name) && isTiebreak) {
+    return { name: 'tiebreak' };
+  }
+  if (name === 'tiebreak' && !isTiebreak) {
+    return { name: 'gallery' };
   }
 
   const adminAuth = useAdminAuthStore();
