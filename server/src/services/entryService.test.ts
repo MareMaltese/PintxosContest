@@ -3,7 +3,15 @@ import type Database from 'better-sqlite3';
 import { createDb } from '../db/connection';
 import { createUser } from './userService';
 import { startContest } from './contestService';
-import { createEntry, listEntries, getEntry, getEntryUnchecked, listEntriesForAdmin } from './entryService';
+import {
+  createEntry,
+  listEntries,
+  getEntry,
+  getEntryUnchecked,
+  listEntriesForAdmin,
+  listMyEntries,
+  updateOwnEntry,
+} from './entryService';
 import { AppError } from '../middleware/errors';
 
 let db: Database.Database;
@@ -63,5 +71,38 @@ describe('entryService', () => {
     expect(list).toHaveLength(1);
     expect(list[0].number).toBe(entry.number);
     expect(list[0].creatorName).toBe('Laura');
+  });
+
+  it('listMyEntries returns only the caller\'s own entries, even during REGISTRATION', () => {
+    const other = createUser(db, 'Miguel').id;
+    const mine = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    createEntry(db, { creatorId: other, name: 'Tortilla', description: null, imagePath: 'b.webp' });
+
+    const list = listMyEntries(db, creatorId);
+    expect(list).toHaveLength(1);
+    expect(list[0].id).toBe(mine.id);
+  });
+
+  it('updateOwnEntry lets the creator edit name and description during REGISTRATION', () => {
+    const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    const updated = updateOwnEntry(db, creatorId, entry.id, { name: 'Croqueta de jamón', description: 'Con jamón.' });
+    expect(updated.name).toBe('Croqueta de jamón');
+    expect(updated.description).toBe('Con jamón.');
+  });
+
+  it('updateOwnEntry refuses to edit an entry that belongs to someone else', () => {
+    const other = createUser(db, 'Miguel').id;
+    const entry = createEntry(db, { creatorId: other, name: 'Tortilla', description: null, imagePath: 'a.webp' });
+    expect(() => updateOwnEntry(db, creatorId, entry.id, { name: 'Hackeada' })).toThrow(AppError);
+  });
+
+  it('updateOwnEntry refuses to edit once the contest has left REGISTRATION', () => {
+    const entry = createEntry(db, { creatorId, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    startContest(db);
+    expect(() => updateOwnEntry(db, creatorId, entry.id, { name: 'Nueva' })).toThrow(AppError);
+  });
+
+  it('updateOwnEntry throws for an unknown entry id', () => {
+    expect(() => updateOwnEntry(db, creatorId, 'missing', { name: 'Nueva' })).toThrow(AppError);
   });
 });

@@ -5,7 +5,7 @@ import { db } from '../db';
 import { userAuth } from '../middleware/userAuth';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errors';
-import { createEntry, listEntries, getEntry } from '../services/entryService';
+import { createEntry, listEntries, getEntry, listMyEntries, updateOwnEntry } from '../services/entryService';
 import { saveEntryImage } from '../images/imageProcessor';
 
 const upload = multer({
@@ -48,6 +48,28 @@ entriesRouter.get(
   userAuth,
   asyncHandler(async (_req, res) => {
     res.json(listEntries(db));
+  })
+);
+
+entriesRouter.get(
+  '/mine',
+  userAuth,
+  asyncHandler(async (req, res) => {
+    res.json(listMyEntries(db, req.userId!));
+  })
+);
+
+const updateOwnEntrySchema = z.object({
+  name: z.string().trim().max(80).nullable().optional(),
+  description: z.string().trim().max(280).nullable().optional(),
+});
+
+entriesRouter.patch(
+  '/:id',
+  userAuth,
+  asyncHandler(async (req, res) => {
+    const fields = updateOwnEntrySchema.parse(req.body);
+    res.json(updateOwnEntry(db, req.userId!, req.params.id, fields));
   })
 );
 

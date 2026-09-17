@@ -100,3 +100,38 @@ export function listEntriesForAdmin(db: Database.Database): EntryDetail[] {
     )
     .all() as EntryDetail[];
 }
+
+export function listMyEntries(db: Database.Database, userId: string): Entry[] {
+  return db.prepare('SELECT * FROM Entry WHERE creatorId = ? ORDER BY number ASC').all(userId) as Entry[];
+}
+
+export interface UpdateOwnEntryInput {
+  name?: string | null;
+  description?: string | null;
+}
+
+export function updateOwnEntry(
+  db: Database.Database,
+  userId: string,
+  entryId: string,
+  fields: UpdateOwnEntryInput
+): Entry {
+  const contest = getContest(db);
+  if (contest.phase !== 'REGISTRATION') {
+    throw new AppError(409, 'REGISTRATION_CLOSED', 'Ya no se pueden editar tapas: el concurso ha empezado.');
+  }
+  const entry = getEntryUnchecked(db, entryId);
+  if (!entry) {
+    throw new AppError(404, 'ENTRY_NOT_FOUND', 'No existe esa tapa.');
+  }
+  if (entry.creatorId !== userId) {
+    throw new AppError(403, 'NOT_YOUR_ENTRY', 'Esta tapa no es tuya.');
+  }
+  if (fields.name !== undefined) {
+    db.prepare('UPDATE Entry SET name = ? WHERE id = ?').run(fields.name, entryId);
+  }
+  if (fields.description !== undefined) {
+    db.prepare('UPDATE Entry SET description = ? WHERE id = ?').run(fields.description, entryId);
+  }
+  return getEntryUnchecked(db, entryId)!;
+}
