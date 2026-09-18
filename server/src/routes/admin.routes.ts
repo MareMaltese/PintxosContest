@@ -23,6 +23,7 @@ import { getWorstPrizeWinner } from '../services/medalResultsService';
 import {
   advance,
   closeRound,
+  deleteTiebreakHistory,
   getCurrentOpenRound,
   getOpenRoundId,
   getPendingWorstTie,
@@ -148,6 +149,14 @@ adminRouter.get(
   '/tiebreak/history',
   asyncHandler(async (_req, res) => {
     res.json(await getTiebreakHistory(db));
+  })
+);
+
+adminRouter.delete(
+  '/tiebreak/history',
+  asyncHandler(async (_req, res) => {
+    await deleteTiebreakHistory(db);
+    res.json({ ok: true });
   })
 );
 

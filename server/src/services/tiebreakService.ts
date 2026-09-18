@@ -369,6 +369,17 @@ export async function getTiebreakHistory(db: Db): Promise<TiebreakHistoryRound[]
   return history;
 }
 
+// Wipes the tiebreak history (rounds, candidates, votes) only -- it does not touch the
+// contest phase. If called while a round is genuinely open, guests currently voting in
+// it will see "no open round" on their next check; that's an accepted edge case, not
+// something this action tries to prevent (mirrors other destructive admin actions,
+// e.g. deleting a user/entry, which likewise rely on the confirmation dialog alone).
+export async function deleteTiebreakHistory(db: Db): Promise<void> {
+  await db.prepare('DELETE FROM TiebreakVote').run();
+  await db.prepare('DELETE FROM TiebreakCandidate').run();
+  await db.prepare('DELETE FROM TiebreakRound').run();
+}
+
 export async function advance(db: Db): Promise<AdvanceResult> {
   // A group tied at 0 total means nobody voted with that system at all -- there
   // is no real podium dispute to resolve, so it must not trigger a tiebreak round.

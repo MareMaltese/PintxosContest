@@ -8,7 +8,7 @@ import { api, ApiError } from '../../services/api';
 import { tiebreakRoundLabel } from '../../utils/tiebreakLabels';
 
 const { data, isLoading, error, refetch } = useAdminDashboard();
-const { data: history } = useTiebreakHistory();
+const { data: history, refetch: refetchHistory } = useTiebreakHistory();
 
 const roundLabel = computed(() => (data.value?.openRound ? tiebreakRoundLabel(data.value.openRound) : null));
 
@@ -129,6 +129,19 @@ async function reopenVoting(): Promise<void> {
     await refetch();
   } catch (err) {
     window.alert(friendlyMessage(err, 'No hemos podido volver a la votación.'));
+  }
+}
+
+async function deleteHistory(): Promise<void> {
+  const confirmed = window.confirm(
+    '¿Borrar todo el historial de desempates? Esta acción no se puede deshacer.'
+  );
+  if (!confirmed) return;
+  try {
+    await api.delete('/api/admin/tiebreak/history');
+    await refetchHistory();
+  } catch (err) {
+    window.alert(friendlyMessage(err, 'No hemos podido borrar el historial.'));
   }
 }
 
@@ -296,12 +309,21 @@ async function backToRegistration(): Promise<void> {
         </button>
 
         <template v-if="history.length > 0">
-          <h1
-            class="admin-phases__title"
-            style="margin-top:var(--space-8)"
-          >
-            Historial de desempates
-          </h1>
+          <div class="admin-phases__history-heading">
+            <h1
+              class="admin-phases__title"
+              style="margin-top:var(--space-8)"
+            >
+              Historial de desempates
+            </h1>
+            <button
+              type="button"
+              class="admin-phases__history-delete"
+              @click="deleteHistory"
+            >
+              Borrar historial
+            </button>
+          </div>
           <div
             v-for="round in history"
             :key="round.id"
@@ -396,6 +418,24 @@ async function backToRegistration(): Promise<void> {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+
+.admin-phases__history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.admin-phases__history-delete {
+  background: var(--color-danger);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.9rem;
+  cursor: pointer;
 }
 
 .admin-phases__history-round {

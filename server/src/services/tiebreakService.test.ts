@@ -9,6 +9,7 @@ import {
   advance,
   castVote,
   closeRound,
+  deleteTiebreakHistory,
   getCurrentOpenRound,
   getOpenRoundId,
   getResolvedWinner,
@@ -478,5 +479,28 @@ describe('getTiebreakHistory', () => {
     expect(closed.status).toBe('CLOSED');
     expect(closed.result).toBe('STILL_TIED');
     expect(closed.winnerEntryId).toBeUndefined();
+  });
+});
+
+describe('deleteTiebreakHistory', () => {
+  it('wipes all rounds, candidates, and votes without touching the contest phase', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    await startContest(db);
+    const [v1, v2] = [await createUser(db, 'v1'), await createUser(db, 'v2')];
+    await addVote(db, v1.id, a.id);
+    await addVote(db, v2.id, b.id);
+    await advance(db);
+
+    const roundId = (await getOpenRoundId(db))!;
+    await castVote(db, roundId, v1.id, a.id);
+
+    expect(await getTiebreakHistory(db)).toHaveLength(1);
+    expect((await getContest(db)).phase).toBe('TIEBREAK');
+
+    await deleteTiebreakHistory(db);
+
+    expect(await getTiebreakHistory(db)).toHaveLength(0);
+    expect((await getContest(db)).phase).toBe('TIEBREAK');
   });
 });

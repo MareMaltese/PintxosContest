@@ -9,7 +9,7 @@ vi.mock('vue-router', () => ({
 
 vi.mock('../../services/api', async () => {
   const actual = await vi.importActual<typeof import('../../services/api')>('../../services/api');
-  return { ...actual, api: { ...actual.api, get: vi.fn(), post: vi.fn(), patch: vi.fn() } };
+  return { ...actual, api: { ...actual.api, get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() } };
 });
 
 import { api, ApiError } from '../../services/api';
@@ -332,5 +332,77 @@ describe('AdminPhasesView', () => {
     expect(wrapper.text()).toContain('Resuelto: ganó la tapa #01');
     expect(wrapper.text()).toContain('#01 Croqueta — 2 voto(s)');
     expect(wrapper.find('.admin-phases__history-log summary').text()).toContain('Ver votos (1)');
+  });
+
+  it('deletes the tiebreak history after confirming', async () => {
+    let historyDeleted = false;
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/admin/tiebreak/history'
+        ? Promise.resolve(
+            historyDeleted
+              ? []
+              : [
+                  {
+                    id: 'r1',
+                    roundNumber: 1,
+                    kind: 'MAIN',
+                    targetRank: 1,
+                    status: 'CLOSED',
+                    createdAt: '2026-09-18T18:00:00.000Z',
+                    closedAt: '2026-09-18T18:05:00.000Z',
+                    candidates: [{ entryId: 'e1', number: 1, name: 'Croqueta', votes: 2 }],
+                    votes: [],
+                    result: 'RESOLVED',
+                    winnerEntryId: 'e1',
+                  },
+                ]
+          )
+        : Promise.resolve(dashboardWith('RESULTS', false, 'FAVORITES', '2026-09-18T18:06:00.000Z'))
+    );
+    vi.mocked(api.delete).mockImplementation(() => {
+      historyDeleted = true;
+      return Promise.resolve({ ok: true });
+    });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Historial de desempates');
+    await wrapper.find('.admin-phases__history-delete').trigger('click');
+    await flushPromises();
+
+    expect(api.delete).toHaveBeenCalledWith('/api/admin/tiebreak/history');
+    expect(wrapper.text()).not.toContain('Historial de desempates');
+  });
+
+  it('does not delete the tiebreak history when the confirmation is declined', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/admin/tiebreak/history'
+        ? Promise.resolve([
+            {
+              id: 'r1',
+              roundNumber: 1,
+              kind: 'MAIN',
+              targetRank: 1,
+              status: 'CLOSED',
+              createdAt: '2026-09-18T18:00:00.000Z',
+              closedAt: '2026-09-18T18:05:00.000Z',
+              candidates: [{ entryId: 'e1', number: 1, name: 'Croqueta', votes: 2 }],
+              votes: [],
+              result: 'RESOLVED',
+              winnerEntryId: 'e1',
+            },
+          ])
+        : Promise.resolve(dashboardWith('RESULTS', false, 'FAVORITES', '2026-09-18T18:06:00.000Z'))
+    );
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    await wrapper.find('.admin-phases__history-delete').trigger('click');
+    await flushPromises();
+
+    expect(api.delete).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('Historial de desempates');
   });
 });
