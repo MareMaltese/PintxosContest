@@ -67,6 +67,7 @@ export interface MedalStandingEntry {
   name: string | null;
   creatorId: string;
   creatorName: string;
+  imagePath: string;
   gold: number;
   silver: number;
   bronze: number;
@@ -80,7 +81,7 @@ export interface MedalStanding extends MedalStandingEntry {
 export function computeMedalStandings(db: Database.Database): MedalStanding[] {
   const rows = db
     .prepare(
-      `SELECT e.id as entryId, e.number, e.name, e.creatorId, u.name as creatorName,
+      `SELECT e.id as entryId, e.number, e.name, e.creatorId, e.imagePath, u.name as creatorName,
          COALESCE(SUM(CASE WHEN mv.medal = 'GOLD' THEN 1 ELSE 0 END), 0) as gold,
          COALESCE(SUM(CASE WHEN mv.medal = 'SILVER' THEN 1 ELSE 0 END), 0) as silver,
          COALESCE(SUM(CASE WHEN mv.medal = 'BRONZE' THEN 1 ELSE 0 END), 0) as bronze,

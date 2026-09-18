@@ -8,6 +8,7 @@ export interface MedalPodiumEntry {
   number: number;
   entryName: string | null;
   creatorName: string;
+  imagePath: string;
   medal: 'GOLD' | 'SILVER' | 'BRONZE';
   total: number;
 }
@@ -46,6 +47,7 @@ export function computeMedalPodium(db: Database.Database): MedalPodiumEntry[] {
     number: s.number,
     entryName: s.name,
     creatorName: s.creatorName,
+    imagePath: s.imagePath,
     medal: RANK_MEDAL[i + 1],
     total: s.total,
   }));

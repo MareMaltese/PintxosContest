@@ -38,6 +38,7 @@ describe('computeMedalPodium', () => {
     expect(podium[1]).toMatchObject({ rank: 2, entryId: b.id, medal: 'SILVER', total: 3 });
     expect(podium[2]).toMatchObject({ rank: 3, entryId: c.id, medal: 'BRONZE', total: 1 });
     expect(podium[0].creatorName).toBe('creator-of-A');
+    expect(podium[0].imagePath).toBe('a.webp');
   });
 
   it('places the resolved tiebreak winner ahead of the entry that lost that round', () => {

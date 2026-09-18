@@ -100,6 +100,7 @@ describe('computeMedalStandings', () => {
     expect(byId[a.id].gold).toBe(1);
     expect(byId[b.id].silver).toBe(1);
     expect(byId[a.id].creatorName).toBe('creator-of-A');
+    expect(byId[a.id].imagePath).toBe('a.webp');
   });
 
   it('podiumTieGroups also works with medal standings', () => {
