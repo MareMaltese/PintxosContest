@@ -17,6 +17,8 @@ updateCanGoBack();
 watch(() => route.fullPath, updateCanGoBack);
 
 const showBack = computed(() => canGoBack.value && route.name !== 'tiebreak');
+const isGalleryActive = computed(() => route.name === 'gallery' || route.name === 'entry-detail');
+const isMineActive = computed(() => route.name === 'my-entries' || route.name === 'edit-entry');
 
 function goBack(): void {
   router.back();
@@ -52,6 +54,7 @@ function goToMyEntries(): void {
 
     <button
       class="nav-footer__button nav-footer__gallery"
+      :class="{ 'nav-footer__button--active': isGalleryActive }"
       type="button"
       @click="goToGallery"
     >
@@ -64,6 +67,7 @@ function goToMyEntries(): void {
 
     <button
       class="nav-footer__button nav-footer__mine"
+      :class="{ 'nav-footer__button--active': isMineActive }"
       type="button"
       @click="goToMyEntries"
     >
@@ -115,5 +119,13 @@ function goToMyEntries(): void {
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+.nav-footer__button--active {
+  color: var(--color-text);
+}
+
+.nav-footer__button:active {
+  color: var(--color-text);
 }
 </style>

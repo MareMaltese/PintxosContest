@@ -57,4 +57,28 @@ describe('NavFooter', () => {
     const wrapper = mount(NavFooter);
     expect(wrapper.find('.nav-footer__back').exists()).toBe(false);
   });
+
+  it('marks the gallery button as active on the gallery screen', () => {
+    routeMock.name = 'gallery';
+    const wrapper = mount(NavFooter);
+    expect(wrapper.find('.nav-footer__gallery').classes()).toContain('nav-footer__button--active');
+    expect(wrapper.find('.nav-footer__mine').classes()).not.toContain('nav-footer__button--active');
+  });
+
+  it('marks the mis-pinchos button as active on my-entries and edit-entry screens', () => {
+    routeMock.name = 'my-entries';
+    const wrapper = mount(NavFooter);
+    expect(wrapper.find('.nav-footer__mine').classes()).toContain('nav-footer__button--active');
+    expect(wrapper.find('.nav-footer__gallery').classes()).not.toContain('nav-footer__button--active');
+
+    routeMock.name = 'edit-entry';
+    const wrapper2 = mount(NavFooter);
+    expect(wrapper2.find('.nav-footer__mine').classes()).toContain('nav-footer__button--active');
+  });
+
+  it('marks the gallery button as active on the entry-detail screen too', () => {
+    routeMock.name = 'entry-detail';
+    const wrapper = mount(NavFooter);
+    expect(wrapper.find('.nav-footer__gallery').classes()).toContain('nav-footer__button--active');
+  });
 });
