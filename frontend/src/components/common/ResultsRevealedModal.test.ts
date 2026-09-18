@@ -5,6 +5,11 @@ import ResultsRevealedModal from './ResultsRevealedModal.vue';
 import { useContestStore } from '../../stores/contest';
 import { useSessionStore } from '../../stores/session';
 
+const pushMock = vi.fn();
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ push: pushMock }),
+}));
+
 vi.mock('../../services/api', async () => {
   const actual = await vi.importActual<typeof import('../../services/api')>('../../services/api');
   return { ...actual, api: { ...actual.api, get: vi.fn() } };
@@ -97,5 +102,35 @@ describe('ResultsRevealedModal', () => {
     await wrapper.find('.results-revealed-modal__dismiss').trigger('click');
 
     expect(wrapper.find('.results-revealed-modal').exists()).toBe(false);
+  });
+
+  it('does not navigate anywhere when votingMode is FAVORITES (no ranking screen for it)', async () => {
+    vi.mocked(api.get).mockResolvedValue({ revealedAt: 'x', standings: [] });
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    contest.votingMode = 'FAVORITES';
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    const wrapper = mount(ResultsRevealedModal);
+    contest.resultsRevealedAt = '2026-09-18T10:00:00.000Z';
+    await flushPromises();
+
+    await wrapper.find('.results-revealed-modal__dismiss').trigger('click');
+
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it('redirects to the Ranking screen when accepting in MEDALS mode', async () => {
+    vi.mocked(api.get).mockResolvedValue({ revealedAt: 'x', podium: [] });
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    contest.votingMode = 'MEDALS';
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    const wrapper = mount(ResultsRevealedModal);
+    contest.resultsRevealedAt = '2026-09-18T10:00:00.000Z';
+    await flushPromises();
+
+    await wrapper.find('.results-revealed-modal__dismiss').trigger('click');
+
+    expect(pushMock).toHaveBeenCalledWith({ name: 'medal-results' });
   });
 });

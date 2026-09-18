@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useContestStore } from '../../stores/contest';
 import { useSessionStore } from '../../stores/session';
 import { api, ApiError } from '../../services/api';
@@ -23,6 +24,7 @@ interface MedalWinner {
 
 const contest = useContestStore();
 const session = useSessionStore();
+const router = useRouter();
 
 const showModal = ref(false);
 const isLoading = ref(false);
@@ -60,6 +62,13 @@ async function loadWinners(): Promise<void> {
 
 function dismiss(): void {
   showModal.value = false;
+}
+
+function accept(): void {
+  showModal.value = false;
+  if (contest.votingMode === 'MEDALS') {
+    router.push({ name: 'medal-results' });
+  }
 }
 </script>
 
@@ -132,7 +141,7 @@ function dismiss(): void {
       <button
         class="button button--primary results-revealed-modal__dismiss"
         type="button"
-        @click="dismiss"
+        @click="accept"
       >
         Vale
       </button>
