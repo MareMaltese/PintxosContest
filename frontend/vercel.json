@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://pintxoscontest.onrender.com/api/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://pintxoscontest.onrender.com/uploads/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
