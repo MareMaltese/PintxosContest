@@ -66,16 +66,13 @@ describe('MedalPodiumView', () => {
     const columns = wrapper.findAll('.medal-podium__column');
     expect(columns).toHaveLength(3);
 
-    expect(columns[0].find('.medal-podium__step--silver').exists()).toBe(true);
-    expect(columns[0].text()).toContain('#07');
+    expect(columns[0].find('.medal-podium__step--silver .medal-podium__number').text()).toBe('#07');
     expect(columns[0].find('img').attributes('src')).toBe('/uploads/silver.webp');
 
-    expect(columns[1].find('.medal-podium__step--gold').exists()).toBe(true);
-    expect(columns[1].text()).toContain('#03');
+    expect(columns[1].find('.medal-podium__step--gold .medal-podium__number').text()).toBe('#03');
     expect(columns[1].find('img').attributes('src')).toBe('/uploads/gold.webp');
 
-    expect(columns[2].find('.medal-podium__step--bronze').exists()).toBe(true);
-    expect(columns[2].text()).toContain('#01');
+    expect(columns[2].find('.medal-podium__step--bronze .medal-podium__number').text()).toBe('#01');
     expect(columns[2].find('img').attributes('src')).toBe('/uploads/bronze.webp');
 
     const goldStep = wrapper.find('.medal-podium__step--gold').element as HTMLElement;

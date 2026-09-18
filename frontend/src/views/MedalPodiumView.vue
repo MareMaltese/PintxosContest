@@ -100,62 +100,68 @@ onMounted(load);
       class="medal-podium__stage"
     >
       <div class="medal-podium__column">
-        <template v-if="silver">
-          <img
-            :src="`/uploads/${silver.imagePath}`"
-            :alt="`Tapa número ${silver.number}`"
-            class="medal-podium__photo"
-          >
-          <span class="medal-podium__number">#{{ padNumber(silver.number) }}</span>
-        </template>
+        <img
+          v-if="silver"
+          :src="`/uploads/${silver.imagePath}`"
+          :alt="`Tapa número ${silver.number}`"
+          class="medal-podium__photo"
+        >
         <div
           class="medal-podium__step medal-podium__step--silver"
           style="height: 120px"
         >
           <Icon
             name="medal"
-            :size="28"
+            :size="45"
           />
+          <span
+            v-if="silver"
+            class="medal-podium__number"
+          >#{{ padNumber(silver.number) }}</span>
         </div>
       </div>
 
       <div class="medal-podium__column">
-        <template v-if="gold">
-          <img
-            :src="`/uploads/${gold.imagePath}`"
-            :alt="`Tapa número ${gold.number}`"
-            class="medal-podium__photo"
-          >
-          <span class="medal-podium__number">#{{ padNumber(gold.number) }}</span>
-        </template>
+        <img
+          v-if="gold"
+          :src="`/uploads/${gold.imagePath}`"
+          :alt="`Tapa número ${gold.number}`"
+          class="medal-podium__photo"
+        >
         <div
           class="medal-podium__step medal-podium__step--gold"
           style="height: 160px"
         >
           <Icon
             name="medal"
-            :size="32"
+            :size="45"
           />
+          <span
+            v-if="gold"
+            class="medal-podium__number"
+          >#{{ padNumber(gold.number) }}</span>
         </div>
       </div>
 
       <div class="medal-podium__column">
-        <template v-if="bronze">
-          <img
-            :src="`/uploads/${bronze.imagePath}`"
-            :alt="`Tapa número ${bronze.number}`"
-            class="medal-podium__photo"
-          >
-          <span class="medal-podium__number">#{{ padNumber(bronze.number) }}</span>
-        </template>
+        <img
+          v-if="bronze"
+          :src="`/uploads/${bronze.imagePath}`"
+          :alt="`Tapa número ${bronze.number}`"
+          class="medal-podium__photo"
+        >
         <div
           class="medal-podium__step medal-podium__step--bronze"
           style="height: 90px"
         >
           <Icon
             name="medal"
-            :size="24"
+            :size="45"
           />
+          <span
+            v-if="bronze"
+            class="medal-podium__number"
+          >#{{ padNumber(bronze.number) }}</span>
         </div>
       </div>
     </div>
@@ -175,19 +181,19 @@ onMounted(load);
           <span class="medal-podium__count medal-podium__count--gold">
             <Icon
               name="medal"
-              :size="16"
+              :size="20"
             />{{ entry.gold }}
           </span>
           <span class="medal-podium__count medal-podium__count--silver">
             <Icon
               name="medal"
-              :size="16"
+              :size="20"
             />{{ entry.silver }}
           </span>
           <span class="medal-podium__count medal-podium__count--bronze">
             <Icon
               name="medal"
-              :size="16"
+              :size="20"
             />{{ entry.bronze }}
           </span>
           <span class="medal-podium__row-total">{{ entry.total }}</span>
@@ -224,7 +230,7 @@ onMounted(load);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: var(--space-3);
+  gap: var(--space-1);
 }
 
 .medal-podium__column {
@@ -245,38 +251,39 @@ onMounted(load);
 }
 
 .medal-podium__number {
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-primary);
+  color: inherit;
 }
 
 .medal-podium__step {
   width: 100%;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-1);
   padding-top: var(--space-3);
   border: 3px solid;
   border-bottom: none;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   box-sizing: border-box;
+  color: white;
 }
 
 .medal-podium__step--gold {
   border-color: var(--color-gold);
-  color: var(--color-gold);
-  background: rgba(201, 162, 39, 0.1);
+  background: var(--color-gold);
 }
 
 .medal-podium__step--silver {
   border-color: var(--color-silver);
-  color: var(--color-silver);
-  background: rgba(154, 160, 166, 0.1);
+  background: var(--color-silver);
 }
 
 .medal-podium__step--bronze {
   border-color: var(--color-bronze);
-  color: var(--color-bronze);
-  background: rgba(176, 106, 53, 0.1);
+  background: var(--color-bronze);
 }
 
 .medal-podium__list {
