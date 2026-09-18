@@ -183,7 +183,7 @@ onMounted(load);
       >
         <Icon
           v-if="entry.entryId === worstEntryId"
-          name="skull"
+          name="spoon"
           :size="20"
           class="medal-podium__worst-icon"
         />
