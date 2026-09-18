@@ -103,6 +103,19 @@ async function reopenVoting(): Promise<void> {
     window.alert(friendlyMessage(err, 'No hemos podido volver a la votación.'));
   }
 }
+
+async function backToRegistration(): Promise<void> {
+  const confirmed = window.confirm(
+    '¿Volver al inicio? Se reabrirá el registro: los participantes podrán volver a editar y añadir pinchos, y la votación quedará cerrada hasta que inicies el concurso de nuevo.'
+  );
+  if (!confirmed) return;
+  try {
+    await api.post('/api/admin/contest/back-to-registration');
+    await refetch();
+  } catch (err) {
+    window.alert(friendlyMessage(err, 'No hemos podido volver al inicio.'));
+  }
+}
 </script>
 
 <template>
@@ -178,6 +191,15 @@ async function reopenVoting(): Promise<void> {
           @click="reopenVoting"
         >
           Volver a votación
+        </button>
+
+        <button
+          v-if="data.phase !== 'REGISTRATION'"
+          class="button button--secondary admin-phases__back-to-registration"
+          type="button"
+          @click="backToRegistration"
+        >
+          Volver al inicio (reabrir registro)
         </button>
 
         <button

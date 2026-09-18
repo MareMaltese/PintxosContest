@@ -204,4 +204,45 @@ describe('AdminPhasesView', () => {
 
     expect(api.post).not.toHaveBeenCalled();
   });
+
+  it('hides "Volver al inicio" during REGISTRATION', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('REGISTRATION'));
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.find('.admin-phases__back-to-registration').exists()).toBe(false);
+  });
+
+  it.each(['VOTING', 'TIEBREAK', 'RESULTS'])('shows "Volver al inicio" during %s', async (phase) => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith(phase));
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.find('.admin-phases__back-to-registration').exists()).toBe(true);
+  });
+
+  it('goes back to registration after confirming', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING'));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.mocked(api.post).mockResolvedValue({ phase: 'REGISTRATION' });
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    await wrapper.find('.admin-phases__back-to-registration').trigger('click');
+    await flushPromises();
+
+    expect(api.post).toHaveBeenCalledWith('/api/admin/contest/back-to-registration');
+  });
+
+  it('does not go back to registration when the confirmation is declined', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING'));
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    await wrapper.find('.admin-phases__back-to-registration').trigger('click');
+    await flushPromises();
+
+    expect(api.post).not.toHaveBeenCalled();
+  });
 });
