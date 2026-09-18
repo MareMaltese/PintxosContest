@@ -179,6 +179,18 @@ describe('AdminPhasesView', () => {
     expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { worstPrizeEnabled: true });
   });
 
+  it('shows a skull icon on the "premio al último" toggle only when it is activated', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING', false, 'MEDALS', null, false));
+    const wrapperOff = mount(AdminPhasesView);
+    await flushPromises();
+    expect(wrapperOff.find('.admin-phases__worst-prize svg').exists()).toBe(false);
+
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING', false, 'MEDALS', null, true));
+    const wrapperOn = mount(AdminPhasesView);
+    await flushPromises();
+    expect(wrapperOn.find('.admin-phases__worst-prize svg').exists()).toBe(true);
+  });
+
   it('shows "Cerrar ronda de desempate" when there is an open round during TIEBREAK', async () => {
     vi.mocked(api.get).mockResolvedValue(
       dashboardWith('TIEBREAK', false, 'FAVORITES', null, false, { kind: 'MAIN', targetRank: 1 })

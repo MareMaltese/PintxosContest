@@ -305,6 +305,11 @@ async function backToRegistration(): Promise<void> {
           type="button"
           @click="toggleWorstPrize"
         >
+          <Icon
+            v-if="data.worstPrizeEnabled"
+            name="skull"
+            :size="20"
+          />
           Premio al último: {{ data.worstPrizeEnabled ? 'activado' : 'desactivado' }} (cambiar)
         </button>
 
