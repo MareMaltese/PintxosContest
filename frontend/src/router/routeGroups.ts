@@ -9,7 +9,7 @@ export const SESSION_REQUIRED_ROUTES = [
   'tiebreak',
   'medal-results',
 ];
-export const REGISTRATION_ONLY_ROUTES = ['has-entry', 'new-entry', 'my-entries', 'edit-entry'];
+export const REGISTRATION_ONLY_ROUTES = ['has-entry', 'new-entry', 'edit-entry'];
 export const GALLERY_ROUTES = ['gallery', 'entry-detail'];
 export const ADMIN_ROUTES = [
   'admin-dashboard',

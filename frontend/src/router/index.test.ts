@@ -163,11 +163,11 @@ describe('router', () => {
     expect(router.currentRoute.value.name).toBe('welcome');
   });
 
-  it('redirects away from /mis-pinchos to /galeria once registration has closed', async () => {
+  it('lets a registered visitor reach /mis-pinchos even once registration has closed', async () => {
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     useContestStore().phase = 'VOTING';
     await router.push('/mis-pinchos');
-    expect(router.currentRoute.value.name).toBe('gallery');
+    expect(router.currentRoute.value.name).toBe('my-entries');
   });
 
   it('lets a registered visitor reach /mis-pinchos/:id/editar during REGISTRATION', async () => {

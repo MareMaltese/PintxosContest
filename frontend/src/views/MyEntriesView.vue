@@ -2,12 +2,15 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { X } from '@lucide/vue';
+import { Lock } from '@lucide/vue';
 import Icon from '../components/common/Icon.vue';
 import { ApiError } from '../services/api';
 import { useEntriesStore, type EntrySummary } from '../stores/entries';
+import { useContestStore } from '../stores/contest';
 
 const router = useRouter();
 const entries = useEntriesStore();
+const contest = useContestStore();
 
 onMounted(() => {
   entries.fetchMine();
@@ -115,7 +118,10 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
             {{ entry.description }}
           </p>
         </div>
-        <div class="my-entries__actions">
+        <div
+          v-if="contest.phase === 'REGISTRATION'"
+          class="my-entries__actions"
+        >
           <button
             class="my-entries__edit"
             type="button"
@@ -138,6 +144,17 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
               :size="20"
             />
           </button>
+        </div>
+        <div
+          v-else
+          class="my-entries__locked"
+          aria-label="El concurso está en curso: ya no se puede editar"
+          title="El concurso está en curso: ya no se puede editar"
+        >
+          <Lock
+            :size="20"
+            aria-hidden="true"
+          />
         </div>
       </li>
     </ul>
@@ -270,5 +287,18 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
 
 .my-entries__delete {
   background: var(--color-danger);
+}
+
+.my-entries__locked {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  color: var(--color-bronze);
+  flex-shrink: 0;
 }
 </style>

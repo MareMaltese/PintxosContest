@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { setActivePinia, createPinia } from 'pinia';
 import MyEntriesView from './MyEntriesView.vue';
+import { useContestStore } from '../stores/contest';
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock('vue-router', () => ({
@@ -98,6 +99,19 @@ describe('MyEntriesView', () => {
     await flushPromises();
 
     expect(api.delete).not.toHaveBeenCalled();
+  });
+
+  it('shows a lock badge instead of edit/delete once the contest has started', async () => {
+    useContestStore().phase = 'VOTING';
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta', description: 'Con jamón.', imagePath: 'a.webp', createdAt: 'x' },
+    ]);
+    const wrapper = mount(MyEntriesView);
+    await flushPromises();
+
+    expect(wrapper.find('.my-entries__edit').exists()).toBe(false);
+    expect(wrapper.find('.my-entries__delete').exists()).toBe(false);
+    expect(wrapper.find('.my-entries__locked').exists()).toBe(true);
   });
 
   it('closing the view navigates back to the gallery', async () => {
