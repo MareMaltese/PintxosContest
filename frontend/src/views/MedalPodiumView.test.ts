@@ -143,7 +143,7 @@ describe('MedalPodiumView', () => {
     expect(rows[1].text()).toContain('7');
   });
 
-  it('marks the "premio al último" winner with a black border and a spoon icon', async () => {
+  it('marks the "premio al último" winner with a black border and a skull icon', async () => {
     vi.mocked(api.get).mockResolvedValue({
       revealedAt: '2026-09-17T20:00:00.000Z',
       podium: [],

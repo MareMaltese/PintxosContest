@@ -28,10 +28,10 @@ describe('tiebreakRoundLabel', () => {
     });
   });
 
-  it('labels a worst-prize round (targetRank past the podium) with a spoon icon', () => {
+  it('labels a worst-prize round (targetRank past the podium) with a skull icon', () => {
     expect(tiebreakRoundLabel({ kind: 'MEDAL', targetRank: 7 })).toEqual({
       title: 'Desempate: premio al último',
-      icon: 'spoon',
+      icon: 'skull',
       color: 'var(--color-text)',
     });
   });

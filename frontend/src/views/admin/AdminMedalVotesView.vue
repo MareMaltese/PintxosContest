@@ -98,7 +98,7 @@ async function startWorstTiebreak(): Promise<void> {
               <td>
                 <Icon
                   v-if="entry.entryId === data.worstEntryId"
-                  name="spoon"
+                  name="skull"
                   :size="20"
                 />
               </td>

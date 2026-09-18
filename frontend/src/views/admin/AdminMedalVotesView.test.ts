@@ -71,7 +71,7 @@ describe('AdminMedalVotesView', () => {
     expect(wrapper.text()).toContain('No hemos podido cargar el recuento.');
   });
 
-  it('shows the spoon icon only on the row of the "premio al último" winner', async () => {
+  it('shows the skull icon only on the row of the "premio al último" winner', async () => {
     vi.mocked(api.get).mockResolvedValue({
       standings: [
         { entryId: 'e1', number: 3, name: 'Croqueta', imagePath: 'a.webp', gold: 2, silver: 1, bronze: 0, total: 13 },

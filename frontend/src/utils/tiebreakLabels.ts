@@ -22,7 +22,7 @@ export function tiebreakRoundLabel(round: TiebreakRoundKindInfo): TiebreakRoundL
   // The "premio al último" tiebreak reuses kind MEDAL, distinguished by its
   // targetRank always being the last place (never 1/2/3, unlike the podium).
   if (round.targetRank > 3) {
-    return { title: 'Desempate: premio al último', icon: 'spoon', color: 'var(--color-text)' };
+    return { title: 'Desempate: premio al último', icon: 'skull', color: 'var(--color-text)' };
   }
   const medal = MEDAL_BY_RANK[round.targetRank];
   return { title: `Desempate de medallas: ${medal.name}`, icon: 'medal', color: medal.color };

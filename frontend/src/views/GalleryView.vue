@@ -223,7 +223,7 @@ function openEntry(entry: EntrySummary): void {
           class="gallery__medal-badge gallery__medal-badge--worst"
         >
           <Icon
-            name="spoon"
+            name="skull"
             :size="35"
           />
         </div>
