@@ -6,7 +6,7 @@ import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errors';
 import { getContest } from '../services/contestService';
 import { getMyMedals, setMedal } from '../services/medalVoteService';
-import { computeMedalPodium } from '../services/medalResultsService';
+import { computeMedalPodium, getWorstPrizeWinner } from '../services/medalResultsService';
 import { computeMedalStandings } from '../services/rankingService';
 
 const medalSchema = z.object({ medal: z.enum(['GOLD', 'SILVER', 'BRONZE']).nullable() });
@@ -43,6 +43,7 @@ medalVotesRouter.get(
       revealedAt: contest.resultsRevealedAt,
       podium: await computeMedalPodium(db),
       standings: await computeMedalStandings(db),
+      worstEntryId: await getWorstPrizeWinner(db),
     });
   })
 );

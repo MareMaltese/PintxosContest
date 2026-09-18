@@ -5,9 +5,10 @@ import { createUser } from './userService';
 import { createEntry } from './entryService';
 import { startContest } from './contestService';
 import { setMedal } from './medalVoteService';
-import { advance, castVote, closeRound, getOpenRoundId } from './tiebreakService';
+import { setWorstPrizeEnabled } from './contestService';
+import { advance, castVote, closeRound, getOpenRoundId, openRound } from './tiebreakService';
 import { addVote } from './voteService';
-import { computeMedalPodium } from './medalResultsService';
+import { computeMedalPodium, getWorstPrizeWinner } from './medalResultsService';
 
 let db: Db;
 
@@ -117,5 +118,48 @@ describe('computeMedalPodium', () => {
 
     const podium = await computeMedalPodium(db);
     expect(podium.map((p) => p.entryId).sort()).toEqual([a.id, b.id].sort());
+  });
+});
+
+describe('getWorstPrizeWinner', () => {
+  it('returns null when the setting is disabled', async () => {
+    const a = await makeEntry('A');
+    await makeEntry('B');
+    await startContest(db);
+    await setMedal(db, (await createUser(db, 'v1')).id, a.id, 'GOLD');
+    expect(await getWorstPrizeWinner(db)).toBeNull();
+  });
+
+  it('returns the sole last-place entry when there is no dispute', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    await startContest(db);
+    await setWorstPrizeEnabled(db, true);
+    await setMedal(db, (await createUser(db, 'v1')).id, a.id, 'GOLD');
+    // b has no medals -- alone in last place, no tie
+    expect(await getWorstPrizeWinner(db)).toBe(b.id);
+  });
+
+  it('returns null while the tie is still unresolved, then the winner once it is', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    await makeEntry('C');
+    await startContest(db);
+    await setWorstPrizeEnabled(db, true);
+    const voter = await createUser(db, 'voter');
+    await setMedal(db, voter.id, a.id, 'GOLD');
+    // b, c: no medals -- tied for last
+
+    expect(await getWorstPrizeWinner(db)).toBeNull();
+
+    const result = await advance(db);
+    const pending = result.pendingWorstTie!;
+    const [v1, v2] = [await createUser(db, 'v1'), await createUser(db, 'v2')];
+    const round = await openRound(db, pending.targetRank, pending.candidateEntryIds, 'MEDAL');
+    await castVote(db, round.id, v1.id, b.id);
+    await castVote(db, round.id, v2.id, b.id);
+    await closeRound(db, round.id);
+
+    expect(await getWorstPrizeWinner(db)).toBe(b.id);
   });
 });

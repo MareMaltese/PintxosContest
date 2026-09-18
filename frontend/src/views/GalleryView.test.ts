@@ -292,4 +292,23 @@ describe('GalleryView', () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.find('.gallery__flash-overlay').exists()).toBe(false);
   });
+
+  it('badges the "premio al último" winner once results are out', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/medal-votes/results'
+        ? Promise.resolve({ worstEntryId: 'e2' })
+        : Promise.resolve([
+            { id: 'e1', number: 1, creatorId: 'u1', name: null, description: null, imagePath: 'a.webp', createdAt: 'x' },
+            { id: 'e2', number: 2, creatorId: 'u2', name: null, description: null, imagePath: 'b.webp', createdAt: 'x' },
+          ])
+    );
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    const cards = wrapper.findAll('.gallery__card');
+    expect(cards[0].find('.gallery__medal-badge--worst').exists()).toBe(false);
+    expect(cards[1].find('.gallery__medal-badge--worst').exists()).toBe(true);
+  });
 });

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { RefreshCw, Lock } from '@lucide/vue';
 import Icon from '../components/common/Icon.vue';
+import { api } from '../services/api';
 import { useEntriesStore, type EntrySummary } from '../stores/entries';
 import { useVotesStore } from '../stores/votes';
 import { useMedalVotesStore } from '../stores/medalVotes';
@@ -24,9 +25,20 @@ const session = useSessionStore();
 
 const refreshWarning = ref<string | null>(null);
 const isFlashing = ref(false);
+const worstEntryId = ref<string | null>(null);
 let lastRefreshAt = 0;
 let warningTimer: ReturnType<typeof setTimeout> | undefined;
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
+
+async function loadWorstEntry(): Promise<void> {
+  if (contest.phase !== 'RESULTS') return;
+  try {
+    const data = await api.get<{ worstEntryId: string | null }>('/api/medal-votes/results');
+    worstEntryId.value = data.worstEntryId;
+  } catch {
+    // el icono de "premio al último" es un extra -- no debe bloquear la galería
+  }
+}
 
 onMounted(() => {
   entries.fetchList().catch(() => {
@@ -38,7 +50,13 @@ onMounted(() => {
   medals.init().catch(() => {
     // un fallo al cargar las medallas no debe bloquear la galería
   });
+  loadWorstEntry();
 });
+
+watch(
+  () => contest.phase,
+  () => loadWorstEntry()
+);
 
 onBeforeUnmount(() => {
   if (warningTimer) clearTimeout(warningTimer);
@@ -196,6 +214,16 @@ function openEntry(entry: EntrySummary): void {
         >
           <Icon
             name="medal"
+            :size="35"
+          />
+        </div>
+
+        <div
+          v-if="entry.id === worstEntryId"
+          class="gallery__medal-badge gallery__medal-badge--worst"
+        >
+          <Icon
+            name="skull"
             :size="35"
           />
         </div>
@@ -376,6 +404,13 @@ function openEntry(entry: EntrySummary): void {
 
 .gallery__medal-badge--bronze {
   color: var(--color-bronze);
+}
+
+.gallery__medal-badge--worst {
+  top: var(--space-2);
+  right: var(--space-2);
+  bottom: auto;
+  color: #000;
 }
 
 .gallery__flash-overlay {

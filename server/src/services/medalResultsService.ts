@@ -1,4 +1,5 @@
 import type { Db } from '../db/connection';
+import { getContest } from './contestService';
 import { computeMedalStandings, topPodiumRanks, type MedalStanding } from './rankingService';
 import { getResolvedWinner } from './tiebreakService';
 
@@ -52,4 +53,17 @@ export async function computeMedalPodium(db: Db): Promise<MedalPodiumEntry[]> {
     medal: RANK_MEDAL[i + 1],
     total: s.total,
   }));
+}
+
+// null when the setting is off, there's no dispute (only ever one entry, or a still-
+// unresolved tie), or the winner just isn't decided yet.
+export async function getWorstPrizeWinner(db: Db): Promise<string | null> {
+  const contest = await getContest(db);
+  if (!contest.worstPrizeEnabled) return null;
+  const standings = await computeMedalStandings(db);
+  if (standings.length === 0) return null;
+  const maxRank = Math.max(...standings.map((s) => s.rank));
+  const group = standings.filter((s) => s.rank === maxRank);
+  if (group.length === 1) return group[0].entryId;
+  return getResolvedWinner(db, 'MEDAL', maxRank);
 }

@@ -142,4 +142,48 @@ describe('MedalPodiumView', () => {
     expect(rows[1].find('.medal-podium__count--bronze').text()).toBe('1');
     expect(rows[1].text()).toContain('7');
   });
+
+  it('marks the "premio al último" winner with a black border and a skull icon', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      revealedAt: '2026-09-17T20:00:00.000Z',
+      podium: [],
+      standings: [
+        {
+          rank: 1,
+          entryId: 'e1',
+          number: 3,
+          name: 'Croqueta',
+          creatorId: 'u1',
+          creatorName: 'Laura',
+          imagePath: 'a.webp',
+          gold: 3,
+          silver: 1,
+          bronze: 0,
+          total: 18,
+        },
+        {
+          rank: 2,
+          entryId: 'e2',
+          number: 7,
+          name: null,
+          creatorId: 'u2',
+          creatorName: 'Miguel',
+          imagePath: 'b.webp',
+          gold: 0,
+          silver: 0,
+          bronze: 0,
+          total: 0,
+        },
+      ],
+      worstEntryId: 'e2',
+    });
+    const wrapper = mount(MedalPodiumView);
+    await flushPromises();
+
+    const rows = wrapper.findAll('.medal-podium__row');
+    expect(rows[0].classes()).not.toContain('medal-podium__row--worst');
+    expect(rows[0].find('.medal-podium__worst-icon').exists()).toBe(false);
+    expect(rows[1].classes()).toContain('medal-podium__row--worst');
+    expect(rows[1].find('.medal-podium__worst-icon').exists()).toBe(true);
+  });
 });

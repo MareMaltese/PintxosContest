@@ -29,6 +29,7 @@ interface StandingEntry {
 
 const podium = ref<PodiumEntry[] | null>(null);
 const standings = ref<StandingEntry[]>([]);
+const worstEntryId = ref<string | null>(null);
 const isLoading = ref(true);
 const notReady = ref(false);
 const loadError = ref<string | null>(null);
@@ -46,11 +47,15 @@ async function load(): Promise<void> {
   loadError.value = null;
   notReady.value = false;
   try {
-    const data = await api.get<{ revealedAt: string; podium: PodiumEntry[]; standings: StandingEntry[] }>(
-      '/api/medal-votes/results'
-    );
+    const data = await api.get<{
+      revealedAt: string;
+      podium: PodiumEntry[];
+      standings: StandingEntry[];
+      worstEntryId: string | null;
+    }>('/api/medal-votes/results');
     podium.value = data.podium;
     standings.value = data.standings;
+    worstEntryId.value = data.worstEntryId;
   } catch (err) {
     if (err instanceof ApiError && err.code === 'RESULTS_NOT_READY') {
       notReady.value = true;
@@ -174,7 +179,14 @@ onMounted(load);
         v-for="entry in standings"
         :key="entry.entryId"
         class="medal-podium__row"
+        :class="{ 'medal-podium__row--worst': entry.entryId === worstEntryId }"
       >
+        <Icon
+          v-if="entry.entryId === worstEntryId"
+          name="skull"
+          :size="20"
+          class="medal-podium__worst-icon"
+        />
         <span class="medal-podium__row-number">#{{ padNumber(entry.number) }}</span>
         <span class="medal-podium__row-creator">{{ entry.creatorName }}</span>
         <span class="medal-podium__counts">
@@ -308,6 +320,15 @@ onMounted(load);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: var(--space-2) var(--space-3);
+}
+
+.medal-podium__row--worst {
+  border: 2px solid #000;
+}
+
+.medal-podium__worst-icon {
+  flex-shrink: 0;
+  color: #000;
 }
 
 .medal-podium__row-number {
