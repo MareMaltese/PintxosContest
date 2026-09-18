@@ -23,24 +23,66 @@ describe('MedalPodiumView', () => {
     expect(wrapper.text()).toContain('Todavía no se ha revelado');
   });
 
-  it('shows the podium once revealed', async () => {
+  it('draws the podium with silver on the left, gold in the centre, bronze on the right', async () => {
     vi.mocked(api.get).mockResolvedValue({
       revealedAt: '2026-09-17T20:00:00.000Z',
       podium: [
-        { rank: 1, entryId: 'e1', number: 3, entryName: 'Croqueta', creatorName: 'Laura', medal: 'GOLD', total: 15 },
-        { rank: 2, entryId: 'e2', number: 7, entryName: null, creatorName: 'Miguel', medal: 'SILVER', total: 9 },
-        { rank: 3, entryId: 'e3', number: 1, entryName: null, creatorName: 'Ana', medal: 'BRONZE', total: 4 },
+        {
+          rank: 1,
+          entryId: 'e1',
+          number: 3,
+          entryName: 'Croqueta',
+          creatorName: 'Laura',
+          imagePath: 'gold.webp',
+          medal: 'GOLD',
+          total: 15,
+        },
+        {
+          rank: 2,
+          entryId: 'e2',
+          number: 7,
+          entryName: null,
+          creatorName: 'Miguel',
+          imagePath: 'silver.webp',
+          medal: 'SILVER',
+          total: 9,
+        },
+        {
+          rank: 3,
+          entryId: 'e3',
+          number: 1,
+          entryName: null,
+          creatorName: 'Ana',
+          imagePath: 'bronze.webp',
+          medal: 'BRONZE',
+          total: 4,
+        },
       ],
     });
     const wrapper = mount(MedalPodiumView);
     await flushPromises();
 
-    expect(wrapper.text()).toContain('#03');
-    expect(wrapper.text()).toContain('Laura');
-    expect(wrapper.findAll('.medal-podium__item')).toHaveLength(3);
-    expect(wrapper.find('.medal-podium__circle--gold').exists()).toBe(true);
-    expect(wrapper.find('.medal-podium__circle--silver').exists()).toBe(true);
-    expect(wrapper.find('.medal-podium__circle--bronze').exists()).toBe(true);
+    const columns = wrapper.findAll('.medal-podium__column');
+    expect(columns).toHaveLength(3);
+
+    expect(columns[0].find('.medal-podium__step--silver').exists()).toBe(true);
+    expect(columns[0].text()).toContain('#07');
+    expect(columns[0].find('img').attributes('src')).toBe('/uploads/silver.webp');
+
+    expect(columns[1].find('.medal-podium__step--gold').exists()).toBe(true);
+    expect(columns[1].text()).toContain('#03');
+    expect(columns[1].find('img').attributes('src')).toBe('/uploads/gold.webp');
+
+    expect(columns[2].find('.medal-podium__step--bronze').exists()).toBe(true);
+    expect(columns[2].text()).toContain('#01');
+    expect(columns[2].find('img').attributes('src')).toBe('/uploads/bronze.webp');
+
+    const goldStep = wrapper.find('.medal-podium__step--gold').element as HTMLElement;
+    const silverStep = wrapper.find('.medal-podium__step--silver').element as HTMLElement;
+    const bronzeStep = wrapper.find('.medal-podium__step--bronze').element as HTMLElement;
+    expect(goldStep.style.height).toBe('160px');
+    expect(silverStep.style.height).toBe('120px');
+    expect(bronzeStep.style.height).toBe('90px');
   });
 
   it('shows a retryable error for other failures', async () => {
