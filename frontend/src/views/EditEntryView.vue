@@ -106,7 +106,6 @@ onMounted(() => {
         ref="fileInput"
         type="file"
         accept="image/*"
-        capture="environment"
         class="edit-entry__file-input"
         @change="onFileChange"
       >

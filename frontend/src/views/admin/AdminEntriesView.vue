@@ -106,6 +106,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
       >
         <thead>
           <tr>
+            <th />
             <th>Nº</th>
             <th>Nombre</th>
             <th>Descripción</th>
@@ -126,6 +127,13 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             v-for="entry in entries"
             :key="entry.id"
           >
+            <td>
+              <img
+                :src="`/uploads/${entry.imagePath}`"
+                :alt="`Tapa número ${entry.number}`"
+                class="admin-table__thumbnail"
+              >
+            </td>
             <td>#{{ String(entry.number).padStart(2, '0') }}</td>
             <td>{{ entry.name ?? '—' }}</td>
             <td>{{ entry.description ?? '—' }}</td>
@@ -240,5 +248,13 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
 
 .admin-table__delete {
   background: var(--color-danger);
+}
+
+.admin-table__thumbnail {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  display: block;
 }
 </style>

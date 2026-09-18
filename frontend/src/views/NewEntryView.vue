@@ -86,7 +86,6 @@ async function onSubmit(): Promise<void> {
         ref="fileInput"
         type="file"
         accept="image/*"
-        capture="environment"
         class="new-entry__file-input"
         @change="onFileChange"
       >
