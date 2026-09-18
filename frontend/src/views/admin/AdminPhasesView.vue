@@ -90,6 +90,19 @@ async function revealResults(): Promise<void> {
     window.alert(friendlyMessage(err, 'No hemos podido mostrar los resultados.'));
   }
 }
+
+async function reopenVoting(): Promise<void> {
+  const confirmed = window.confirm(
+    '¿Volver a la votación? Los resultados dejarán de mostrarse hasta que los reveles de nuevo.'
+  );
+  if (!confirmed) return;
+  try {
+    await api.post('/api/admin/contest/reopen-voting');
+    await refetch();
+  } catch (err) {
+    window.alert(friendlyMessage(err, 'No hemos podido volver a la votación.'));
+  }
+}
 </script>
 
 <template>
@@ -150,12 +163,21 @@ async function revealResults(): Promise<void> {
         </button>
 
         <button
-          v-if="data.phase === 'RESULTS'"
+          v-if="data.phase === 'RESULTS' && !data.resultsRevealedAt"
           class="button button--primary admin-phases__reveal"
           type="button"
           @click="revealResults"
         >
           Mostrar resultados
+        </button>
+
+        <button
+          v-if="data.phase === 'RESULTS' && data.resultsRevealedAt"
+          class="button button--secondary admin-phases__reopen-voting"
+          type="button"
+          @click="reopenVoting"
+        >
+          Volver a votación
         </button>
 
         <button

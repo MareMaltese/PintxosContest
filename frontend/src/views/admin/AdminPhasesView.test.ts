@@ -14,11 +14,17 @@ vi.mock('../../services/api', async () => {
 
 import { api, ApiError } from '../../services/api';
 
-function dashboardWith(phase: string, allowSelfVote = false, votingMode = 'FAVORITES') {
+function dashboardWith(
+  phase: string,
+  allowSelfVote = false,
+  votingMode = 'FAVORITES',
+  resultsRevealedAt: string | null = null
+) {
   return {
     phase,
     allowSelfVote,
     votingMode,
+    resultsRevealedAt,
     participantCount: 2,
     entryCount: 2,
     votersFinished: 1,
@@ -156,11 +162,46 @@ describe('AdminPhasesView', () => {
     expect(wrapper.text()).toContain('Cerrar ronda de desempate');
   });
 
-  it('shows only "Mostrar resultados" during RESULTS', async () => {
-    vi.mocked(api.get).mockResolvedValue(dashboardWith('RESULTS'));
+  it('shows "Mostrar resultados" during RESULTS before revealing', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('RESULTS', false, 'FAVORITES', null));
     const wrapper = mount(AdminPhasesView);
     await flushPromises();
 
     expect(wrapper.text()).toContain('Mostrar resultados');
+    expect(wrapper.text()).not.toContain('Volver a votación');
+  });
+
+  it('shows "Volver a votación" instead, once results have been revealed', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('RESULTS', false, 'FAVORITES', '2026-09-18T10:00:00.000Z'));
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Volver a votación');
+    expect(wrapper.text()).not.toContain('Mostrar resultados');
+  });
+
+  it('reopens voting after confirming', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('RESULTS', false, 'FAVORITES', '2026-09-18T10:00:00.000Z'));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.mocked(api.post).mockResolvedValue({ phase: 'VOTING' });
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    await wrapper.find('.admin-phases__reopen-voting').trigger('click');
+    await flushPromises();
+
+    expect(api.post).toHaveBeenCalledWith('/api/admin/contest/reopen-voting');
+  });
+
+  it('does not reopen voting when the confirmation is declined', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('RESULTS', false, 'FAVORITES', '2026-09-18T10:00:00.000Z'));
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    await wrapper.find('.admin-phases__reopen-voting').trigger('click');
+    await flushPromises();
+
+    expect(api.post).not.toHaveBeenCalled();
   });
 });

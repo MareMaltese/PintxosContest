@@ -15,6 +15,7 @@ export interface AdminDashboardData {
   phase: 'REGISTRATION' | 'VOTING' | 'TIEBREAK' | 'RESULTS';
   allowSelfVote: boolean;
   votingMode: 'FAVORITES' | 'MEDALS';
+  resultsRevealedAt: string | null;
   participantCount: number;
   entryCount: number;
   votersFinished: number;
