@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
+import Icon from '../components/common/Icon.vue';
 import { api, ApiError } from '../services/api';
 
 interface TiebreakCandidate {
@@ -23,11 +24,13 @@ interface CurrentRound {
 
 const POLL_INTERVAL_MS = 5000;
 
-function roundTitle(round: TiebreakRoundInfo): string {
-  if (round.kind === 'MAIN') return 'Desempate del concurso';
+function roundInfo(round: TiebreakRoundInfo): { title: string; icon: string } {
+  if (round.kind === 'MAIN') return { title: 'Desempate del concurso', icon: 'heart' };
   // The "premio al último" tiebreak reuses kind MEDAL, distinguished by its
   // targetRank always being the last place (never 1/2/3, unlike the podium).
-  return round.targetRank <= 3 ? 'Desempate de medallas' : 'Desempate: premio al último';
+  return round.targetRank <= 3
+    ? { title: 'Desempate de medallas', icon: 'medal' }
+    : { title: 'Desempate: premio al último', icon: 'skull' };
 }
 
 const current = ref<CurrentRound | null>(null);
@@ -71,7 +74,7 @@ async function vote(entryId: string): Promise<void> {
   }
 }
 
-const title = computed(() => (current.value ? roundTitle(current.value.round) : ''));
+const info = computed(() => (current.value ? roundInfo(current.value.round) : null));
 
 onMounted(load);
 onUnmounted(() => {
@@ -106,9 +109,21 @@ onUnmounted(() => {
       </button>
     </template>
     <template v-else-if="current">
-      <h1 class="tiebreak__title">
-        {{ title }}
-      </h1>
+      <div class="tiebreak__header">
+        <h1 class="tiebreak__title">
+          <Icon
+            :name="info!.icon"
+            :size="24"
+          />
+          {{ info!.title }}
+        </h1>
+        <p
+          v-if="!hasVoted"
+          class="tiebreak__subtitle"
+        >
+          Elige tu favorita entre las tapas empatadas:
+        </p>
+      </div>
       <p
         v-if="hasVoted"
         class="tiebreak__status"
@@ -116,9 +131,6 @@ onUnmounted(() => {
         ¡Voto registrado! Espera a que el resto termine.
       </p>
       <template v-else>
-        <p class="tiebreak__subtitle">
-          Elige tu favorita entre las tapas empatadas:
-        </p>
         <div class="tiebreak__grid">
           <button
             v-for="candidate in current.candidates"
@@ -153,14 +165,25 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
+.tiebreak__header {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+
 .tiebreak__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: 1.4rem;
-  margin: 0 0 var(--space-2);
+  margin: 0;
 }
 
 .tiebreak__subtitle {
   color: var(--color-text-muted);
-  margin: 0 0 var(--space-4);
+  margin: var(--space-2) 0 0;
 }
 
 .tiebreak__status {
