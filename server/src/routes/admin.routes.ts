@@ -206,6 +206,10 @@ adminRouter.post(
       phase = (await advance(db)).phase;
     }
     broadcast('tiebreak-round-changed', { closeResult, phase });
+    // Also broadcast phase-changed: it's the event the frontend's contest store
+    // actually listens to for updating `phase`, so RESULTS (or a still-TIEBREAK
+    // transition to the next round) reaches clients sitting on the tiebreak screen.
+    broadcast('phase-changed', { phase });
     res.json({ closeResult, phase });
   })
 );

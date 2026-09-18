@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
+
+const pushMock = vi.fn();
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ push: pushMock }),
+}));
 
 vi.mock('../services/api', async () => {
   const actual = await vi.importActual<typeof import('../services/api')>('../services/api');
@@ -7,10 +13,12 @@ vi.mock('../services/api', async () => {
 });
 
 import { api, ApiError } from '../services/api';
+import { useContestStore } from '../stores/contest';
 import TiebreakVoteView from './TiebreakVoteView.vue';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  setActivePinia(createPinia());
 });
 
 describe('TiebreakVoteView', () => {
@@ -116,6 +124,72 @@ describe('TiebreakVoteView', () => {
       await flushPromises();
 
       expect(wrapper.text()).toContain('Desempate: premio al último');
+    });
+  });
+
+  describe('after voting', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('keeps polling after voting and picks up a new round instead of staying stuck', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        round: { id: 'r1', targetRank: 1, kind: 'MAIN', status: 'OPEN' },
+        candidates: [{ id: 'e1', number: 1, name: null, imagePath: 'a.webp' }],
+      });
+      vi.mocked(api.post).mockResolvedValue({ ok: true });
+      const wrapper = mount(TiebreakVoteView);
+      await flushPromises();
+
+      await wrapper.find('.tiebreak__card').trigger('click');
+      await flushPromises();
+      expect(wrapper.text()).toContain('registrado');
+
+      vi.mocked(api.get).mockResolvedValue({
+        round: { id: 'r2', targetRank: 1, kind: 'MEDAL', status: 'OPEN' },
+        candidates: [{ id: 'e2', number: 2, name: null, imagePath: 'b.webp' }],
+      });
+      await vi.advanceTimersByTimeAsync(5000);
+      await flushPromises();
+
+      expect(wrapper.text()).not.toContain('registrado');
+      expect(wrapper.text()).toContain('Desempate de medallas');
+    });
+
+    it('does not reset the voted state while polling still returns the same round', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        round: { id: 'r1', targetRank: 1, kind: 'MAIN', status: 'OPEN' },
+        candidates: [{ id: 'e1', number: 1, name: null, imagePath: 'a.webp' }],
+      });
+      vi.mocked(api.post).mockResolvedValue({ ok: true });
+      const wrapper = mount(TiebreakVoteView);
+      await flushPromises();
+
+      await wrapper.find('.tiebreak__card').trigger('click');
+      await flushPromises();
+
+      await vi.advanceTimersByTimeAsync(5000);
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('registrado');
+    });
+
+    it('navigates away once the contest phase leaves TIEBREAK (e.g. results are ready)', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        round: { id: 'r1', targetRank: 1, kind: 'MAIN', status: 'OPEN' },
+        candidates: [{ id: 'e1', number: 1, name: null, imagePath: 'a.webp' }],
+      });
+      mount(TiebreakVoteView);
+      await flushPromises();
+
+      useContestStore().phase = 'RESULTS';
+      await flushPromises();
+
+      expect(pushMock).toHaveBeenCalledWith({ name: 'gallery' });
     });
   });
 });

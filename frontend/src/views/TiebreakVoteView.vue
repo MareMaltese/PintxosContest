@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import Icon from '../components/common/Icon.vue';
 import { api, ApiError } from '../services/api';
 import { tiebreakRoundLabel } from '../utils/tiebreakLabels';
+import { useContestStore } from '../stores/contest';
 
 interface TiebreakCandidate {
   id: string;
@@ -25,6 +27,9 @@ interface CurrentRound {
 
 const POLL_INTERVAL_MS = 5000;
 
+const router = useRouter();
+const contest = useContestStore();
+
 const current = ref<CurrentRound | null>(null);
 const isLoading = ref(true);
 const isWaitingForAdmin = ref(false);
@@ -32,22 +37,26 @@ const loadError = ref<string | null>(null);
 const hasVoted = ref(false);
 const voteError = ref<string | null>(null);
 let pollTimer: ReturnType<typeof setInterval> | undefined;
+let votedRoundId: string | null = null;
 
+// Keeps polling the whole time this screen is mounted, not just before voting: once
+// you've voted you're still waiting on a *round* to close, which can resolve straight
+// to RESULTS or move on to a different tiebreak (e.g. favorites round done, now the
+// medal tie) -- without this, "¡Voto registrado!" was a dead end that never updated.
 async function load(): Promise<void> {
   loadError.value = null;
   try {
-    current.value = await api.get<CurrentRound>('/api/tiebreak/current');
+    const round = await api.get<CurrentRound>('/api/tiebreak/current');
     isWaitingForAdmin.value = false;
-    if (pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = undefined;
+    if (hasVoted.value && round.round.id !== votedRoundId) {
+      hasVoted.value = false;
+      voteError.value = null;
     }
+    current.value = round;
   } catch (err) {
     if (err instanceof ApiError && err.code === 'NO_OPEN_ROUND') {
       isWaitingForAdmin.value = true;
-      if (!pollTimer) {
-        pollTimer = setInterval(load, POLL_INTERVAL_MS);
-      }
+      current.value = null;
     } else {
       loadError.value = err instanceof ApiError ? err.message : 'No hemos podido cargar el desempate.';
     }
@@ -61,6 +70,7 @@ async function vote(entryId: string): Promise<void> {
   try {
     await api.post('/api/tiebreak/vote', { entryId });
     hasVoted.value = true;
+    votedRoundId = current.value?.round.id ?? null;
   } catch (err) {
     voteError.value = err instanceof ApiError ? err.message : 'No hemos podido guardar tu voto.';
   }
@@ -68,7 +78,19 @@ async function vote(entryId: string): Promise<void> {
 
 const info = computed(() => (current.value ? tiebreakRoundLabel(current.value.round) : null));
 
-onMounted(load);
+watch(
+  () => contest.phase,
+  (phase) => {
+    if (phase !== 'TIEBREAK') {
+      router.push({ name: 'gallery' });
+    }
+  }
+);
+
+onMounted(() => {
+  load();
+  pollTimer = setInterval(load, POLL_INTERVAL_MS);
+});
 onUnmounted(() => {
   if (pollTimer) clearInterval(pollTimer);
 });
