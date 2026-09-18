@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Camera } from '@lucide/vue';
+import Icon from '../components/common/Icon.vue';
 import { api, ApiError } from '../services/api';
 import { compressImage } from '../services/image';
 import { useEntriesStore } from '../stores/entries';
@@ -159,6 +160,11 @@ async function onSubmit(): Promise<void> {
         type="submit"
         :disabled="isSubmitting"
       >
+        <Icon
+          v-if="!isSubmitting"
+          name="plus-circle"
+          :size="18"
+        />
         {{ isSubmitting ? 'Subiendo tu pincho…' : 'Registrar pincho' }}
       </button>
     </form>

@@ -57,6 +57,14 @@ describe('MyEntriesView', () => {
     expect(push).toHaveBeenCalledWith({ name: 'new-entry' });
   });
 
+  it('shows a check icon before "Añadir otro pincho"', async () => {
+    vi.mocked(api.get).mockResolvedValue([]);
+    const wrapper = mount(MyEntriesView);
+    await flushPromises();
+
+    expect(wrapper.find('.my-entries__add .icon').exists()).toBe(true);
+  });
+
   it('navigates to the edit screen for that entry', async () => {
     vi.mocked(api.get).mockResolvedValue([
       { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta', description: 'Con jamón.', imagePath: 'a.webp', createdAt: 'x' },

@@ -31,6 +31,11 @@ beforeEach(() => {
 });
 
 describe('NewEntryView', () => {
+  it('shows a plus-circle icon before "Registrar pincho"', () => {
+    const wrapper = mount(NewEntryView);
+    expect(wrapper.find('button[type="submit"] .icon').exists()).toBe(true);
+  });
+
   it('shows a validation message when submitting without a photo', async () => {
     const wrapper = mount(NewEntryView);
     await wrapper.find('form').trigger('submit.prevent');

@@ -165,6 +165,10 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
       type="button"
       @click="addAnother"
     >
+      <Icon
+        name="check"
+        :size="18"
+      />
       Añadir otro pincho
     </button>
     <p
@@ -215,9 +219,12 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
 }
 
 .my-entries__status {
+  border: 1px solid var(--color-title);
+  padding: 0.5rem;
+  background: var(--color-surface);
+  text-align: center;
   color: var(--color-text-muted);
   text-align: center;
-  padding: var(--space-6) 0 var(--space-3);
 }
 
 .my-entries__status--error {
