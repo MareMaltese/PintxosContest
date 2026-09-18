@@ -19,6 +19,7 @@ import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
 import { getMedalLimit, countMyMedals } from '../services/medalVoteService';
 import { computeStandings, computeMedalStandings } from '../services/rankingService';
+import { getWorstPrizeWinner } from '../services/medalResultsService';
 import {
   advance,
   closeRound,
@@ -124,6 +125,7 @@ adminRouter.get(
   asyncHandler(async (_req, res) => {
     const standings = await computeMedalStandings(db);
     const pendingWorstTie = await getPendingWorstTie(db);
+    const worstEntryId = await getWorstPrizeWinner(db);
     res.json({
       standings: standings.map((s) => ({
         entryId: s.entryId,
@@ -136,6 +138,7 @@ adminRouter.get(
         total: s.total,
       })),
       pendingWorstTie,
+      worstEntryId,
     });
   })
 );

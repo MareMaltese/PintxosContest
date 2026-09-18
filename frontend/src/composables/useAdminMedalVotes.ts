@@ -20,6 +20,7 @@ export interface PendingWorstTie {
 export interface AdminMedalVotesData {
   standings: AdminMedalStanding[];
   pendingWorstTie: PendingWorstTie | null;
+  worstEntryId: string | null;
 }
 
 const POLL_INTERVAL_MS = 7000;
