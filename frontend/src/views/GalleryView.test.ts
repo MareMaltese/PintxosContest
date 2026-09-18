@@ -262,4 +262,34 @@ describe('GalleryView', () => {
 
     expect(api.get).toHaveBeenCalledWith('/api/entries');
   });
+
+  it('flashes a full-screen dark overlay briefly when refresh is clicked', async () => {
+    vi.useFakeTimers();
+    vi.mocked(api.get).mockResolvedValue([]);
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    await wrapper.find('.gallery__refresh').trigger('click');
+    await flushPromises();
+    expect(wrapper.find('.gallery__flash-overlay').exists()).toBe(true);
+
+    vi.advanceTimersByTime(500);
+    await wrapper.vm.$nextTick();
+    expect(wrapper.find('.gallery__flash-overlay').exists()).toBe(false);
+  });
+
+  it('does not flash the overlay for a throttled click', async () => {
+    vi.useFakeTimers();
+    vi.mocked(api.get).mockResolvedValue([]);
+    const wrapper = mount(GalleryView);
+    await flushPromises();
+
+    await wrapper.find('.gallery__refresh').trigger('click');
+    vi.advanceTimersByTime(500);
+    await wrapper.vm.$nextTick();
+
+    await wrapper.find('.gallery__refresh').trigger('click');
+    await wrapper.vm.$nextTick();
+    expect(wrapper.find('.gallery__flash-overlay').exists()).toBe(false);
+  });
 });

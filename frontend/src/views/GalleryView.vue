@@ -12,6 +12,7 @@ import { useHeartbeat } from '../composables/useHeartbeat';
 import FavoriteCounter from '../components/entries/FavoriteCounter.vue';
 
 const REFRESH_COOLDOWN_MS = 3000;
+const REFRESH_FLASH_MS = 400;
 
 useHeartbeat();
 const router = useRouter();
@@ -22,8 +23,10 @@ const contest = useContestStore();
 const session = useSessionStore();
 
 const refreshWarning = ref<string | null>(null);
+const isFlashing = ref(false);
 let lastRefreshAt = 0;
 let warningTimer: ReturnType<typeof setTimeout> | undefined;
+let flashTimer: ReturnType<typeof setTimeout> | undefined;
 
 onMounted(() => {
   entries.fetchList().catch(() => {
@@ -39,6 +42,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (warningTimer) clearTimeout(warningTimer);
+  if (flashTimer) clearTimeout(flashTimer);
 });
 
 function refresh(): void {
@@ -54,6 +58,12 @@ function refresh(): void {
   lastRefreshAt = now;
   refreshWarning.value = null;
   entries.refreshList();
+
+  isFlashing.value = true;
+  if (flashTimer) clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => {
+    isFlashing.value = false;
+  }, REFRESH_FLASH_MS);
 }
 
 function isOwn(entry: EntrySummary): boolean {
@@ -83,6 +93,10 @@ function openEntry(entry: EntrySummary): void {
 </script>
 
 <template>
+  <div
+    v-if="isFlashing"
+    class="gallery__flash-overlay"
+  />
   <main class="gallery">
     <div class="gallery__header">
       <h1 class="gallery__title">
@@ -214,6 +228,10 @@ function openEntry(entry: EntrySummary): void {
 .gallery__title {
   font-size: 1.5rem;
   margin: 0;
+  background: #fff;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .gallery__refresh {
@@ -224,9 +242,9 @@ function openEntry(entry: EntrySummary): void {
   height: 36px;
   border: none;
   border-radius: 50%;
-  background: var(--color-surface);
+  background: var(--color-bronze);
   box-shadow: var(--shadow-sm);
-  color: var(--color-text);
+  color: #fff;
   cursor: pointer;
 }
 
@@ -354,5 +372,27 @@ function openEntry(entry: EntrySummary): void {
 
 .gallery__medal-badge--bronze {
   color: var(--color-bronze);
+}
+
+.gallery__flash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000;
+  opacity: 0.35;
+  pointer-events: none;
+  animation: gallery-flash 0.4s ease;
+}
+
+@keyframes gallery-flash {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 </style>
