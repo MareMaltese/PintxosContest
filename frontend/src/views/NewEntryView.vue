@@ -162,7 +162,7 @@ async function onSubmit(): Promise<void> {
         <Icon
           v-if="!isSubmitting"
           name="plus-circle"
-          :size="18"
+          :size="20"
         />
         {{ isSubmitting ? 'Subiendo tu pincho…' : 'Registrar pincho' }}
       </button>

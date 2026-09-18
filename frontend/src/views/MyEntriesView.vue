@@ -167,7 +167,7 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
     >
       <Icon
         name="check"
-        :size="18"
+        :size="20"
       />
       Añadir otro pincho
     </button>
