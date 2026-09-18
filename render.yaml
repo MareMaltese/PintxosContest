@@ -10,6 +10,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Without this, `npm ci` omits devDependencies (typescript, @types/*, vitest...)
+      # whenever NODE_ENV=production is set, which breaks the TypeScript build step.
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
       - key: TURSO_DATABASE_URL
         sync: false
       - key: TURSO_AUTH_TOKEN
