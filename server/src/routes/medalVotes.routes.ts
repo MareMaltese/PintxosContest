@@ -7,6 +7,7 @@ import { AppError } from '../middleware/errors';
 import { getContest } from '../services/contestService';
 import { getMyMedals, setMedal } from '../services/medalVoteService';
 import { computeMedalPodium } from '../services/medalResultsService';
+import { computeMedalStandings } from '../services/rankingService';
 
 const medalSchema = z.object({ medal: z.enum(['GOLD', 'SILVER', 'BRONZE']).nullable() });
 
@@ -38,6 +39,10 @@ medalVotesRouter.get(
     if (contest.phase !== 'RESULTS' || !contest.resultsRevealedAt) {
       throw new AppError(409, 'RESULTS_NOT_READY', 'Los resultados todavía no se han mostrado.');
     }
-    res.json({ revealedAt: contest.resultsRevealedAt, podium: computeMedalPodium(db) });
+    res.json({
+      revealedAt: contest.resultsRevealedAt,
+      podium: computeMedalPodium(db),
+      standings: computeMedalStandings(db),
+    });
   })
 );
