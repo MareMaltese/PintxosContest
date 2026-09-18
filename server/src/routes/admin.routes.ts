@@ -19,7 +19,14 @@ import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
 import { getMedalLimit, countMyMedals } from '../services/medalVoteService';
 import { computeStandings, computeMedalStandings } from '../services/rankingService';
-import { advance, closeRound, getOpenRoundId, getPendingWorstTie, openRound } from '../services/tiebreakService';
+import {
+  advance,
+  closeRound,
+  getCurrentOpenRound,
+  getOpenRoundId,
+  getPendingWorstTie,
+  openRound,
+} from '../services/tiebreakService';
 import { deleteEntryImage } from '../images/imageProcessor';
 import { broadcast } from '../realtime/sse';
 import type { Db } from '../db/connection';
@@ -94,12 +101,15 @@ adminRouter.get(
       })
     );
 
+    const currentRound = await getCurrentOpenRound(db);
+
     res.json({
       phase: contest.phase,
       allowSelfVote: contest.allowSelfVote,
       votingMode: contest.votingMode,
       resultsRevealedAt: contest.resultsRevealedAt,
       worstPrizeEnabled: contest.worstPrizeEnabled,
+      openRound: currentRound ? { kind: currentRound.round.kind, targetRank: currentRound.round.targetRank } : null,
       participantCount: users.length,
       entryCount,
       votersFinished: people.filter((p) => p.hasFinishedVoting).length,

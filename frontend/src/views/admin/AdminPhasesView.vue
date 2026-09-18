@@ -3,6 +3,7 @@ import AdminNav from '../../components/admin/AdminNav.vue';
 import Icon from '../../components/common/Icon.vue';
 import { useAdminDashboard } from '../../composables/useAdminDashboard';
 import { api, ApiError } from '../../services/api';
+import { tiebreakRoundLabel } from '../../utils/tiebreakLabels';
 
 const { data, isLoading, error, refetch } = useAdminDashboard();
 
@@ -177,6 +178,17 @@ async function backToRegistration(): Promise<void> {
           Cerrar votación
         </button>
 
+        <p
+          v-if="data.phase === 'TIEBREAK' && data.openRound"
+          class="admin-phases__round-info"
+        >
+          <Icon
+            :name="tiebreakRoundLabel(data.openRound).icon"
+            :size="20"
+          />
+          {{ tiebreakRoundLabel(data.openRound).title }}
+        </p>
+
         <button
           v-if="data.phase === 'TIEBREAK'"
           class="button button--primary admin-phases__close-round"
@@ -279,6 +291,18 @@ async function backToRegistration(): Promise<void> {
 
 .admin-phases__status--error {
   color: var(--color-danger);
+}
+
+.admin-phases__round-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-3);
+  margin: 0;
+  font-weight: 600;
 }
 
 .admin-phases__actions {

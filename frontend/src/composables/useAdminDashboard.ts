@@ -11,12 +11,18 @@ export interface AdminPerson {
   lastSeen: string;
 }
 
+export interface OpenRoundInfo {
+  kind: 'MAIN' | 'MEDAL';
+  targetRank: number;
+}
+
 export interface AdminDashboardData {
   phase: 'REGISTRATION' | 'VOTING' | 'TIEBREAK' | 'RESULTS';
   allowSelfVote: boolean;
   votingMode: 'FAVORITES' | 'MEDALS';
   resultsRevealedAt: string | null;
   worstPrizeEnabled: boolean;
+  openRound: OpenRoundInfo | null;
   participantCount: number;
   entryCount: number;
   votersFinished: number;

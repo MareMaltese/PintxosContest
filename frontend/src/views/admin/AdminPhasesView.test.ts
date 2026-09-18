@@ -19,7 +19,8 @@ function dashboardWith(
   allowSelfVote = false,
   votingMode = 'FAVORITES',
   resultsRevealedAt: string | null = null,
-  worstPrizeEnabled = false
+  worstPrizeEnabled = false,
+  openRound: { kind: string; targetRank: number } | null = null
 ) {
   return {
     phase,
@@ -27,6 +28,7 @@ function dashboardWith(
     votingMode,
     resultsRevealedAt,
     worstPrizeEnabled,
+    openRound,
     participantCount: 2,
     entryCount: 2,
     votersFinished: 1,
@@ -183,6 +185,26 @@ describe('AdminPhasesView', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('Cerrar ronda de desempate');
+  });
+
+  it('shows which kind of tiebreak is open during TIEBREAK', async () => {
+    vi.mocked(api.get).mockResolvedValue(
+      dashboardWith('TIEBREAK', false, 'FAVORITES', null, false, { kind: 'MAIN', targetRank: 1 })
+    );
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Desempate del concurso');
+  });
+
+  it('labels a worst-prize tiebreak distinctly from a podium medal tiebreak', async () => {
+    vi.mocked(api.get).mockResolvedValue(
+      dashboardWith('TIEBREAK', false, 'MEDALS', null, true, { kind: 'MEDAL', targetRank: 5 })
+    );
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Desempate: premio al último');
   });
 
   it('shows "Mostrar resultados" during RESULTS before revealing', async () => {

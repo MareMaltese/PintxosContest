@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import Icon from '../components/common/Icon.vue';
 import { api, ApiError } from '../services/api';
+import { tiebreakRoundLabel } from '../utils/tiebreakLabels';
 
 interface TiebreakCandidate {
   id: string;
@@ -23,15 +24,6 @@ interface CurrentRound {
 }
 
 const POLL_INTERVAL_MS = 5000;
-
-function roundInfo(round: TiebreakRoundInfo): { title: string; icon: string } {
-  if (round.kind === 'MAIN') return { title: 'Desempate del concurso', icon: 'heart' };
-  // The "premio al último" tiebreak reuses kind MEDAL, distinguished by its
-  // targetRank always being the last place (never 1/2/3, unlike the podium).
-  return round.targetRank <= 3
-    ? { title: 'Desempate de medallas', icon: 'medal' }
-    : { title: 'Desempate: premio al último', icon: 'skull' };
-}
 
 const current = ref<CurrentRound | null>(null);
 const isLoading = ref(true);
@@ -74,7 +66,7 @@ async function vote(entryId: string): Promise<void> {
   }
 }
 
-const info = computed(() => (current.value ? roundInfo(current.value.round) : null));
+const info = computed(() => (current.value ? tiebreakRoundLabel(current.value.round) : null));
 
 onMounted(load);
 onUnmounted(() => {
