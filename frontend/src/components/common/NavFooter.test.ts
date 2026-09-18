@@ -108,6 +108,26 @@ describe('NavFooter', () => {
     expect(push).toHaveBeenCalledWith({ name: 'medal-results' });
   });
 
+  it('marks the Ranking button as active on the medal-results screen', () => {
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    contest.votingMode = 'MEDALS';
+    routeMock.name = 'medal-results';
+    const wrapper = mount(NavFooter);
+
+    expect(wrapper.find('.nav-footer__ranking').classes()).toContain('nav-footer__button--active');
+  });
+
+  it('does not mark the Ranking button as active on other screens', () => {
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    contest.votingMode = 'MEDALS';
+    routeMock.name = 'gallery';
+    const wrapper = mount(NavFooter);
+
+    expect(wrapper.find('.nav-footer__ranking').classes()).not.toContain('nav-footer__button--active');
+  });
+
   it('keeps the regular back button once finished if votingMode is FAVORITES', () => {
     const contest = useContestStore();
     contest.phase = 'RESULTS';

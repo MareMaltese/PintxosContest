@@ -22,6 +22,7 @@ const showRanking = computed(() => contest.phase === 'RESULTS' && contest.voting
 const showBack = computed(() => !showRanking.value && canGoBack.value && route.name !== 'tiebreak');
 const isGalleryActive = computed(() => route.name === 'gallery' || route.name === 'entry-detail');
 const isMineActive = computed(() => route.name === 'my-entries' || route.name === 'edit-entry');
+const isRankingActive = computed(() => route.name === 'medal-results');
 
 function goBack(): void {
   router.back();
@@ -45,6 +46,7 @@ function goToRanking(): void {
     <button
       v-if="showRanking"
       class="nav-footer__button nav-footer__ranking"
+      :class="{ 'nav-footer__button--active': isRankingActive }"
       type="button"
       @click="goToRanking"
     >
