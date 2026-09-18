@@ -191,16 +191,15 @@ async function backToRegistration(): Promise<void> {
             :style="{ color: roundLabel.color }"
           />
           {{ roundLabel.title }}
+          <button
+            v-if="data.phase === 'TIEBREAK'"
+            class="button button--primary admin-phases__close-round"
+            type="button"
+            @click="closeTiebreakRound"
+          >
+            Cerrar ronda de desempate
+          </button>
         </p>
-
-        <button
-          v-if="data.phase === 'TIEBREAK'"
-          class="button button--primary admin-phases__close-round"
-          type="button"
-          @click="closeTiebreakRound"
-        >
-          Cerrar ronda de desempate
-        </button>
 
         <button
           v-if="data.phase === 'RESULTS' && !data.resultsRevealedAt"
