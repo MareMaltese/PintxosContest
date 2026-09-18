@@ -27,6 +27,14 @@ describe('MedalButtons', () => {
     expect(wrapper.find('.medal-buttons__button--active').exists()).toBe(false);
   });
 
+  it('shows the point value under each medal', () => {
+    const wrapper = mount(MedalButtons, { props: { entryId: 'e1' } });
+    const buttons = wrapper.findAll('button');
+    expect(buttons[0].find('.medal-buttons__points').text()).toBe('5 pts');
+    expect(buttons[1].find('.medal-buttons__points').text()).toBe('3 pts');
+    expect(buttons[2].find('.medal-buttons__points').text()).toBe('1 pt');
+  });
+
   it('assigns GOLD when the gold button is clicked', async () => {
     vi.mocked(api.put).mockResolvedValue({ ok: true });
     const wrapper = mount(MedalButtons, { props: { entryId: 'e1' } });

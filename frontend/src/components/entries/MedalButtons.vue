@@ -11,10 +11,10 @@ const props = withDefaults(
 const medals = useMedalVotesStore();
 const current = computed(() => medals.medalFor(props.entryId));
 
-const OPTIONS: { medal: Medal; label: string }[] = [
-  { medal: 'GOLD', label: 'Oro' },
-  { medal: 'SILVER', label: 'Plata' },
-  { medal: 'BRONZE', label: 'Bronce' },
+const OPTIONS: { medal: Medal; label: string; points: number }[] = [
+  { medal: 'GOLD', label: 'Oro', points: 5 },
+  { medal: 'SILVER', label: 'Plata', points: 3 },
+  { medal: 'BRONZE', label: 'Bronce', points: 1 },
 ];
 
 async function choose(medal: Medal): Promise<void> {
@@ -48,9 +48,10 @@ async function choose(medal: Medal): Promise<void> {
       >
         <Icon
           name="medal"
-          :size="18"
+          :size="28"
         />
-        {{ option.label }}
+        <span class="medal-buttons__label">{{ option.label }}</span>
+        <span class="medal-buttons__points">{{ option.points }} {{ option.points === 1 ? 'pt' : 'pts' }}</span>
       </button>
     </div>
     <p
@@ -71,15 +72,27 @@ async function choose(medal: Medal): Promise<void> {
 
 .medal-buttons__button {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  min-height: 44px;
-  padding: 0 var(--space-3);
+  justify-content: center;
+  gap: 2px;
+  min-width: 72px;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   background: var(--color-surface);
   font-weight: 600;
   cursor: pointer;
   border: 2px solid transparent;
+}
+
+.medal-buttons__label {
+  font-size: 0.9rem;
+}
+
+.medal-buttons__points {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.8;
 }
 
 .medal-buttons__button--gold {
