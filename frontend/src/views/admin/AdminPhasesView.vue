@@ -130,7 +130,7 @@ async function backToRegistration(): Promise<void> {
 </script>
 
 <template>
-  <div>
+  <div class="admin-page">
     <AdminNav />
     <main class="admin-phases">
       <h1 class="admin-phases__title">

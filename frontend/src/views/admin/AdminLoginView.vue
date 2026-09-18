@@ -21,7 +21,7 @@ async function onSubmit(): Promise<void> {
 </script>
 
 <template>
-  <main class="admin-login">
+  <main class="admin-login admin-page">
     <form
       class="admin-login__card"
       @submit.prevent="onSubmit"

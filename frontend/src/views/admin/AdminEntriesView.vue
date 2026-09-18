@@ -75,7 +75,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
 </script>
 
 <template>
-  <div>
+  <div class="admin-page">
     <AdminNav />
     <main class="admin-entries">
       <h1 class="admin-entries__title">

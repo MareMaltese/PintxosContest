@@ -22,7 +22,7 @@ async function startWorstTiebreak(): Promise<void> {
 </script>
 
 <template>
-  <div>
+  <div class="admin-page">
     <AdminNav />
     <main class="admin-medal-votes">
       <h1 class="admin-medal-votes__title">

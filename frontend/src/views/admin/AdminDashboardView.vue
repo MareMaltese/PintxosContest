@@ -24,7 +24,7 @@ const VOTING_MODE_LABELS: Record<string, string> = {
 </script>
 
 <template>
-  <div>
+  <div class="admin-page">
     <AdminNav />
     <main class="admin-dashboard">
       <p

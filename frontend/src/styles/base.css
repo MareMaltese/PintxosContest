@@ -17,6 +17,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.admin-page {
+  min-height: 100vh;
+  background: var(--color-bg) url('../assets/pattern.png') center / cover no-repeat fixed;
+}
+
 #app {
   min-height: 100vh;
 }

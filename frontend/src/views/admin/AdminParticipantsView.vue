@@ -38,7 +38,7 @@ async function deletePerson(person: AdminPerson): Promise<void> {
 </script>
 
 <template>
-  <div>
+  <div class="admin-page">
     <AdminNav />
     <main class="admin-participants">
       <h1 class="admin-participants__title">
