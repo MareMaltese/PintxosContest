@@ -26,7 +26,7 @@ export const router = createRouter({
     { path: '/galeria', name: 'gallery', component: () => import('../views/GalleryView.vue') },
     { path: '/galeria/:id', name: 'entry-detail', component: () => import('../views/EntryDetailView.vue') },
     { path: '/desempate', name: 'tiebreak', component: () => import('../views/TiebreakVoteView.vue') },
-    { path: '/pinch-o-vision', name: 'medal-results', component: () => import('../views/MedalPodiumView.vue') },
+    { path: '/ranking', name: 'medal-results', component: () => import('../views/MedalPodiumView.vue') },
     { path: '/admin', name: 'admin-login', component: () => import('../views/admin/AdminLoginView.vue') },
     {
       path: '/admin/dashboard',

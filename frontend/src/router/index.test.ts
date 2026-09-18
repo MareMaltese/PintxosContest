@@ -124,15 +124,15 @@ describe('router', () => {
     }
   });
 
-  it('lets a registered visitor reach /pinch-o-vision once voting has started', async () => {
+  it('lets a registered visitor reach /ranking once voting has started', async () => {
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     useContestStore().phase = 'VOTING';
-    await router.push('/pinch-o-vision');
+    await router.push('/ranking');
     expect(router.currentRoute.value.name).toBe('medal-results');
   });
 
-  it('blocks an anonymous visitor from /pinch-o-vision and /desempate', async () => {
-    for (const path of ['/pinch-o-vision', '/desempate']) {
+  it('blocks an anonymous visitor from /ranking and /desempate', async () => {
+    for (const path of ['/ranking', '/desempate']) {
       await router.push(path);
       expect(router.currentRoute.value.name).toBe('welcome');
     }

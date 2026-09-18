@@ -58,6 +58,7 @@ describe('MedalPodiumView', () => {
           total: 4,
         },
       ],
+      standings: [],
     });
     const wrapper = mount(MedalPodiumView);
     await flushPromises();
@@ -90,5 +91,58 @@ describe('MedalPodiumView', () => {
     const wrapper = mount(MedalPodiumView);
     await flushPromises();
     expect(wrapper.text()).toContain('No hemos podido cargar el podio.');
+  });
+
+  it('lists every participant with their medal counts and total', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      revealedAt: '2026-09-17T20:00:00.000Z',
+      podium: [],
+      standings: [
+        {
+          rank: 1,
+          entryId: 'e1',
+          number: 3,
+          name: 'Croqueta',
+          creatorId: 'u1',
+          creatorName: 'Laura',
+          imagePath: 'a.webp',
+          gold: 3,
+          silver: 1,
+          bronze: 0,
+          total: 18,
+        },
+        {
+          rank: 2,
+          entryId: 'e2',
+          number: 7,
+          name: null,
+          creatorId: 'u2',
+          creatorName: 'Miguel',
+          imagePath: 'b.webp',
+          gold: 0,
+          silver: 2,
+          bronze: 1,
+          total: 7,
+        },
+      ],
+    });
+    const wrapper = mount(MedalPodiumView);
+    await flushPromises();
+
+    const rows = wrapper.findAll('.medal-podium__row');
+    expect(rows).toHaveLength(2);
+
+    expect(rows[0].text()).toContain('#03');
+    expect(rows[0].text()).toContain('Laura');
+    expect(rows[0].find('.medal-podium__count--gold').text()).toBe('3');
+    expect(rows[0].find('.medal-podium__count--silver').text()).toBe('1');
+    expect(rows[0].find('.medal-podium__count--bronze').text()).toBe('0');
+    expect(rows[0].text()).toContain('18');
+
+    expect(rows[1].text()).toContain('#07');
+    expect(rows[1].find('.medal-podium__count--gold').text()).toBe('0');
+    expect(rows[1].find('.medal-podium__count--silver').text()).toBe('2');
+    expect(rows[1].find('.medal-podium__count--bronze').text()).toBe('1');
+    expect(rows[1].text()).toContain('7');
   });
 });

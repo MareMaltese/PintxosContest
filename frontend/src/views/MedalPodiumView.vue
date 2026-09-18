@@ -14,7 +14,21 @@ interface PodiumEntry {
   total: number;
 }
 
+interface StandingEntry {
+  rank: number;
+  entryId: string;
+  number: number;
+  name: string | null;
+  creatorName: string;
+  imagePath: string;
+  gold: number;
+  silver: number;
+  bronze: number;
+  total: number;
+}
+
 const podium = ref<PodiumEntry[] | null>(null);
+const standings = ref<StandingEntry[]>([]);
 const isLoading = ref(true);
 const notReady = ref(false);
 const loadError = ref<string | null>(null);
@@ -32,8 +46,11 @@ async function load(): Promise<void> {
   loadError.value = null;
   notReady.value = false;
   try {
-    const data = await api.get<{ revealedAt: string; podium: PodiumEntry[] }>('/api/medal-votes/results');
+    const data = await api.get<{ revealedAt: string; podium: PodiumEntry[]; standings: StandingEntry[] }>(
+      '/api/medal-votes/results'
+    );
     podium.value = data.podium;
+    standings.value = data.standings;
   } catch (err) {
     if (err instanceof ApiError && err.code === 'RESULTS_NOT_READY') {
       notReady.value = true;
@@ -142,6 +159,41 @@ onMounted(load);
         </div>
       </div>
     </div>
+
+    <ul
+      v-if="standings.length > 0"
+      class="medal-podium__list"
+    >
+      <li
+        v-for="entry in standings"
+        :key="entry.entryId"
+        class="medal-podium__row"
+      >
+        <span class="medal-podium__row-number">#{{ padNumber(entry.number) }}</span>
+        <span class="medal-podium__row-creator">{{ entry.creatorName }}</span>
+        <span class="medal-podium__counts">
+          <span class="medal-podium__count medal-podium__count--gold">
+            <Icon
+              name="medal"
+              :size="16"
+            />{{ entry.gold }}
+          </span>
+          <span class="medal-podium__count medal-podium__count--silver">
+            <Icon
+              name="medal"
+              :size="16"
+            />{{ entry.silver }}
+          </span>
+          <span class="medal-podium__count medal-podium__count--bronze">
+            <Icon
+              name="medal"
+              :size="16"
+            />{{ entry.bronze }}
+          </span>
+          <span class="medal-podium__row-total">{{ entry.total }}</span>
+        </span>
+      </li>
+    </ul>
   </main>
 </template>
 
@@ -225,5 +277,70 @@ onMounted(load);
   border-color: var(--color-bronze);
   color: var(--color-bronze);
   background: rgba(176, 106, 53, 0.1);
+}
+
+.medal-podium__list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-6) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.medal-podium__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.medal-podium__row-number {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.medal-podium__row-creator {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medal-podium__counts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.medal-podium__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 700;
+}
+
+.medal-podium__count--gold {
+  color: var(--color-gold);
+}
+
+.medal-podium__count--silver {
+  color: var(--color-silver);
+}
+
+.medal-podium__count--bronze {
+  color: var(--color-bronze);
+}
+
+.medal-podium__row-total {
+  font-weight: 700;
+  color: var(--color-text);
+  min-width: 1.5em;
+  text-align: right;
 }
 </style>
