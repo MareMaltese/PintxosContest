@@ -5,6 +5,7 @@ import { SESSION_REQUIRED_ROUTES } from './router/routeGroups';
 import NavFooter from './components/common/NavFooter.vue';
 import VotingStartedModal from './components/common/VotingStartedModal.vue';
 import ResultsRevealedModal from './components/common/ResultsRevealedModal.vue';
+import ContestFinishedModal from './components/common/ContestFinishedModal.vue';
 
 const route = useRoute();
 const showFooter = computed(() => SESSION_REQUIRED_ROUTES.includes(route.name as string));
@@ -20,6 +21,7 @@ const showFooter = computed(() => SESSION_REQUIRED_ROUTES.includes(route.name as
   <NavFooter v-if="showFooter" />
   <VotingStartedModal />
   <ResultsRevealedModal />
+  <ContestFinishedModal />
 </template>
 
 <style scoped>
