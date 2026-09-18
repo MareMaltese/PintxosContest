@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import AdminNav from '../../components/admin/AdminNav.vue';
 import Icon from '../../components/common/Icon.vue';
 import { useAdminDashboard } from '../../composables/useAdminDashboard';
@@ -6,6 +7,8 @@ import { api, ApiError } from '../../services/api';
 import { tiebreakRoundLabel } from '../../utils/tiebreakLabels';
 
 const { data, isLoading, error, refetch } = useAdminDashboard();
+
+const roundLabel = computed(() => (data.value?.openRound ? tiebreakRoundLabel(data.value.openRound) : null));
 
 function friendlyMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
@@ -179,14 +182,15 @@ async function backToRegistration(): Promise<void> {
         </button>
 
         <p
-          v-if="data.phase === 'TIEBREAK' && data.openRound"
+          v-if="data.phase === 'TIEBREAK' && roundLabel"
           class="admin-phases__round-info"
         >
           <Icon
-            :name="tiebreakRoundLabel(data.openRound).icon"
-            :size="20"
+            :name="roundLabel.icon"
+            :size="36"
+            :style="{ color: roundLabel.color }"
           />
-          {{ tiebreakRoundLabel(data.openRound).title }}
+          {{ roundLabel.title }}
         </p>
 
         <button

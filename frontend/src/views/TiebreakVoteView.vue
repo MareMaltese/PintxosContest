@@ -105,7 +105,8 @@ onUnmounted(() => {
         <h1 class="tiebreak__title">
           <Icon
             :name="info!.icon"
-            :size="24"
+            :size="36"
+            :style="{ color: info!.color }"
           />
           {{ info!.title }}
         </h1>
