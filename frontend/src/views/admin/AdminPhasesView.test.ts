@@ -179,12 +179,23 @@ describe('AdminPhasesView', () => {
     expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { worstPrizeEnabled: true });
   });
 
-  it('shows only "Cerrar ronda de desempate" during TIEBREAK', async () => {
-    vi.mocked(api.get).mockResolvedValue(dashboardWith('TIEBREAK'));
+  it('shows "Cerrar ronda de desempate" when there is an open round during TIEBREAK', async () => {
+    vi.mocked(api.get).mockResolvedValue(
+      dashboardWith('TIEBREAK', false, 'FAVORITES', null, false, { kind: 'MAIN', targetRank: 1 })
+    );
     const wrapper = mount(AdminPhasesView);
     await flushPromises();
 
     expect(wrapper.text()).toContain('Cerrar ronda de desempate');
+  });
+
+  it('points to Clasificación instead of a close-round button when the tiebreak has not been started yet', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('TIEBREAK', false, 'MEDALS', null, true, null));
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain('Cerrar ronda de desempate');
+    expect(wrapper.text()).toContain('Clasificación');
   });
 
   it('shows which kind of tiebreak is open during TIEBREAK', async () => {

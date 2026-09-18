@@ -181,26 +181,35 @@ async function backToRegistration(): Promise<void> {
           Cerrar votación
         </button>
 
-        <p
-          v-if="data.phase === 'TIEBREAK' && roundLabel"
-          class="admin-phases__round-info"
-        >
-          <Icon
-            :name="roundLabel.icon"
-            :size="36"
-            :style="{ color: roundLabel.color }"
-          />
-          {{ roundLabel.title }}
-        </p>
+        <template v-if="data.phase === 'TIEBREAK'">
+          <p
+            v-if="roundLabel"
+            class="admin-phases__round-info"
+          >
+            <Icon
+              :name="roundLabel.icon"
+              :size="36"
+              :style="{ color: roundLabel.color }"
+            />
+            {{ roundLabel.title }}
+          </p>
 
-        <button
-          v-if="data.phase === 'TIEBREAK'"
-          class="button button--primary admin-phases__close-round"
-          type="button"
-          @click="closeTiebreakRound"
-        >
-          Cerrar ronda de desempate
-        </button>
+          <button
+            v-if="data.openRound"
+            class="button button--primary admin-phases__close-round"
+            type="button"
+            @click="closeTiebreakRound"
+          >
+            Cerrar ronda de desempate
+          </button>
+          <p
+            v-else
+            class="admin-phases__round-info"
+          >
+            Hay un empate pendiente por resolver. Ve a la pestaña
+            <strong>Clasificación</strong> para iniciar esa votación de desempate.
+          </p>
+        </template>
 
         <button
           v-if="data.phase === 'RESULTS' && !data.resultsRevealedAt"
