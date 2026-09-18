@@ -122,7 +122,9 @@ function goToMyEntries(): void {
 }
 
 .nav-footer__button--active {
-  color: var(--color-text);
+  color: #fff;
+  background: var(--color-bronze);
+  border-radius: var(--radius-md);
 }
 
 .nav-footer__button:active {
