@@ -160,12 +160,19 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
     </ul>
 
     <button
+      v-if="contest.phase === 'REGISTRATION'"
       class="button button--primary button--block my-entries__add"
       type="button"
       @click="addAnother"
     >
       Añadir otro pincho
     </button>
+    <p
+      v-else
+      class="my-entries__voting-message"
+    >
+      Estamos en votación, no se puede editar.
+    </p>
   </main>
 </template>
 
@@ -300,5 +307,12 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
   box-shadow: var(--shadow-sm);
   color: var(--color-bronze);
   flex-shrink: 0;
+}
+
+.my-entries__voting-message {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin: 0;
 }
 </style>

@@ -114,6 +114,25 @@ describe('MyEntriesView', () => {
     expect(wrapper.find('.my-entries__locked').exists()).toBe(true);
   });
 
+  it('hides "Añadir otro pincho" and shows a voting-in-progress message once the contest has started', async () => {
+    useContestStore().phase = 'VOTING';
+    vi.mocked(api.get).mockResolvedValue([]);
+    const wrapper = mount(MyEntriesView);
+    await flushPromises();
+
+    expect(wrapper.find('.my-entries__add').exists()).toBe(false);
+    expect(wrapper.text()).toContain('Estamos en votación, no se puede editar.');
+  });
+
+  it('shows "Añadir otro pincho" and no voting message during REGISTRATION', async () => {
+    vi.mocked(api.get).mockResolvedValue([]);
+    const wrapper = mount(MyEntriesView);
+    await flushPromises();
+
+    expect(wrapper.find('.my-entries__add').exists()).toBe(true);
+    expect(wrapper.text()).not.toContain('Estamos en votación');
+  });
+
   it('closing the view navigates back to the gallery', async () => {
     vi.mocked(api.get).mockResolvedValue([]);
     const wrapper = mount(MyEntriesView);
