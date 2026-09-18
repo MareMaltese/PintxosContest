@@ -171,6 +171,10 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
       v-else
       class="my-entries__voting-message"
     >
+      <Icon
+        name="seal-warning"
+        :size="20"
+      />
       Estamos en votación, no se puede editar.
     </p>
   </main>
@@ -310,9 +314,16 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
 }
 
 .my-entries__voting-message {
+  border: 1px solid var(--color-title);
+  padding: 0.5rem;
+  background: var(--color-surface);
   text-align: center;
   color: var(--color-text-muted);
   font-weight: 600;
   margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
 }
 </style>

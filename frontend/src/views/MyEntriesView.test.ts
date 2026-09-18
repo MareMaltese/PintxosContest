@@ -122,6 +122,7 @@ describe('MyEntriesView', () => {
 
     expect(wrapper.find('.my-entries__add').exists()).toBe(false);
     expect(wrapper.text()).toContain('Estamos en votación, no se puede editar.');
+    expect(wrapper.find('.my-entries__voting-message .icon').exists()).toBe(true);
   });
 
   it('shows "Añadir otro pincho" and no voting message during REGISTRATION', async () => {
