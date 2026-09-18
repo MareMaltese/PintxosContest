@@ -143,6 +143,19 @@ describe('EntryDetailView', () => {
     expect(wrapper.find('button.button--secondary').exists()).toBe(false);
   });
 
+  it('shows a clock icon and "aún no ha empezado" during REGISTRATION', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) => {
+      if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });
+      return Promise.resolve(mockEntry());
+    });
+    useContestStore().phase = 'REGISTRATION';
+    const wrapper = mount(EntryDetailView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('¡Aún no ha empezado!');
+    expect(wrapper.find('.entry-detail__not-started .icon').exists()).toBe(true);
+  });
+
   it('disables voting on your own entry when self-vote is not allowed', async () => {
     vi.mocked(api.get).mockImplementation((path: string) => {
       if (path === '/api/votes/me') return Promise.resolve({ entryIds: [], limit: 3 });

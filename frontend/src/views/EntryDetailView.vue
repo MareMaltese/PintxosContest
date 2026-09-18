@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { X } from '@lucide/vue';
+import Icon from '../components/common/Icon.vue';
 import { ApiError } from '../services/api';
 import { useEntriesStore, type EntryDetail } from '../stores/entries';
 import { useVotesStore } from '../stores/votes';
@@ -134,6 +135,16 @@ onMounted(() => {
           disabled-reason="No puedes puntuar tu propio pincho."
         />
       </div>
+      <div
+        v-else-if="contest.phase === 'REGISTRATION'"
+        class="entry-detail__not-started"
+      >
+        <Icon
+          name="clock"
+          :size="28"
+        />
+        <p>¡Aún no ha empezado!</p>
+      </div>
     </div>
   </main>
 </template>
@@ -217,5 +228,20 @@ onMounted(() => {
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-3);
+}
+
+.entry-detail__not-started {
+  margin: var(--space-4) var(--space-5) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.entry-detail__not-started p {
+  margin: 0;
+  font-weight: 700;
 }
 </style>
