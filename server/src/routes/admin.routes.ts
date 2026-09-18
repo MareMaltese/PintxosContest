@@ -125,6 +125,7 @@ adminRouter.get(
 adminRouter.get(
   '/medal-votes',
   asyncHandler(async (_req, res) => {
+    const contest = await getContest(db);
     const standings = await computeMedalStandings(db);
     const pendingWorstTie = await getPendingWorstTie(db);
     const worstEntryId = await getWorstPrizeWinner(db);
@@ -141,6 +142,7 @@ adminRouter.get(
       })),
       pendingWorstTie,
       worstEntryId,
+      worstPrizeEnabled: contest.worstPrizeEnabled,
     });
   })
 );

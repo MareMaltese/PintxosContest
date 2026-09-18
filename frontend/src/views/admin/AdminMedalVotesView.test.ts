@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { setActivePinia, createPinia } from 'pinia';
 import AdminMedalVotesView from './AdminMedalVotesView.vue';
-import Icon from '../../components/common/Icon.vue';
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -71,7 +70,7 @@ describe('AdminMedalVotesView', () => {
     expect(wrapper.text()).toContain('No hemos podido cargar el recuento.');
   });
 
-  it('shows the skull icon only on the row of the "premio al último" winner', async () => {
+  it('shows a "Último" column marking only the "premio al último" winner with *', async () => {
     vi.mocked(api.get).mockResolvedValue({
       standings: [
         { entryId: 'e1', number: 3, name: 'Croqueta', imagePath: 'a.webp', gold: 2, silver: 1, bronze: 0, total: 13 },
@@ -79,12 +78,31 @@ describe('AdminMedalVotesView', () => {
       ],
       pendingWorstTie: null,
       worstEntryId: 'e2',
+      worstPrizeEnabled: true,
     });
     const wrapper = mount(AdminMedalVotesView);
     await flushPromises();
 
+    expect(wrapper.text()).toContain('Último');
     const rows = wrapper.findAll('tbody tr');
-    expect(rows[0].findComponent(Icon).exists()).toBe(false);
-    expect(rows[1].findComponent(Icon).exists()).toBe(true);
+    expect(rows[0].findAll('td').at(-2)?.text()).toBe('-');
+    expect(rows[1].findAll('td').at(-2)?.text()).toBe('*');
+  });
+
+  it('hides the "Último" column entirely when "premio al último" is disabled', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      standings: [
+        { entryId: 'e1', number: 3, name: 'Croqueta', imagePath: 'a.webp', gold: 2, silver: 1, bronze: 0, total: 13 },
+      ],
+      pendingWorstTie: null,
+      worstEntryId: null,
+      worstPrizeEnabled: false,
+    });
+    const wrapper = mount(AdminMedalVotesView);
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain('Último');
+    expect(wrapper.findAll('thead th')).toHaveLength(7);
+    expect(wrapper.findAll('tbody td')).toHaveLength(7);
   });
 });

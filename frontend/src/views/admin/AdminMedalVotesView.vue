@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AdminNav from '../../components/admin/AdminNav.vue';
-import Icon from '../../components/common/Icon.vue';
 import { useAdminMedalVotes } from '../../composables/useAdminMedalVotes';
 import { api, ApiError } from '../../services/api';
 
@@ -73,8 +72,10 @@ async function startWorstTiebreak(): Promise<void> {
               <th>Oro</th>
               <th>Plata</th>
               <th>Bronce</th>
+              <th v-if="data.worstPrizeEnabled">
+                Último
+              </th>
               <th>Total</th>
-              <th />
             </tr>
           </thead>
           <tbody>
@@ -94,14 +95,10 @@ async function startWorstTiebreak(): Promise<void> {
               <td>{{ entry.gold }}</td>
               <td>{{ entry.silver }}</td>
               <td>{{ entry.bronze }}</td>
-              <td>{{ entry.total }}</td>
-              <td>
-                <Icon
-                  v-if="entry.entryId === data.worstEntryId"
-                  name="skull"
-                  :size="20"
-                />
+              <td v-if="data.worstPrizeEnabled">
+                {{ entry.entryId === data.worstEntryId ? '*' : '-' }}
               </td>
+              <td>{{ entry.total }}</td>
             </tr>
           </tbody>
         </table>
