@@ -65,3 +65,12 @@ export function revealResults(db: Database.Database): Contest {
   db.prepare('UPDATE Contest SET resultsRevealedAt = ? WHERE id = 1').run(now);
   return getContest(db);
 }
+
+export function reopenVoting(db: Database.Database): Contest {
+  const contest = getContest(db);
+  if (contest.phase !== 'RESULTS') {
+    throw new AppError(409, 'NOT_IN_RESULTS', 'El concurso no está en la fase de resultados.');
+  }
+  db.prepare('UPDATE Contest SET phase = ?, resultsRevealedAt = NULL WHERE id = 1').run('VOTING');
+  return getContest(db);
+}

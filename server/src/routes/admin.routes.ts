@@ -4,7 +4,14 @@ import { db } from '../db';
 import { adminAuth } from '../middleware/adminAuth';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errors';
-import { getContest, startContest, setAllowSelfVote, setVotingMode, revealResults } from '../services/contestService';
+import {
+  getContest,
+  startContest,
+  setAllowSelfVote,
+  setVotingMode,
+  revealResults,
+  reopenVoting,
+} from '../services/contestService';
 import { listUsers, getUser } from '../services/userService';
 import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
@@ -68,6 +75,7 @@ adminRouter.get(
       phase: contest.phase,
       allowSelfVote: contest.allowSelfVote,
       votingMode: contest.votingMode,
+      resultsRevealedAt: contest.resultsRevealedAt,
       participantCount: users.length,
       entryCount,
       votersFinished: people.filter((p) => p.hasFinishedVoting).length,
@@ -156,6 +164,15 @@ adminRouter.post(
   asyncHandler(async (_req, res) => {
     const contest = revealResults(db);
     broadcast('results-revealed', { revealedAt: contest.resultsRevealedAt });
+    res.json(contest);
+  })
+);
+
+adminRouter.post(
+  '/contest/reopen-voting',
+  asyncHandler(async (_req, res) => {
+    const contest = reopenVoting(db);
+    broadcast('phase-changed', { phase: contest.phase });
     res.json(contest);
   })
 );

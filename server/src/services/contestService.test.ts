@@ -1,7 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type Database from 'better-sqlite3';
 import { createDb } from '../db/connection';
-import { getContest, startContest, setAllowSelfVote, setVotingMode, revealResults, setPhase } from './contestService';
+import {
+  getContest,
+  startContest,
+  setAllowSelfVote,
+  setVotingMode,
+  revealResults,
+  reopenVoting,
+  setPhase,
+} from './contestService';
 import { AppError } from '../middleware/errors';
 
 let db: Database.Database;
@@ -45,5 +53,17 @@ describe('contestService', () => {
     const revealed = revealResults(db);
     expect(revealed.resultsRevealedAt).not.toBeNull();
     expect(() => revealResults(db)).toThrow(AppError);
+  });
+
+  it('reopenVoting moves RESULTS back to VOTING and clears resultsRevealedAt', () => {
+    setPhase(db, 'RESULTS');
+    revealResults(db);
+    const reopened = reopenVoting(db);
+    expect(reopened.phase).toBe('VOTING');
+    expect(reopened.resultsRevealedAt).toBeNull();
+  });
+
+  it('reopenVoting throws when the contest is not in RESULTS', () => {
+    expect(() => reopenVoting(db)).toThrow(AppError);
   });
 });
