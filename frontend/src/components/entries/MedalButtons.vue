@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import Icon from '../common/Icon.vue';
 import { useMedalVotesStore, type Medal } from '../../stores/medalVotes';
+import { useEntriesStore, type EntrySummary } from '../../stores/entries';
 
 const props = withDefaults(
   defineProps<{ entryId: string; disabled?: boolean; disabledReason?: string }>(),
@@ -9,6 +10,7 @@ const props = withDefaults(
 );
 
 const medals = useMedalVotesStore();
+const entries = useEntriesStore();
 const current = computed(() => medals.medalFor(props.entryId));
 
 const OPTIONS: { medal: Medal; label: string; points: number }[] = [
@@ -17,9 +19,39 @@ const OPTIONS: { medal: Medal; label: string; points: number }[] = [
   { medal: 'BRONZE', label: 'Bronce', points: 1 },
 ];
 
+const pendingSwap = ref<{ medal: Medal; previousEntry: EntrySummary } | null>(null);
+
+function holderEntryId(medal: Medal): string | null {
+  if (medal === 'GOLD') return medals.gold;
+  if (medal === 'SILVER') return medals.silver;
+  return medals.bronze;
+}
+
 async function choose(medal: Medal): Promise<void> {
-  const next = current.value === medal ? null : medal;
-  await medals.setMedal(props.entryId, next);
+  if (current.value === medal) {
+    await medals.setMedal(props.entryId, null);
+    return;
+  }
+  const holderId = holderEntryId(medal);
+  if (holderId && holderId !== props.entryId) {
+    const previousEntry = entries.list.find((e) => e.id === holderId);
+    if (previousEntry) {
+      pendingSwap.value = { medal, previousEntry };
+      return;
+    }
+  }
+  await medals.setMedal(props.entryId, medal);
+}
+
+async function confirmSwap(): Promise<void> {
+  if (!pendingSwap.value) return;
+  const { medal } = pendingSwap.value;
+  pendingSwap.value = null;
+  await medals.setMedal(props.entryId, medal);
+}
+
+function cancelSwap(): void {
+  pendingSwap.value = null;
 }
 </script>
 
@@ -60,6 +92,46 @@ async function choose(medal: Medal): Promise<void> {
     >
       {{ medals.error }}
     </p>
+
+    <div
+      v-if="pendingSwap"
+      class="medal-buttons__swap"
+      @click="cancelSwap"
+    >
+      <div
+        class="medal-buttons__swap-card"
+        @click.stop
+      >
+        <p class="medal-buttons__swap-message">
+          Vas a quitar esta medalla al pincho
+          <strong>#{{ String(pendingSwap.previousEntry.number).padStart(2, '0') }}</strong>
+          <template v-if="pendingSwap.previousEntry.name">
+            — {{ pendingSwap.previousEntry.name }}
+          </template>
+        </p>
+        <img
+          :src="`/uploads/${pendingSwap.previousEntry.imagePath}`"
+          :alt="`Tapa número ${pendingSwap.previousEntry.number}`"
+          class="medal-buttons__swap-photo"
+        >
+        <div class="medal-buttons__swap-actions">
+          <button
+            class="button button--secondary medal-buttons__swap-cancel"
+            type="button"
+            @click="cancelSwap"
+          >
+            Cancelar
+          </button>
+          <button
+            class="button button--primary medal-buttons__swap-confirm"
+            type="button"
+            @click="confirmSwap"
+          >
+            Sí, quitar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -135,5 +207,53 @@ async function choose(medal: Medal): Promise<void> {
   color: var(--color-danger);
   font-size: 0.9rem;
   margin-top: var(--space-2);
+}
+
+.medal-buttons__swap {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  padding: var(--space-5);
+}
+
+.medal-buttons__swap-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6) var(--space-5);
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.medal-buttons__swap-message {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.medal-buttons__swap-photo {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.medal-buttons__swap-actions {
+  display: flex;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.medal-buttons__swap-actions .button {
+  flex: 1;
 }
 </style>
