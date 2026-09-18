@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <g stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Skewer -->
+    <path d="M128 26v44"/>
+    <path d="M128 118v34"/>
+
+    <!-- Olive -->
+    <circle cx="128" cy="94" r="28"/>
+
+    <!-- Topping / folded ham -->
+    <path d="M78 154c10-20 26-23 43-14 13 7 25 8 40 2 16-6 30 2 34 17"/>
+    <path d="M85 164c18 11 32 13 50 5 16-7 31-4 43 3"/>
+
+    <!-- Bread -->
+    <path d="M62 171c18-10 42-14 66-14s48 4 66 14"/>
+    <path d="M62 171v28c0 14 29 25 66 25s66-11 66-25v-28"/>
+    <path d="M62 171c0 14 29 25 66 25s66-11 66-25"/>
+
+    <!-- Bread texture -->
+    <path d="M104 205v10"/>
+    <path d="M132 207v10"/>
+    <path d="M160 205v10"/>
+  </g>
+
+  <!-- Olive pit -->
+  <circle cx="138" cy="88" r="6" fill="currentColor"/>
+</svg>
