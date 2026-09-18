@@ -14,6 +14,7 @@ describe('createDb', () => {
     expect(tables).toEqual([
       'Contest',
       'Entry',
+      'Image',
       'MedalVote',
       'TiebreakCandidate',
       'TiebreakRound',

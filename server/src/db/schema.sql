@@ -57,6 +57,13 @@ CREATE TABLE IF NOT EXISTS TiebreakVote (
   UNIQUE (roundId, userId)
 );
 
+CREATE TABLE IF NOT EXISTS Image (
+  path TEXT PRIMARY KEY,
+  data BLOB NOT NULL,
+  mimeType TEXT NOT NULL,
+  createdAt TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS MedalVote (
   id TEXT PRIMARY KEY,
   userId TEXT NOT NULL REFERENCES User(id),

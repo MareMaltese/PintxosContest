@@ -1,13 +1,11 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { randomUUID } from 'node:crypto';
 import sharp from 'sharp';
-import { createDb } from '../db/connection';
+import { createDb, type Db } from '../db/connection';
 import { config } from '../config';
 import { createUser } from '../services/userService';
 import { createEntry } from '../services/entryService';
 import { startContest } from '../services/contestService';
 import { addVote } from '../services/voteService';
+import { saveEntryImage } from '../images/imageProcessor';
 
 if (config.nodeEnv === 'production') {
   console.error('El seed de desarrollo no se ejecuta en producción.');
@@ -19,16 +17,14 @@ const FIRST_NAMES = [
   'Elena', 'Hugo', 'Claudia', 'Adrián', 'Nuria', 'Álvaro', 'Marina', 'Rubén', 'Irene', 'Óscar',
 ];
 
-async function placeholderImage(index: number): Promise<string> {
+async function placeholderImage(db: Db, index: number): Promise<string> {
   const hue = (index * 47) % 360;
-  fs.mkdirSync(config.uploadsDir, { recursive: true });
-  const filename = `${randomUUID()}.webp`;
-  await sharp({
+  const buffer = await sharp({
     create: { width: 800, height: 800, channels: 3, background: `hsl(${hue}, 60%, 55%)` },
   })
     .webp({ quality: 70 })
-    .toFile(path.join(config.uploadsDir, filename));
-  return filename;
+    .toBuffer();
+  return saveEntryImage(db, buffer);
 }
 
 async function main() {
@@ -43,7 +39,7 @@ async function main() {
   const entryIds: string[] = [];
   for (let i = 0; i < 18; i++) {
     const creatorId = userIds[i % 15];
-    const imagePath = await placeholderImage(i);
+    const imagePath = await placeholderImage(db, i);
     const entry = await createEntry(db, {
       creatorId,
       name: i % 3 === 0 ? null : `Tapa de prueba ${i + 1}`,

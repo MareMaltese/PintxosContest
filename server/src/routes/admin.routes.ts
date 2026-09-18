@@ -249,7 +249,7 @@ adminRouter.delete(
       await db.prepare('DELETE FROM Entry WHERE id = ?').run(id);
     });
     await tx(req.params.id);
-    deleteEntryImage(entry.imagePath);
+    await deleteEntryImage(db, entry.imagePath);
     res.json({ ok: true });
   })
 );
@@ -295,7 +295,7 @@ adminRouter.delete(
     });
     await tx(req.params.id);
     for (const entry of ownEntries) {
-      deleteEntryImage(entry.imagePath);
+      await deleteEntryImage(db, entry.imagePath);
     }
     res.json({ ok: true });
   })

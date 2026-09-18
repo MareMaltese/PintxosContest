@@ -8,8 +8,10 @@ if (dbPath) {
   if (fs.existsSync(dbPath)) fs.rmSync(dbPath);
   if (fs.existsSync(`${dbPath}-wal`)) fs.rmSync(`${dbPath}-wal`);
   if (fs.existsSync(`${dbPath}-shm`)) fs.rmSync(`${dbPath}-shm`);
+  console.log('Concurso reseteado: base de datos local eliminada (incluidas las fotos, guardadas en la BD).');
 } else {
-  console.warn('La base de datos es remota (Turso); este script solo borra las fotos subidas.');
+  console.warn(
+    'La base de datos es remota (Turso); este script no la borra automáticamente. ' +
+      'Bórrala manualmente desde el dashboard de Turso o con `turso db shell` si quieres empezar de cero.'
+  );
 }
-if (fs.existsSync(config.uploadsDir)) fs.rmSync(config.uploadsDir, { recursive: true, force: true });
-console.log('Concurso reseteado: base de datos y fotos eliminadas.');

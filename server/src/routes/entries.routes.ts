@@ -40,7 +40,7 @@ entriesRouter.post(
       throw new AppError(400, 'INVALID_IMAGE_TYPE', 'El archivo no es una imagen válida.');
     }
     const fields = entryFieldsSchema.parse(req.body);
-    const imagePath = await saveEntryImage(req.file.buffer);
+    const imagePath = await saveEntryImage(db, req.file.buffer);
     const entry = await createEntry(db, {
       creatorId: req.userId!,
       name: fields.name || null,
@@ -88,9 +88,9 @@ entriesRouter.patch(
     });
     if (req.file) {
       const oldImagePath = entry.imagePath;
-      const imagePath = await saveEntryImage(req.file.buffer);
+      const imagePath = await saveEntryImage(db, req.file.buffer);
       entry = await updateOwnEntry(db, req.userId!, req.params.id, { imagePath });
-      deleteEntryImage(oldImagePath);
+      await deleteEntryImage(db, oldImagePath);
     }
     broadcast('entries-changed', {});
     res.json(entry);
@@ -102,7 +102,7 @@ entriesRouter.delete(
   userAuth,
   asyncHandler(async (req, res) => {
     const imagePath = await deleteOwnEntry(db, req.userId!, req.params.id);
-    deleteEntryImage(imagePath);
+    await deleteEntryImage(db, imagePath);
     broadcast('entries-changed', {});
     res.json({ ok: true });
   })

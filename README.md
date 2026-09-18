@@ -134,9 +134,9 @@ valores por defecto sensatos para desarrollo). Ver `server/src/config.ts`:
 |---|---|---|
 | `PORT` | `3000` | Puerto en el que escucha el servidor |
 | `ADMIN_PIN` | `0000` | PIN del panel de administración (**cámbialo antes de la fiesta**) |
-| `DB_PATH` | `server/data/pincho-party.db` | Ruta del fichero SQLite |
-| `UPLOADS_DIR` | `server/uploads` | Carpeta donde se guardan las fotos |
-| `NODE_ENV` | `development` | `production` activa servir el frontend compilado y bloquea el seed de desarrollo |
+| `TURSO_DATABASE_URL` | fichero SQLite local (`server/data/pincho-party.db`) | URL de la base de datos Turso (libSQL). Si no se define, usa un fichero local |
+| `TURSO_AUTH_TOKEN` | (ninguno) | Token de acceso a Turso (solo hace falta si `TURSO_DATABASE_URL` apunta a Turso) |
+| `NODE_ENV` | `development` | `production` activa servir el frontend compilado (si está empaquetado junto al backend) y bloquea el seed de desarrollo |
 
 Ejemplo para arrancar con un PIN propio:
 
@@ -159,18 +159,21 @@ Cambia el PIN por defecto (`0000`) antes de la fiesta real.
 
 ## Dónde se almacenan las fotografías
 
-En la carpeta indicada por `UPLOADS_DIR` (por defecto `server/uploads/`,
-ignorada por git). Cada foto se guarda como un `.webp` optimizado (máximo
-1600px de lado largo, reorientada según EXIF) con un nombre aleatorio — la
-base de datos solo guarda esa ruta, nunca el archivo original sin procesar.
-Se sirven como estáticos bajo `/uploads/<archivo>.webp`.
+En la propia base de datos, como BLOB (tabla `Image`). Cada foto se procesa
+como un `.webp` optimizado (máximo 1600px de lado largo, reorientada según
+EXIF) antes de guardarse; la tabla `Entry` solo guarda el nombre de archivo
+generado, no la imagen. Se sirven en `GET /uploads/<archivo>.webp`, que lee
+el blob de la base de datos y lo devuelve con el `Content-Type` correcto.
+Guardarlas en la base de datos (en vez de en disco) evita perderlas si el
+servidor se reinicia — importante en hostings gratuitos con disco efímero.
 
-## Dónde está SQLite
+## Dónde está la base de datos
 
-Un único fichero indicado por `DB_PATH` (por defecto
-`server/data/pincho-party.db`, ignorado por git), junto con sus ficheros
-auxiliares de modo WAL (`-wal`, `-shm`) mientras el servidor está en marcha.
-No hay ningún otro servicio de base de datos que instalar o arrancar.
+Por defecto, un único fichero SQLite local (`server/data/pincho-party.db`,
+ignorado por git) con sus ficheros auxiliares de modo WAL (`-wal`, `-shm`).
+Si defines `TURSO_DATABASE_URL` (y `TURSO_AUTH_TOKEN`), usa en su lugar una
+base de datos [Turso](https://turso.tech) (libSQL) remota — necesario para
+desplegar el backend en un hosting sin disco persistente, como Render.
 
 ## Cómo hacer backup
 

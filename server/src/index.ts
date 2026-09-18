@@ -2,7 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
 import { config } from './config';
-import { connectDb } from './db';
+import { db, connectDb } from './db';
+import { getEntryImage } from './images/imageProcessor';
+import { asyncHandler } from './middleware/asyncHandler';
 import { contestRouter } from './routes/contest.routes';
 import { entriesRouter } from './routes/entries.routes';
 import { usersRouter } from './routes/users.routes';
@@ -16,7 +18,19 @@ import { errorHandler } from './middleware/errorHandler';
 const app = express();
 
 app.use(express.json());
-app.use('/uploads', express.static(config.uploadsDir));
+app.get(
+  '/uploads/:path',
+  asyncHandler(async (req, res) => {
+    const image = await getEntryImage(db, req.params.path);
+    if (!image) {
+      res.status(404).end();
+      return;
+    }
+    res.set('Content-Type', image.mimeType);
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(image.data);
+  })
+);
 
 app.use('/api/contest', contestRouter);
 app.use('/api/entries', entriesRouter);
