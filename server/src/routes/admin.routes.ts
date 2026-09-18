@@ -17,13 +17,34 @@ import {
 import { listUsers, getUser } from '../services/userService';
 import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
+import { getMedalLimit, countMyMedals } from '../services/medalVoteService';
 import { computeStandings, computeMedalStandings } from '../services/rankingService';
 import { advance, closeRound, getOpenRoundId, getPendingWorstTie, openRound } from '../services/tiebreakService';
 import { deleteEntryImage } from '../images/imageProcessor';
 import { broadcast } from '../realtime/sse';
+import type { Db } from '../db/connection';
 
 export const adminRouter = Router();
 adminRouter.use(adminAuth);
+
+// "Completed voting" means different things depending on which system is active:
+// favorites are capped by getFavoriteLimit, medals by getMedalLimit (a user can only
+// ever hand out one of each medal, capped further by how many entries they can vote for).
+async function votingProgressFor(
+  database: Db,
+  userId: string,
+  votingMode: 'FAVORITES' | 'MEDALS'
+): Promise<{ votedCount: number; voteLimit: number }> {
+  if (votingMode === 'MEDALS') {
+    return { votedCount: await countMyMedals(database, userId), voteLimit: await getMedalLimit(database, userId) };
+  }
+  const votedCount = (
+    (await database.prepare('SELECT COUNT(*) as c FROM Vote WHERE userId = ?').get(userId)) as unknown as {
+      c: number;
+    }
+  ).c;
+  return { votedCount, voteLimit: await getFavoriteLimit(database, userId) };
+}
 
 adminRouter.get(
   '/entries',
@@ -60,17 +81,14 @@ adminRouter.get(
             number: number;
           }[]
         ).map((e) => e.number);
-        const votedCount = (
-          (await db.prepare('SELECT COUNT(*) as c FROM Vote WHERE userId = ?').get(u.id)) as unknown as { c: number }
-        ).c;
-        const limit = await getFavoriteLimit(db, u.id);
+        const { votedCount, voteLimit } = await votingProgressFor(db, u.id, contest.votingMode);
         return {
           id: u.id,
           name: u.name,
           entryNumbers,
           votedCount,
-          voteLimit: limit,
-          hasFinishedVoting: votedCount >= limit,
+          voteLimit,
+          hasFinishedVoting: votedCount >= voteLimit,
           lastSeen: u.lastSeen,
         };
       })
@@ -146,10 +164,8 @@ adminRouter.post(
     const users = await listUsers(db);
     const pending = [];
     for (const u of users) {
-      const votedCount = (
-        (await db.prepare('SELECT COUNT(*) as c FROM Vote WHERE userId = ?').get(u.id)) as unknown as { c: number }
-      ).c;
-      if (votedCount < (await getFavoriteLimit(db, u.id))) {
+      const { votedCount, voteLimit } = await votingProgressFor(db, u.id, contest.votingMode);
+      if (votedCount < voteLimit) {
         pending.push(u);
       }
     }

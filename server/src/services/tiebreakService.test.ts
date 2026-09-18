@@ -57,6 +57,27 @@ describe('tiebreakService', () => {
     expect(current.candidates.map((c) => c.id).sort()).toEqual([a.id, b.id].sort());
   });
 
+  it('self-heals the phase back to TIEBREAK if it was left at VOTING while a round is already open', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    await startContest(db);
+    const [v1, v2] = [await createUser(db, 'v1'), await createUser(db, 'v2')];
+    await addVote(db, v1.id, a.id);
+    await addVote(db, v2.id, b.id);
+    await advance(db);
+    expect((await getContest(db)).phase).toBe('TIEBREAK');
+
+    // Simulate the historical bug: a round is open, but the phase never actually
+    // persisted as TIEBREAK (e.g. a prior advance() call took the "already open round"
+    // shortcut without re-affirming the phase).
+    await db.prepare("UPDATE Contest SET phase = 'VOTING' WHERE id = 1").run();
+    expect((await getContest(db)).phase).toBe('VOTING');
+
+    const result = await advance(db);
+    expect(result.phase).toBe('TIEBREAK');
+    expect((await getContest(db)).phase).toBe('TIEBREAK');
+  });
+
   it('a tiebreak round resolves once a unique winner emerges', async () => {
     const a = await makeEntry('A');
     const b = await makeEntry('B');

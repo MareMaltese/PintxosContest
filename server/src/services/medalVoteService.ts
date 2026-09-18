@@ -3,8 +3,22 @@ import type { Db } from '../db/connection';
 import { AppError } from '../middleware/errors';
 import { getContest } from './contestService';
 import { getEntryUnchecked } from './entryService';
+import { getVotableCount } from './voteService';
 
 export type Medal = 'GOLD' | 'SILVER' | 'BRONZE';
+
+const MAX_MEDALS = 3;
+
+export async function getMedalLimit(db: Db, userId: string): Promise<number> {
+  const contest = await getContest(db);
+  const votable = await getVotableCount(db, userId, contest.allowSelfVote);
+  return Math.min(MAX_MEDALS, Math.max(votable, 0));
+}
+
+export async function countMyMedals(db: Db, userId: string): Promise<number> {
+  const medals = await getMyMedals(db, userId);
+  return [medals.gold, medals.silver, medals.bronze].filter((m) => m !== null).length;
+}
 
 export interface MyMedals {
   gold: string | null;

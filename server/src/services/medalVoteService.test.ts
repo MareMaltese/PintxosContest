@@ -4,7 +4,7 @@ import { createDb } from '../db/connection';
 import { createUser } from './userService';
 import { createEntry } from './entryService';
 import { startContest, setAllowSelfVote } from './contestService';
-import { getMyMedals, setMedal } from './medalVoteService';
+import { getMyMedals, setMedal, getMedalLimit, countMyMedals } from './medalVoteService';
 import { AppError } from '../middleware/errors';
 
 let db: Db;
@@ -93,5 +93,28 @@ describe('medalVoteService', () => {
 
   it('rejects a medal for an entry that does not exist', async () => {
     await expect(setMedal(db, voterId, 'nonexistent', 'GOLD')).rejects.toThrow(AppError);
+  });
+});
+
+describe('getMedalLimit / countMyMedals', () => {
+  it('counts 0 when no medals have been assigned', async () => {
+    expect(await countMyMedals(db, voterId)).toBe(0);
+    expect(await getMedalLimit(db, voterId)).toBe(3);
+  });
+
+  it('counts up as medals are assigned, capped at 3', async () => {
+    await setMedal(db, voterId, entryIds[0], 'GOLD');
+    expect(await countMyMedals(db, voterId)).toBe(1);
+    await setMedal(db, voterId, entryIds[1], 'SILVER');
+    await setMedal(db, voterId, entryIds[2], 'BRONZE');
+    expect(await countMyMedals(db, voterId)).toBe(3);
+  });
+
+  it('caps the medal limit to the number of votable entries when fewer than 3 exist', async () => {
+    const freshDb = await createDb(':memory:');
+    await setupEntriesFor(freshDb, 2, 'owner2');
+    const user = await createUser(freshDb, 'lonely-voter');
+    await startContest(freshDb);
+    expect(await getMedalLimit(freshDb, user.id)).toBe(2);
   });
 });

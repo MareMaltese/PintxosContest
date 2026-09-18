@@ -240,8 +240,11 @@ async function resolveWorstTie(db: Db): Promise<AdvanceResult | null> {
   const targetRank = group[0].rank;
   if (await isRankResolved(db, 'MEDAL', targetRank)) return null;
   // Mirrors resolveGroups(): if a round (of any kind) is already open, just wait for
-  // it to close -- don't start a second one, and don't fall through to RESULTS.
+  // it to close -- don't start a second one, and don't fall through to RESULTS. Always
+  // re-affirm the phase here too: if a caller only ever reaches this branch (never the
+  // fresh-open one below), the phase must still end up persisted as TIEBREAK.
   if (await getOpenRoundId(db)) {
+    await setPhase(db, 'TIEBREAK');
     return { phase: 'TIEBREAK' };
   }
   const candidateEntryIds = group.map((g) => g.entryId);
@@ -263,6 +266,11 @@ async function resolveGroups(
     const rank = group[0].rank;
     if (await isRankResolved(db, kind, rank)) continue;
     if (await getOpenRoundId(db)) {
+      // Re-affirm the phase rather than assume it's already TIEBREAK: if a prior call's
+      // openRound() failed partway through (or its own re-affirmation was skipped by an
+      // even earlier bug), this is what actually recovers a stuck phase on the next
+      // advance() instead of perpetuating a wrong "VOTING" forever.
+      await setPhase(db, 'TIEBREAK');
       return { phase: 'TIEBREAK' };
     }
     const round = await openRound(
