@@ -13,6 +13,7 @@ import {
   getOpenRoundId,
   getResolvedWinner,
   getPendingWorstTie,
+  getTiebreakHistory,
   openRound,
 } from './tiebreakService';
 import { setMedal } from './medalVoteService';
@@ -413,5 +414,69 @@ describe('tiebreakService — premio al último (worst prize)', () => {
     await setMedal(db, voter.id, a.id, 'GOLD');
     // b has 0 medals but is alone in last place -- no dispute
     expect(await getPendingWorstTie(db)).toBeNull();
+  });
+});
+
+describe('getTiebreakHistory', () => {
+  it('reports the vote log and per-candidate tally for a resolved round', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    await startContest(db);
+    const voter1 = await createUser(db, 'Ana');
+    const voter2 = await createUser(db, 'Bruno');
+    await addVote(db, voter1.id, a.id);
+    await addVote(db, voter2.id, b.id);
+    await advance(db);
+
+    const roundId = (await getOpenRoundId(db))!;
+    await castVote(db, roundId, voter1.id, a.id);
+    await castVote(db, roundId, voter2.id, a.id);
+    await closeRound(db, roundId);
+
+    const history = await getTiebreakHistory(db);
+    expect(history).toHaveLength(1);
+    const round = history[0];
+    expect(round.status).toBe('CLOSED');
+    expect(round.result).toBe('RESOLVED');
+    expect(round.winnerEntryId).toBe(a.id);
+    expect(round.candidates.map((c) => ({ number: c.number, votes: c.votes })).sort((x, y) => x.number - y.number))
+      .toEqual([
+        { number: 1, votes: 2 },
+        { number: 2, votes: 0 },
+      ]);
+    // Both votes can land in the same millisecond, so the log's chronological order
+    // between them isn't guaranteed -- only that both are present, for the right entry.
+    expect(
+      round.votes
+        .map((v) => ({ userName: v.userName, entryNumber: v.entryNumber }))
+        .sort((x, y) => x.userName.localeCompare(y.userName))
+    ).toEqual([
+      { userName: 'Ana', entryNumber: 1 },
+      { userName: 'Bruno', entryNumber: 1 },
+    ]);
+  });
+
+  it('keeps a separate history entry for each reopened round when a tie repeats', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    await startContest(db);
+    const [v1, v2] = [await createUser(db, 'v1'), await createUser(db, 'v2')];
+    await addVote(db, v1.id, a.id);
+    await addVote(db, v2.id, b.id);
+    await advance(db);
+
+    const firstRoundId = (await getOpenRoundId(db))!;
+    await castVote(db, firstRoundId, v1.id, a.id);
+    await castVote(db, firstRoundId, v2.id, b.id); // ties again 1-1
+    await closeRound(db, firstRoundId);
+
+    const history = await getTiebreakHistory(db);
+    expect(history).toHaveLength(2); // the closed, still-tied round + the new reopened one
+    const [reopened, closed] = history; // ordered newest first
+    expect(reopened.status).toBe('OPEN');
+    expect(reopened.result).toBeNull();
+    expect(closed.status).toBe('CLOSED');
+    expect(closed.result).toBe('STILL_TIED');
+    expect(closed.winnerEntryId).toBeUndefined();
   });
 });

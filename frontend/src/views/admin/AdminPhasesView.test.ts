@@ -301,4 +301,36 @@ describe('AdminPhasesView', () => {
 
     expect(api.post).not.toHaveBeenCalled();
   });
+
+  it('shows the tiebreak history with tally and vote log once rounds exist', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/admin/tiebreak/history'
+        ? Promise.resolve([
+            {
+              id: 'r1',
+              roundNumber: 1,
+              kind: 'MAIN',
+              targetRank: 1,
+              status: 'CLOSED',
+              createdAt: '2026-09-18T18:00:00.000Z',
+              closedAt: '2026-09-18T18:05:00.000Z',
+              candidates: [
+                { entryId: 'e1', number: 1, name: 'Croqueta', votes: 2 },
+                { entryId: 'e2', number: 2, name: null, votes: 1 },
+              ],
+              votes: [{ userName: 'Ana', entryNumber: 1, createdAt: '2026-09-18T18:04:00.000Z' }],
+              result: 'RESOLVED',
+              winnerEntryId: 'e1',
+            },
+          ])
+        : Promise.resolve(dashboardWith('RESULTS', false, 'FAVORITES', '2026-09-18T18:06:00.000Z'))
+    );
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Historial de desempates');
+    expect(wrapper.text()).toContain('Resuelto: ganó la tapa #01');
+    expect(wrapper.text()).toContain('#01 Croqueta — 2 voto(s)');
+    expect(wrapper.find('.admin-phases__history-log summary').text()).toContain('Ver votos (1)');
+  });
 });

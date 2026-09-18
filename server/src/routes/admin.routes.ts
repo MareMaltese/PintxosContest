@@ -26,6 +26,7 @@ import {
   getCurrentOpenRound,
   getOpenRoundId,
   getPendingWorstTie,
+  getTiebreakHistory,
   openRound,
 } from '../services/tiebreakService';
 import { deleteEntryImage } from '../images/imageProcessor';
@@ -140,6 +141,13 @@ adminRouter.get(
       pendingWorstTie,
       worstEntryId,
     });
+  })
+);
+
+adminRouter.get(
+  '/tiebreak/history',
+  asyncHandler(async (_req, res) => {
+    res.json(await getTiebreakHistory(db));
   })
 );
 

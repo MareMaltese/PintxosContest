@@ -122,7 +122,7 @@ export interface CloseRoundResult {
   tiedEntryIds?: string[];
 }
 
-async function tallyRound(db: Db, roundId: string): Promise<{ entryId: string; votes: number }[]> {
+export async function tallyRound(db: Db, roundId: string): Promise<{ entryId: string; votes: number }[]> {
   return (await db
     .prepare(
       'SELECT entryId, COUNT(*) as votes FROM TiebreakVote WHERE roundId = ? GROUP BY entryId ORDER BY votes DESC'
@@ -282,6 +282,91 @@ async function resolveGroups(
     return { phase: 'TIEBREAK', openedRound: round };
   }
   return null;
+}
+
+export interface TiebreakVoteLogEntry {
+  userName: string;
+  entryNumber: number;
+  createdAt: string;
+}
+
+export interface TiebreakHistoryRound {
+  id: string;
+  roundNumber: number;
+  kind: TiebreakKind;
+  targetRank: number;
+  status: 'OPEN' | 'CLOSED';
+  createdAt: string;
+  closedAt: string | null;
+  candidates: { entryId: string; number: number; name: string | null; votes: number }[];
+  votes: TiebreakVoteLogEntry[];
+  result: 'RESOLVED' | 'STILL_TIED' | null;
+  winnerEntryId?: string;
+}
+
+// Full history of every tiebreak round (open or closed), with a per-candidate tally
+// and a chronological vote log, so the admin can see exactly what happened -- useful
+// since a round can tie again and reopen automatically, which is easy to lose track of.
+export async function getTiebreakHistory(db: Db): Promise<TiebreakHistoryRound[]> {
+  const rounds = (await db
+    .prepare('SELECT * FROM TiebreakRound ORDER BY roundNumber DESC')
+    .all()) as unknown as TiebreakRound[];
+
+  const history: TiebreakHistoryRound[] = [];
+  for (const round of rounds) {
+    const candidateRows = (await db
+      .prepare(
+        `SELECT e.id as entryId, e.number, e.name FROM TiebreakCandidate tc
+         JOIN Entry e ON e.id = tc.entryId WHERE tc.roundId = ? ORDER BY e.number ASC`
+      )
+      .all(round.id)) as unknown as { entryId: string; number: number; name: string | null }[];
+    const tally = await tallyRound(db, round.id);
+    const voteByEntry = new Map(tally.map((t) => [t.entryId, t.votes]));
+    const candidates = candidateRows.map((c) => ({ ...c, votes: voteByEntry.get(c.entryId) ?? 0 }));
+
+    const votes = (await db
+      .prepare(
+        `SELECT u.name as userName, e.number as entryNumber, tv.createdAt as createdAt
+         FROM TiebreakVote tv
+         JOIN User u ON u.id = tv.userId
+         JOIN Entry e ON e.id = tv.entryId
+         WHERE tv.roundId = ?
+         ORDER BY tv.createdAt ASC`
+      )
+      .all(round.id)) as unknown as TiebreakVoteLogEntry[];
+
+    let result: 'RESOLVED' | 'STILL_TIED' | null = null;
+    let winnerEntryId: string | undefined;
+    if (round.status === 'CLOSED') {
+      if (tally.length === 0) {
+        result = 'STILL_TIED';
+      } else {
+        const top = tally[0].votes;
+        const winners = tally.filter((t) => t.votes === top);
+        if (winners.length === 1) {
+          result = 'RESOLVED';
+          winnerEntryId = winners[0].entryId;
+        } else {
+          result = 'STILL_TIED';
+        }
+      }
+    }
+
+    history.push({
+      id: round.id,
+      roundNumber: round.roundNumber,
+      kind: round.kind,
+      targetRank: round.targetRank,
+      status: round.status,
+      createdAt: round.createdAt,
+      closedAt: round.closedAt,
+      candidates,
+      votes,
+      result,
+      winnerEntryId,
+    });
+  }
+  return history;
 }
 
 export async function advance(db: Db): Promise<AdvanceResult> {

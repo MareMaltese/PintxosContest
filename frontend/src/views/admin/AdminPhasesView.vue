@@ -3,12 +3,25 @@ import { computed } from 'vue';
 import AdminNav from '../../components/admin/AdminNav.vue';
 import Icon from '../../components/common/Icon.vue';
 import { useAdminDashboard } from '../../composables/useAdminDashboard';
+import { useTiebreakHistory, type TiebreakHistoryRound } from '../../composables/useTiebreakHistory';
 import { api, ApiError } from '../../services/api';
 import { tiebreakRoundLabel } from '../../utils/tiebreakLabels';
 
 const { data, isLoading, error, refetch } = useAdminDashboard();
+const { data: history } = useTiebreakHistory();
 
 const roundLabel = computed(() => (data.value?.openRound ? tiebreakRoundLabel(data.value.openRound) : null));
+
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+function resultLabel(round: TiebreakHistoryRound): string {
+  if (round.status === 'OPEN') return 'Ronda abierta, esperando votos';
+  if (round.result === 'STILL_TIED') return 'Sigue empatado — se reabrió otra ronda';
+  const winner = round.candidates.find((c) => c.entryId === round.winnerEntryId);
+  return winner ? `Resuelto: ganó la tapa #${String(winner.number).padStart(2, '0')}` : 'Resuelto';
+}
 
 function friendlyMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
@@ -281,6 +294,56 @@ async function backToRegistration(): Promise<void> {
         >
           Premio al último: {{ data.worstPrizeEnabled ? 'activado' : 'desactivado' }} (cambiar)
         </button>
+
+        <template v-if="history.length > 0">
+          <h1
+            class="admin-phases__title"
+            style="margin-top:var(--space-8)"
+          >
+            Historial de desempates
+          </h1>
+          <div
+            v-for="round in history"
+            :key="round.id"
+            class="admin-phases__history-round"
+          >
+            <div class="admin-phases__history-header">
+              <Icon
+                :name="tiebreakRoundLabel(round).icon"
+                :size="24"
+                :style="{ color: tiebreakRoundLabel(round).color }"
+              />
+              <span>{{ tiebreakRoundLabel(round).title }} — ronda {{ round.roundNumber }}</span>
+            </div>
+            <p class="admin-phases__history-result">
+              {{ resultLabel(round) }}
+            </p>
+            <ul class="admin-phases__history-tally">
+              <li
+                v-for="candidate in round.candidates"
+                :key="candidate.entryId"
+              >
+                #{{ String(candidate.number).padStart(2, '0') }} {{ candidate.name ?? '' }} —
+                {{ candidate.votes }} voto(s)
+              </li>
+            </ul>
+            <details
+              v-if="round.votes.length > 0"
+              class="admin-phases__history-log"
+            >
+              <summary>Ver votos ({{ round.votes.length }})</summary>
+              <ul>
+                <li
+                  v-for="(vote, index) in round.votes"
+                  :key="index"
+                >
+                  {{ vote.userName }} → #{{ String(vote.entryNumber).padStart(2, '0') }}
+                  ({{ formatTime(vote.createdAt) }})
+                </li>
+              </ul>
+            </details>
+          </div>
+        </template>
       </div>
     </main>
   </div>
@@ -333,5 +396,54 @@ async function backToRegistration(): Promise<void> {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+
+.admin-phases__history-round {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.admin-phases__history-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.admin-phases__history-result {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.admin-phases__history-tally {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.9rem;
+}
+
+.admin-phases__history-log summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+}
+
+.admin-phases__history-log ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-2) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
 }
 </style>
