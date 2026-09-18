@@ -102,18 +102,24 @@ function cancelSwap(): void {
         class="medal-buttons__swap-card"
         @click.stop
       >
+        <Icon
+          name="seal-warning"
+          :size="40"
+        />
         <p class="medal-buttons__swap-message">
-          Vas a quitar esta medalla al pincho
-          <strong>#{{ String(pendingSwap.previousEntry.number).padStart(2, '0') }}</strong>
-          <template v-if="pendingSwap.previousEntry.name">
-            — {{ pendingSwap.previousEntry.name }}
-          </template>
+          Vas a quitar esta medalla al pincho actual
         </p>
         <img
           :src="`/uploads/${pendingSwap.previousEntry.imagePath}`"
           :alt="`Tapa número ${pendingSwap.previousEntry.number}`"
           class="medal-buttons__swap-photo"
         >
+        <p class="medal-buttons__swap-entry">
+          #{{ String(pendingSwap.previousEntry.number).padStart(2, '0') }}
+          <template v-if="pendingSwap.previousEntry.name">
+            — {{ pendingSwap.previousEntry.name }}
+          </template>
+        </p>
         <div class="medal-buttons__swap-actions">
           <button
             class="button button--secondary medal-buttons__swap-cancel"
@@ -234,8 +240,18 @@ function cancelSwap(): void {
   gap: var(--space-3);
 }
 
+.medal-buttons__swap-card .icon {
+  color: var(--color-danger);
+}
+
 .medal-buttons__swap-message {
   margin: 0;
+  color: var(--color-text);
+}
+
+.medal-buttons__swap-entry {
+  margin: 0;
+  font-weight: 700;
   color: var(--color-text);
 }
 

@@ -81,9 +81,20 @@ describe('MedalButtons', () => {
     await flushPromises();
 
     expect(api.put).not.toHaveBeenCalled();
-    expect(wrapper.text()).toContain('#05');
-    expect(wrapper.text()).toContain('Tortilla');
+    expect(wrapper.find('.medal-buttons__swap-card .icon').exists()).toBe(true);
     expect(wrapper.find('.medal-buttons__swap-photo').attributes('src')).toBe('/uploads/b.webp');
+    expect(wrapper.find('.medal-buttons__swap-entry').text()).toContain('#05');
+    expect(wrapper.find('.medal-buttons__swap-entry').text()).toContain('Tortilla');
+
+    const card = wrapper.find('.medal-buttons__swap-card');
+    const children = card.element.children;
+    const iconIndex = Array.from(children).findIndex((el) => el.classList.contains('icon'));
+    const messageIndex = Array.from(children).findIndex((el) => el.classList.contains('medal-buttons__swap-message'));
+    const photoIndex = Array.from(children).findIndex((el) => el.classList.contains('medal-buttons__swap-photo'));
+    const entryIndex = Array.from(children).findIndex((el) => el.classList.contains('medal-buttons__swap-entry'));
+    expect(iconIndex).toBeLessThan(messageIndex);
+    expect(messageIndex).toBeLessThan(photoIndex);
+    expect(photoIndex).toBeLessThan(entryIndex);
   });
 
   it('reassigns the medal once the swap is confirmed', async () => {
