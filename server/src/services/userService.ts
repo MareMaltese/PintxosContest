@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
+import { AppError } from '../middleware/errors';
 
 export interface User {
   id: string;
@@ -30,4 +31,22 @@ export function getUser(db: Database.Database, id: string): User | undefined {
 
 export function listUsers(db: Database.Database): User[] {
   return db.prepare('SELECT * FROM User ORDER BY createdAt ASC').all() as User[];
+}
+
+export function recoverUser(db: Database.Database, name: string, entryNumber: number): User {
+  const entry = db.prepare('SELECT creatorId FROM Entry WHERE number = ?').get(entryNumber) as
+    | { creatorId: string }
+    | undefined;
+  const notFound = () =>
+    new AppError(404, 'RECOVERY_NOT_FOUND', 'No hemos encontrado esa combinación de nombre y número de pincho.');
+  if (!entry) {
+    throw notFound();
+  }
+  const user = db
+    .prepare('SELECT * FROM User WHERE id = ? AND LOWER(name) = LOWER(?)')
+    .get(entry.creatorId, name.trim()) as User | undefined;
+  if (!user) {
+    throw notFound();
+  }
+  return user;
 }
