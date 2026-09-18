@@ -218,7 +218,7 @@ async function backToRegistration(): Promise<void> {
           @click="reopenVoting"
         >
           <Icon
-            name="check"
+            name="arrow-circle-left"
             :size="20"
           />
           Volver a votación
@@ -230,9 +230,20 @@ async function backToRegistration(): Promise<void> {
           type="button"
           @click="backToRegistration"
         >
+          <Icon
+            name="hamburger"
+            :size="20"
+          />
           Volver al inicio (reabrir registro)
         </button>
 
+        <h1
+          class="admin-phases__title"
+          style="margin-top:var(--space-8); 
+          margin-bottom:0"
+        >
+          configuración
+        </h1>
         <button
           class="button button--secondary admin-phases__self-vote"
           type="button"
