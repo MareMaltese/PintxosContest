@@ -2,27 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useSessionStore } from '../stores/session';
 import { useContestStore } from '../stores/contest';
 import { useAdminAuthStore } from '../stores/adminAuth';
-
-const SESSION_REQUIRED_ROUTES = [
-  'has-entry',
-  'new-entry',
-  'entry-confirmation',
-  'my-entries',
-  'edit-entry',
-  'gallery',
-  'entry-detail',
-  'tiebreak',
-  'medal-results',
-];
-const REGISTRATION_ONLY_ROUTES = ['has-entry', 'new-entry', 'my-entries', 'edit-entry'];
-const GALLERY_ROUTES = ['gallery', 'entry-detail'];
-const ADMIN_ROUTES = [
-  'admin-dashboard',
-  'admin-participants',
-  'admin-entries',
-  'admin-phases',
-  'admin-medal-votes',
-];
+import { SESSION_REQUIRED_ROUTES, REGISTRATION_ONLY_ROUTES, GALLERY_ROUTES, ADMIN_ROUTES } from './routeGroups';
 
 export const router = createRouter({
   history: createWebHistory(),
