@@ -27,7 +27,7 @@ function roundTitle(round: TiebreakRoundInfo): string {
   if (round.kind === 'MAIN') return 'Desempate del concurso';
   // The "premio al último" tiebreak reuses kind MEDAL, distinguished by its
   // targetRank always being the last place (never 1/2/3, unlike the podium).
-  return round.targetRank <= 3 ? 'Desempate de Pinch-o-visión' : 'Desempate: premio al último';
+  return round.targetRank <= 3 ? 'Desempate de medallas' : 'Desempate: premio al último';
 }
 
 const current = ref<CurrentRound | null>(null);

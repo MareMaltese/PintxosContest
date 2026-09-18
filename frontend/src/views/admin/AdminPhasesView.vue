@@ -230,7 +230,11 @@ async function backToRegistration(): Promise<void> {
           type="button"
           @click="toggleVotingMode"
         >
-          Modo de puntuación: {{ data.votingMode === 'FAVORITES' ? 'Favoritos' : 'Pinch-o-visión' }} (cambiar)
+          <Icon
+            :name="data.votingMode === 'FAVORITES' ? 'heart' : 'medal'"
+            :size="20"
+          />
+          Modo de puntuación: {{ data.votingMode === 'FAVORITES' ? 'Favoritos' : 'Medallas' }} (cambiar)
         </button>
 
         <button

@@ -80,7 +80,7 @@ onMounted(load);
       v-else-if="notReady"
       class="medal-podium__status"
     >
-      Todavía no se ha revelado el podium de Pinch-o-visión.
+      Todavía no se ha revelado el podium de medallas.
     </p>
     <template v-else-if="loadError">
       <p class="medal-podium__status medal-podium__status--error">
