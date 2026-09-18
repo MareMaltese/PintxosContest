@@ -11,6 +11,7 @@ import {
   setVotingMode,
   revealResults,
   reopenVoting,
+  backToRegistration,
 } from '../services/contestService';
 import { listUsers, getUser } from '../services/userService';
 import { listEntriesForAdmin } from '../services/entryService';
@@ -172,6 +173,15 @@ adminRouter.post(
   '/contest/reopen-voting',
   asyncHandler(async (_req, res) => {
     const contest = reopenVoting(db);
+    broadcast('phase-changed', { phase: contest.phase });
+    res.json(contest);
+  })
+);
+
+adminRouter.post(
+  '/contest/back-to-registration',
+  asyncHandler(async (_req, res) => {
+    const contest = backToRegistration(db);
     broadcast('phase-changed', { phase: contest.phase });
     res.json(contest);
   })

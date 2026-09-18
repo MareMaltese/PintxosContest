@@ -8,6 +8,7 @@ import {
   setVotingMode,
   revealResults,
   reopenVoting,
+  backToRegistration,
   setPhase,
 } from './contestService';
 import { AppError } from '../middleware/errors';
@@ -65,5 +66,24 @@ describe('contestService', () => {
 
   it('reopenVoting throws when the contest is not in RESULTS', () => {
     expect(() => reopenVoting(db)).toThrow(AppError);
+  });
+
+  it('backToRegistration moves any phase back to REGISTRATION and clears resultsRevealedAt', () => {
+    setPhase(db, 'RESULTS');
+    revealResults(db);
+    const reset = backToRegistration(db);
+    expect(reset.phase).toBe('REGISTRATION');
+    expect(reset.resultsRevealedAt).toBeNull();
+  });
+
+  it('backToRegistration also works directly from VOTING or TIEBREAK', () => {
+    startContest(db);
+    expect(backToRegistration(db).phase).toBe('REGISTRATION');
+    setPhase(db, 'TIEBREAK');
+    expect(backToRegistration(db).phase).toBe('REGISTRATION');
+  });
+
+  it('backToRegistration throws when the contest is already in REGISTRATION', () => {
+    expect(() => backToRegistration(db)).toThrow(AppError);
   });
 });

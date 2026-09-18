@@ -74,3 +74,12 @@ export function reopenVoting(db: Database.Database): Contest {
   db.prepare('UPDATE Contest SET phase = ?, resultsRevealedAt = NULL WHERE id = 1').run('VOTING');
   return getContest(db);
 }
+
+export function backToRegistration(db: Database.Database): Contest {
+  const contest = getContest(db);
+  if (contest.phase === 'REGISTRATION') {
+    throw new AppError(409, 'ALREADY_REGISTRATION', 'El concurso ya está en fase de registro.');
+  }
+  db.prepare('UPDATE Contest SET phase = ?, resultsRevealedAt = NULL WHERE id = 1').run('REGISTRATION');
+  return getContest(db);
+}
