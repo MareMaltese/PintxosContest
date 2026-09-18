@@ -9,6 +9,10 @@ const session = useSessionStore();
 function goToRegister(): void {
   router.push({ name: 'register' });
 }
+
+function goToRecover(): void {
+  router.push({ name: 'recover-session' });
+}
 </script>
 
 <template>
@@ -33,6 +37,13 @@ function goToRegister(): void {
           @click="goToRegister"
         >
           Participar
+        </button>
+        <button
+          class="welcome__recover"
+          type="button"
+          @click="goToRecover"
+        >
+          ¿Perdiste tu sesión? Recupérala aquí
         </button>
       </template>
       <template v-else>
@@ -81,5 +92,16 @@ function goToRegister(): void {
   object-fit: cover;
   border-radius: var(--radius-md);
   margin-bottom: var(--space-5);
+}
+
+.welcome__recover {
+  display: block;
+  margin: var(--space-4) auto 0;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  font-size: 0.9rem;
+  cursor: pointer;
 }
 </style>

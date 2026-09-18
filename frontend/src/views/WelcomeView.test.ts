@@ -44,4 +44,10 @@ describe('WelcomeView', () => {
     const wrapper = mount(WelcomeView);
     expect(wrapper.find('.welcome__cover').exists()).toBe(false);
   });
+
+  it('navigates to recover-session when the recovery link is clicked', async () => {
+    const wrapper = mount(WelcomeView);
+    await wrapper.find('.welcome__recover').trigger('click');
+    expect(pushMock).toHaveBeenCalledWith({ name: 'recover-session' });
+  });
 });

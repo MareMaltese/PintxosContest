@@ -17,6 +17,17 @@ describe('router', () => {
     expect(router.currentRoute.value.name).toBe('register');
   });
 
+  it('allows an anonymous visitor to reach /recuperar', async () => {
+    await router.push('/recuperar');
+    expect(router.currentRoute.value.name).toBe('recover-session');
+  });
+
+  it('redirects a registered visitor away from /recuperar to /pincho during REGISTRATION', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    await router.push('/recuperar');
+    expect(router.currentRoute.value.name).toBe('has-entry');
+  });
+
   it('redirects a registered visitor away from /registro to /pincho during REGISTRATION', async () => {
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     await router.push('/registro');

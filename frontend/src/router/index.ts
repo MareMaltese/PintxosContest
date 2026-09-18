@@ -9,6 +9,7 @@ export const router = createRouter({
   routes: [
     { path: '/', name: 'welcome', component: () => import('../views/WelcomeView.vue') },
     { path: '/registro', name: 'register', component: () => import('../views/RegisterUserView.vue') },
+    { path: '/recuperar', name: 'recover-session', component: () => import('../views/RecoverSessionView.vue') },
     { path: '/pincho', name: 'has-entry', component: () => import('../views/HasEntryQuestionView.vue') },
     { path: '/pincho/nuevo', name: 'new-entry', component: () => import('../views/NewEntryView.vue') },
     {
@@ -59,7 +60,7 @@ router.beforeEach((to) => {
 
   const registrationOpen = contest.phase === 'REGISTRATION';
 
-  if ((name === 'welcome' || name === 'register') && session.user) {
+  if ((name === 'welcome' || name === 'register' || name === 'recover-session') && session.user) {
     return registrationOpen ? { name: 'has-entry' } : { name: 'gallery' };
   }
 

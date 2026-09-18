@@ -12,6 +12,8 @@ export const useSessionStore = defineStore('session', () => {
   const user = ref<SessionUser | null>(loadStoredSession());
   const isRegistering = ref(false);
   const registerError = ref<string | null>(null);
+  const isRecovering = ref(false);
+  const recoverError = ref<string | null>(null);
 
   async function register(name: string): Promise<void> {
     isRegistering.value = true;
@@ -28,10 +30,34 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
+  async function recover(name: string, number: number): Promise<void> {
+    isRecovering.value = true;
+    recoverError.value = null;
+    try {
+      const recovered = await api.post<SessionUser>('/api/users/recover', { name, number });
+      user.value = recovered;
+      saveStoredSession(recovered);
+    } catch (err) {
+      recoverError.value = err instanceof ApiError ? err.message : 'No hemos podido recuperar tu sesión.';
+      throw err;
+    } finally {
+      isRecovering.value = false;
+    }
+  }
+
   function clear(): void {
     user.value = null;
     clearStoredSession();
   }
 
-  return { user, isRegistering, registerError, register, clear };
+  return {
+    user,
+    isRegistering,
+    registerError,
+    isRecovering,
+    recoverError,
+    register,
+    recover,
+    clear,
+  };
 });
