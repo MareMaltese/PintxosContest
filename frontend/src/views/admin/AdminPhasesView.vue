@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AdminNav from '../../components/admin/AdminNav.vue';
+import Icon from '../../components/common/Icon.vue';
 import { useAdminDashboard } from '../../composables/useAdminDashboard';
 import { api, ApiError } from '../../services/api';
 
@@ -191,7 +192,6 @@ async function backToRegistration(): Promise<void> {
           @click="reopenVoting"
         >
           <Icon
-            v-if="!isSubmitting"
             name="check"
             :size="20"
           />

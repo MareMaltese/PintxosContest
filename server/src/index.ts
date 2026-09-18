@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
 import { config } from './config';
@@ -30,8 +31,11 @@ app.use('/api', (_req, res) => {
   res.status(404).json({ code: 'NOT_FOUND', message: 'Ese endpoint no existe.' });
 });
 
-if (config.nodeEnv === 'production') {
-  const clientDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
+// Only relevant when the frontend build is bundled alongside this server (e.g. running
+// both from a single host). When the frontend is deployed separately (e.g. Vercel), this
+// directory won't exist here and the server just serves the API on its own.
+const clientDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
+if (config.nodeEnv === 'production' && fs.existsSync(clientDist)) {
   app.use(express.static(clientDist));
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
