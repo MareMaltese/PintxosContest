@@ -2,9 +2,11 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Icon from './Icon.vue';
+import { useContestStore } from '../../stores/contest';
 
 const route = useRoute();
 const router = useRouter();
+const contest = useContestStore();
 
 const canGoBack = ref(false);
 
@@ -16,7 +18,8 @@ function updateCanGoBack(): void {
 updateCanGoBack();
 watch(() => route.fullPath, updateCanGoBack);
 
-const showBack = computed(() => canGoBack.value && route.name !== 'tiebreak');
+const showRanking = computed(() => contest.phase === 'RESULTS' && contest.votingMode === 'MEDALS');
+const showBack = computed(() => !showRanking.value && canGoBack.value && route.name !== 'tiebreak');
 const isGalleryActive = computed(() => route.name === 'gallery' || route.name === 'entry-detail');
 const isMineActive = computed(() => route.name === 'my-entries' || route.name === 'edit-entry');
 
@@ -31,19 +34,35 @@ function goToGallery(): void {
 function goToMyEntries(): void {
   router.push({ name: 'my-entries' });
 }
+
+function goToRanking(): void {
+  router.push({ name: 'medal-results' });
+}
 </script>
 
 <template>
   <nav class="nav-footer">
     <button
-      v-if="showBack"
+      v-if="showRanking"
+      class="nav-footer__button nav-footer__ranking"
+      type="button"
+      @click="goToRanking"
+    >
+      <Icon
+        name="crown"
+        :size="32"
+      />
+      <span>RANKING</span>
+    </button>
+    <button
+      v-else-if="showBack"
       class="nav-footer__button nav-footer__back"
       type="button"
       @click="goBack"
     >
       <Icon
         name="arrow-left"
-        :size="22"
+        :size="32"
       />
       <span>ATRÁS</span>
     </button>
@@ -60,7 +79,7 @@ function goToMyEntries(): void {
     >
       <Icon
         name="grid-nine"
-        :size="22"
+        :size="32"
       />
       <span>TODOS LOS PINCHOS</span>
     </button>
@@ -73,7 +92,7 @@ function goToMyEntries(): void {
     >
       <Icon
         name="pincho"
-        :size="22"
+        :size="32"
       />
       <span>MIS PINCHOS</span>
     </button>
@@ -91,10 +110,8 @@ function goToMyEntries(): void {
   align-items: stretch;
   justify-content: space-around;
   background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-title);
   box-shadow: var(--shadow-md);
-  padding: var(--space-2) var(--space-1);
-  padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
 }
 
 .nav-footer__button,
@@ -103,6 +120,8 @@ function goToMyEntries(): void {
 }
 
 .nav-footer__button {
+  padding: var(--space-2) var(--space-1);
+  padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -112,7 +131,6 @@ function goToMyEntries(): void {
   background: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  padding: var(--space-1);
 }
 
 .nav-footer__button span {
@@ -123,8 +141,7 @@ function goToMyEntries(): void {
 
 .nav-footer__button--active {
   color: #fff;
-  background: var(--color-bronze);
-  border-radius: var(--radius-md);
+  background: var(--color-title);
 }
 
 .nav-footer__button:active {

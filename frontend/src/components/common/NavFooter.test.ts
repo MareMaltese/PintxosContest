@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
 import NavFooter from './NavFooter.vue';
+import { useContestStore } from '../../stores/contest';
 
 const { push, back } = vi.hoisted(() => ({ push: vi.fn(), back: vi.fn() }));
 const routeMock = vi.hoisted(() => ({ name: 'gallery' as string }));
@@ -10,6 +12,7 @@ vi.mock('vue-router', () => ({
 }));
 
 beforeEach(() => {
+  setActivePinia(createPinia());
   push.mockClear();
   back.mockClear();
   routeMock.name = 'gallery';
@@ -80,5 +83,39 @@ describe('NavFooter', () => {
     routeMock.name = 'entry-detail';
     const wrapper = mount(NavFooter);
     expect(wrapper.find('.nav-footer__gallery').classes()).toContain('nav-footer__button--active');
+  });
+
+  it('replaces the back button with a Ranking button once the contest has finished with medals', () => {
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    contest.votingMode = 'MEDALS';
+    history.replaceState({ back: '/galeria' }, '');
+    const wrapper = mount(NavFooter);
+
+    expect(wrapper.find('.nav-footer__back').exists()).toBe(false);
+    expect(wrapper.find('.nav-footer__ranking').exists()).toBe(true);
+    expect(wrapper.text()).toContain('RANKING');
+  });
+
+  it('navigates to the medal podium when the Ranking button is clicked', async () => {
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    contest.votingMode = 'MEDALS';
+    const wrapper = mount(NavFooter);
+
+    await wrapper.find('.nav-footer__ranking').trigger('click');
+
+    expect(push).toHaveBeenCalledWith({ name: 'medal-results' });
+  });
+
+  it('keeps the regular back button once finished if votingMode is FAVORITES', () => {
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    contest.votingMode = 'FAVORITES';
+    history.replaceState({ back: '/galeria' }, '');
+    const wrapper = mount(NavFooter);
+
+    expect(wrapper.find('.nav-footer__ranking').exists()).toBe(false);
+    expect(wrapper.find('.nav-footer__back').exists()).toBe(true);
   });
 });
