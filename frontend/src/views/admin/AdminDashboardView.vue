@@ -123,7 +123,11 @@ const VOTING_MODE_LABELS: Record<string, string> = {
 .admin-dashboard__status {
   color: var(--color-text-muted);
   text-align: center;
-  padding: var(--space-6) 0 var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-3);
+  margin-top: var(--space-4);
 }
 
 .admin-dashboard__status--error {
