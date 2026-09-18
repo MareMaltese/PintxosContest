@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { SESSION_REQUIRED_ROUTES } from './router/routeGroups';
 import NavFooter from './components/common/NavFooter.vue';
+import VotingStartedModal from './components/common/VotingStartedModal.vue';
 
 const route = useRoute();
 const showFooter = computed(() => SESSION_REQUIRED_ROUTES.includes(route.name as string));
@@ -16,6 +17,7 @@ const showFooter = computed(() => SESSION_REQUIRED_ROUTES.includes(route.name as
     <router-view />
   </div>
   <NavFooter v-if="showFooter" />
+  <VotingStartedModal />
 </template>
 
 <style scoped>

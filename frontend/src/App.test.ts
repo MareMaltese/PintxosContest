@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
 import App from './App.vue';
 import NavFooter from './components/common/NavFooter.vue';
 
@@ -8,6 +9,10 @@ vi.mock('vue-router', () => ({
   useRoute: () => routeMock,
   useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
 }));
+
+beforeEach(() => {
+  setActivePinia(createPinia());
+});
 
 function mountApp() {
   return mount(App, { global: { stubs: { RouterView: true } } });
