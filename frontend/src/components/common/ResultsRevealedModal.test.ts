@@ -18,14 +18,14 @@ beforeEach(() => {
 });
 
 describe('ResultsRevealedModal', () => {
-  it('does not show on mount, even if the phase is already RESULTS', () => {
-    useContestStore().phase = 'RESULTS';
+  it('does not show on mount, even if resultsRevealedAt is already set', () => {
+    useContestStore().resultsRevealedAt = '2026-09-18T10:00:00.000Z';
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     const wrapper = mount(ResultsRevealedModal);
     expect(wrapper.find('.results-revealed-modal').exists()).toBe(false);
   });
 
-  it('shows the popup and the favorites winners when the phase transitions to RESULTS', async () => {
+  it('shows the popup and the favorites winners when resultsRevealedAt is set', async () => {
     vi.mocked(api.get).mockResolvedValue({
       revealedAt: 'x',
       standings: [
@@ -36,12 +36,12 @@ describe('ResultsRevealedModal', () => {
       ],
     });
     const contest = useContestStore();
-    contest.phase = 'VOTING';
+    contest.phase = 'RESULTS';
     contest.votingMode = 'FAVORITES';
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     const wrapper = mount(ResultsRevealedModal);
 
-    contest.phase = 'RESULTS';
+    contest.resultsRevealedAt = '2026-09-18T10:00:00.000Z';
     await flushPromises();
 
     expect(api.get).toHaveBeenCalledWith('/api/results');
@@ -61,12 +61,12 @@ describe('ResultsRevealedModal', () => {
       ],
     });
     const contest = useContestStore();
-    contest.phase = 'TIEBREAK';
+    contest.phase = 'RESULTS';
     contest.votingMode = 'MEDALS';
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     const wrapper = mount(ResultsRevealedModal);
 
-    contest.phase = 'RESULTS';
+    contest.resultsRevealedAt = '2026-09-18T10:00:00.000Z';
     await flushPromises();
 
     expect(api.get).toHaveBeenCalledWith('/api/medal-votes/results');
@@ -76,10 +76,10 @@ describe('ResultsRevealedModal', () => {
 
   it('does not show the popup when there is no guest session', async () => {
     const contest = useContestStore();
-    contest.phase = 'VOTING';
+    contest.phase = 'RESULTS';
     const wrapper = mount(ResultsRevealedModal);
 
-    contest.phase = 'RESULTS';
+    contest.resultsRevealedAt = '2026-09-18T10:00:00.000Z';
     await flushPromises();
 
     expect(wrapper.find('.results-revealed-modal').exists()).toBe(false);
@@ -88,10 +88,10 @@ describe('ResultsRevealedModal', () => {
   it('dismisses when the button is clicked', async () => {
     vi.mocked(api.get).mockResolvedValue({ revealedAt: 'x', standings: [] });
     const contest = useContestStore();
-    contest.phase = 'VOTING';
+    contest.phase = 'RESULTS';
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     const wrapper = mount(ResultsRevealedModal);
-    contest.phase = 'RESULTS';
+    contest.resultsRevealedAt = '2026-09-18T10:00:00.000Z';
     await flushPromises();
 
     await wrapper.find('.results-revealed-modal__dismiss').trigger('click');

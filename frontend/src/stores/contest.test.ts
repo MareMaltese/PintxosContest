@@ -54,7 +54,7 @@ describe('useContestStore', () => {
     expect(store.phase).toBe('TIEBREAK');
   });
 
-  it('ignores non-phase-changed SSE events', async () => {
+  it('does not change phase on a results-revealed event', async () => {
     vi.mocked(api.get).mockResolvedValue({ phase: 'VOTING', allowSelfVote: false });
     const store = useContestStore();
     await store.init();
@@ -63,6 +63,18 @@ describe('useContestStore', () => {
     handler({ type: 'results-revealed', data: { revealedAt: 'x' } });
 
     expect(store.phase).toBe('VOTING');
+  });
+
+  it('starts with no resultsRevealedAt and sets it when the SSE stream reports results-revealed', async () => {
+    vi.mocked(api.get).mockResolvedValue({ phase: 'RESULTS', allowSelfVote: false });
+    const store = useContestStore();
+    expect(store.resultsRevealedAt).toBeNull();
+    await store.init();
+
+    const handler = connectMock.mock.calls[0][0];
+    handler({ type: 'results-revealed', data: { revealedAt: '2026-09-18T10:00:00.000Z' } });
+
+    expect(store.resultsRevealedAt).toBe('2026-09-18T10:00:00.000Z');
   });
 
   it('refreshes the entries list when the SSE stream reports an entries-changed event', async () => {

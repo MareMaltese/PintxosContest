@@ -30,16 +30,13 @@ const loadError = ref<string | null>(null);
 const favoriteWinners = ref<FavoriteWinner[]>([]);
 const medalWinners = ref<MedalWinner[]>([]);
 
-let previousPhase = contest.phase;
-
 watch(
-  () => contest.phase,
-  (phase) => {
-    if (session.user && previousPhase !== 'RESULTS' && phase === 'RESULTS') {
+  () => contest.resultsRevealedAt,
+  (revealedAt) => {
+    if (session.user && revealedAt) {
       showModal.value = true;
       loadWinners();
     }
-    previousPhase = phase;
   }
 );
 

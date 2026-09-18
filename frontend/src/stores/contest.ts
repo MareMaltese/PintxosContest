@@ -18,6 +18,7 @@ export const useContestStore = defineStore('contest', () => {
   const allowSelfVote = ref(false);
   const votingMode = ref<VotingMode>('FAVORITES');
   const loaded = ref(false);
+  const resultsRevealedAt = ref<string | null>(null);
 
   async function init(): Promise<void> {
     const data = await api.get<ContestResponse>('/api/contest');
@@ -33,8 +34,11 @@ export const useContestStore = defineStore('contest', () => {
       if (event.type === 'entries-changed') {
         useEntriesStore().refreshList();
       }
+      if (event.type === 'results-revealed' && typeof event.data.revealedAt === 'string') {
+        resultsRevealedAt.value = event.data.revealedAt;
+      }
     });
   }
 
-  return { phase, allowSelfVote, votingMode, loaded, init };
+  return { phase, allowSelfVote, votingMode, loaded, resultsRevealedAt, init };
 });
