@@ -38,4 +38,9 @@ describe('App', () => {
     routeMock.name = 'admin-dashboard';
     expect(mountApp().findComponent(NavFooter).exists()).toBe(false);
   });
+
+  it('hides the footer nav on the tiebreak screen (session-required, but nothing to navigate to)', () => {
+    routeMock.name = 'tiebreak';
+    expect(mountApp().findComponent(NavFooter).exists()).toBe(false);
+  });
 });
