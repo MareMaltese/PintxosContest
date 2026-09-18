@@ -190,6 +190,11 @@ async function backToRegistration(): Promise<void> {
           type="button"
           @click="reopenVoting"
         >
+          <Icon
+            v-if="!isSubmitting"
+            name="check"
+            :size="20"
+          />
           Volver a votación
         </button>
 

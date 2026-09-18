@@ -13,6 +13,7 @@ function goHome(): void {
   <main class="not-found">
     <div class="not-found__card">
       <Icon
+        class="not-found__icon"
         name="ghost"
         :size="48"
       />
@@ -20,7 +21,8 @@ function goHome(): void {
         404
       </h1>
       <p class="not-found__subtitle">
-        Esta página se ha comido el último pincho. No existe.
+        Esta página se ha comido el último pincho. <br/>
+        Ya no existe.
       </p>
       <button
         class="button button--primary not-found__home"
@@ -54,6 +56,10 @@ function goHome(): void {
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
+}
+
+.not-found__icon {
+  color: var(--color-title);
 }
 
 .not-found__title {

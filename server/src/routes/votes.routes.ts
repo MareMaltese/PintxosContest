@@ -13,8 +13,8 @@ votesRouter.get(
   '/me',
   userAuth,
   asyncHandler(async (req, res) => {
-    const entryIds = listMyVotes(db, req.userId!);
-    const limit = getFavoriteLimit(db, req.userId!);
+    const entryIds = await listMyVotes(db, req.userId!);
+    const limit = await getFavoriteLimit(db, req.userId!);
     res.json({ entryIds, limit });
   })
 );
@@ -24,7 +24,7 @@ votesRouter.post(
   userAuth,
   asyncHandler(async (req, res) => {
     const { entryId } = voteSchema.parse(req.body);
-    addVote(db, req.userId!, entryId);
+    await addVote(db, req.userId!, entryId);
     res.status(201).json({ ok: true });
   })
 );
@@ -33,7 +33,7 @@ votesRouter.delete(
   '/:entryId',
   userAuth,
   asyncHandler(async (req, res) => {
-    removeVote(db, req.userId!, req.params.entryId);
+    await removeVote(db, req.userId!, req.params.entryId);
     res.json({ ok: true });
   })
 );

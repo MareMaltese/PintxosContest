@@ -1,39 +1,39 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import type Database from 'better-sqlite3';
+import type { Db } from '../db/connection';
 import { createDb } from '../db/connection';
 import { createUser } from './userService';
-import { createEntry } from './entryService';
+import { createEntry, type Entry } from './entryService';
 import { addVote } from './voteService';
 import { setAllowSelfVote, startContest } from './contestService';
 import { computeStandings, podiumTieGroups, computeMedalStandings } from './rankingService';
 
-let db: Database.Database;
+let db: Db;
 
-function makeEntry(name: string) {
-  const creator = createUser(db, `creator-of-${name}`);
+async function makeEntry(name: string): Promise<Entry> {
+  const creator = await createUser(db, `creator-of-${name}`);
   return createEntry(db, { creatorId: creator.id, name, description: null, imagePath: 'a.webp' });
 }
 
-beforeEach(() => {
-  db = createDb(':memory:');
-  setAllowSelfVote(db, true);
+beforeEach(async () => {
+  db = await createDb(':memory:');
+  await setAllowSelfVote(db, true);
 });
 
 describe('rankingService', () => {
-  it('ranks entries by vote count, using competition ranking for ties', () => {
-    const a = makeEntry('A');
-    const b = makeEntry('B');
-    const c = makeEntry('C');
-    const d = makeEntry('D');
-    startContest(db);
-    const voters = [createUser(db, 'v1'), createUser(db, 'v2'), createUser(db, 'v3')];
-    addVote(db, voters[0].id, a.id);
-    addVote(db, voters[1].id, a.id);
-    addVote(db, voters[0].id, b.id);
-    addVote(db, voters[1].id, b.id);
-    addVote(db, voters[0].id, c.id);
+  it('ranks entries by vote count, using competition ranking for ties', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    const d = await makeEntry('D');
+    await startContest(db);
+    const voters = [await createUser(db, 'v1'), await createUser(db, 'v2'), await createUser(db, 'v3')];
+    await addVote(db, voters[0].id, a.id);
+    await addVote(db, voters[1].id, a.id);
+    await addVote(db, voters[0].id, b.id);
+    await addVote(db, voters[1].id, b.id);
+    await addVote(db, voters[0].id, c.id);
 
-    const standings = computeStandings(db);
+    const standings = await computeStandings(db);
     const byId = Object.fromEntries(standings.map((s) => [s.entryId, s]));
     expect(byId[a.id].rank).toBe(1);
     expect(byId[b.id].rank).toBe(1);
@@ -41,22 +41,22 @@ describe('rankingService', () => {
     expect(byId[d.id].rank).toBe(4);
   });
 
-  it('podiumTieGroups only returns groups within the top 3 with more than one member', () => {
-    const a = makeEntry('A');
-    const b = makeEntry('B');
-    const c = makeEntry('C');
-    const d = makeEntry('D');
-    const e = makeEntry('E');
-    startContest(db);
-    const [v1, v2, v3] = [createUser(db, 'v1'), createUser(db, 'v2'), createUser(db, 'v3')];
-    addVote(db, v1.id, a.id);
-    addVote(db, v2.id, a.id);
-    addVote(db, v1.id, b.id);
-    addVote(db, v2.id, b.id);
-    addVote(db, v3.id, c.id);
-    addVote(db, v1.id, d.id);
+  it('podiumTieGroups only returns groups within the top 3 with more than one member', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    const d = await makeEntry('D');
+    const e = await makeEntry('E');
+    await startContest(db);
+    const [v1, v2, v3] = [await createUser(db, 'v1'), await createUser(db, 'v2'), await createUser(db, 'v3')];
+    await addVote(db, v1.id, a.id);
+    await addVote(db, v2.id, a.id);
+    await addVote(db, v1.id, b.id);
+    await addVote(db, v2.id, b.id);
+    await addVote(db, v3.id, c.id);
+    await addVote(db, v1.id, d.id);
 
-    const standings = computeStandings(db);
+    const standings = await computeStandings(db);
     const groups = podiumTieGroups(standings);
     expect(groups).toHaveLength(2);
     expect(groups[0].map((s) => s.entryId).sort()).toEqual([a.id, b.id].sort());
@@ -64,32 +64,32 @@ describe('rankingService', () => {
     expect(groups.some((g) => g.some((s) => s.entryId === e.id))).toBe(false);
   });
 
-  it('returns no groups when the podium is unambiguous', () => {
-    const a = makeEntry('A');
-    makeEntry('B');
-    startContest(db);
-    const v1 = createUser(db, 'v1');
-    addVote(db, v1.id, a.id);
-    const standings = computeStandings(db);
+  it('returns no groups when the podium is unambiguous', async () => {
+    const a = await makeEntry('A');
+    await makeEntry('B');
+    await startContest(db);
+    const v1 = await createUser(db, 'v1');
+    await addVote(db, v1.id, a.id);
+    const standings = await computeStandings(db);
     expect(podiumTieGroups(standings)).toHaveLength(0);
   });
 });
 
 describe('computeMedalStandings', () => {
-  it('ranks entries by total medal score, using competition ranking for ties', () => {
-    const a = makeEntry('A');
-    const b = makeEntry('B');
-    const c = makeEntry('C');
-    startContest(db);
-    const voter = createUser(db, 'voter');
+  it('ranks entries by total medal score, using competition ranking for ties', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    await startContest(db);
+    const voter = await createUser(db, 'voter');
     const insert = db.prepare(
       "INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, datetime('now'))"
     );
-    insert.run('m1', voter.id, a.id, 'GOLD'); // 5 points
-    insert.run('m2', createUser(db, 'v2').id, b.id, 'SILVER'); // 3 points
+    await insert.run('m1', voter.id, a.id, 'GOLD'); // 5 points
+    await insert.run('m2', (await createUser(db, 'v2')).id, b.id, 'SILVER'); // 3 points
     // c has no medals: 0 points
 
-    const standings = computeMedalStandings(db);
+    const standings = await computeMedalStandings(db);
     const byId = Object.fromEntries(standings.map((s) => [s.entryId, s]));
     expect(byId[a.id].total).toBe(5);
     expect(byId[a.id].rank).toBe(1);
@@ -103,25 +103,19 @@ describe('computeMedalStandings', () => {
     expect(byId[a.id].imagePath).toBe('a.webp');
   });
 
-  it('podiumTieGroups also works with medal standings', () => {
-    const a = makeEntry('A');
-    const b = makeEntry('B');
-    startContest(db);
-    const voter = createUser(db, 'voter');
-    db.prepare("INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, datetime('now'))").run(
-      'm1',
-      voter.id,
-      a.id,
-      'BRONZE'
-    );
-    db.prepare("INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, datetime('now'))").run(
-      'm2',
-      createUser(db, 'v2').id,
-      b.id,
-      'BRONZE'
-    );
+  it('podiumTieGroups also works with medal standings', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    await startContest(db);
+    const voter = await createUser(db, 'voter');
+    await db
+      .prepare("INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, datetime('now'))")
+      .run('m1', voter.id, a.id, 'BRONZE');
+    await db
+      .prepare("INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, datetime('now'))")
+      .run('m2', (await createUser(db, 'v2')).id, b.id, 'BRONZE');
 
-    const groups = podiumTieGroups(computeMedalStandings(db));
+    const groups = podiumTieGroups(await computeMedalStandings(db));
     expect(groups).toHaveLength(1);
     expect(groups[0].map((s) => s.entryId).sort()).toEqual([a.id, b.id].sort());
   });

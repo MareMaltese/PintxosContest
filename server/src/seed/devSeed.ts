@@ -32,15 +32,19 @@ async function placeholderImage(index: number): Promise<string> {
 }
 
 async function main() {
-  const db = createDb(config.dbPath);
+  const db = await createDb(config.dbUrl, config.dbAuthToken);
 
-  const userIds = FIRST_NAMES.map((name) => createUser(db, name).id);
+  const userIds: string[] = [];
+  for (const name of FIRST_NAMES) {
+    const user = await createUser(db, name);
+    userIds.push(user.id);
+  }
 
   const entryIds: string[] = [];
   for (let i = 0; i < 18; i++) {
     const creatorId = userIds[i % 15];
     const imagePath = await placeholderImage(i);
-    const entry = createEntry(db, {
+    const entry = await createEntry(db, {
       creatorId,
       name: i % 3 === 0 ? null : `Tapa de prueba ${i + 1}`,
       description: 'Descripción de ejemplo generada por el seed de desarrollo.',
@@ -49,16 +53,19 @@ async function main() {
     entryIds.push(entry.id);
   }
 
-  startContest(db);
+  await startContest(db);
 
   for (const userId of userIds) {
-    const votable = entryIds.filter((id) => {
-      const row = db.prepare('SELECT creatorId FROM Entry WHERE id = ?').get(id) as { creatorId: string };
-      return row.creatorId !== userId;
-    });
+    const votable: string[] = [];
+    for (const id of entryIds) {
+      const row = (await db.prepare('SELECT creatorId FROM Entry WHERE id = ?').get(id)) as unknown as {
+        creatorId: string;
+      };
+      if (row.creatorId !== userId) votable.push(id);
+    }
     const shuffled = votable.sort(() => Math.random() - 0.5).slice(0, 3);
     for (const entryId of shuffled) {
-      addVote(db, userId, entryId);
+      await addVote(db, userId, entryId);
     }
   }
 

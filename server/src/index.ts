@@ -1,6 +1,7 @@
 import path from 'node:path';
 import express from 'express';
 import { config } from './config';
+import { connectDb } from './db';
 import { contestRouter } from './routes/contest.routes';
 import { entriesRouter } from './routes/entries.routes';
 import { usersRouter } from './routes/users.routes';
@@ -39,6 +40,11 @@ if (config.nodeEnv === 'production') {
 
 app.use(errorHandler);
 
-app.listen(config.port, '0.0.0.0', () => {
-  console.log(`${config.appName} escuchando en http://0.0.0.0:${config.port}`);
-});
+async function main(): Promise<void> {
+  await connectDb();
+  app.listen(config.port, '0.0.0.0', () => {
+    console.log(`${config.appName} escuchando en http://0.0.0.0:${config.port}`);
+  });
+}
+
+main();

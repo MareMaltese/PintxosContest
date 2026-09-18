@@ -27,9 +27,9 @@ adminRouter.use(adminAuth);
 adminRouter.get(
   '/entries',
   asyncHandler(async (_req, res) => {
-    const entries = listEntriesForAdmin(db);
-    const voteCountById = new Map(computeStandings(db).map((s) => [s.entryId, s.voteCount]));
-    const medalsById = new Map(computeMedalStandings(db).map((s) => [s.entryId, s]));
+    const entries = await listEntriesForAdmin(db);
+    const voteCountById = new Map((await computeStandings(db)).map((s) => [s.entryId, s.voteCount]));
+    const medalsById = new Map((await computeMedalStandings(db)).map((s) => [s.entryId, s]));
     res.json(
       entries.map((entry) => {
         const medal = medalsById.get(entry.id);
@@ -48,29 +48,32 @@ adminRouter.get(
 adminRouter.get(
   '/dashboard',
   asyncHandler(async (_req, res) => {
-    const contest = getContest(db);
-    const users = listUsers(db);
-    const entryCount = (db.prepare('SELECT COUNT(*) as c FROM Entry').get() as { c: number }).c;
+    const contest = await getContest(db);
+    const users = await listUsers(db);
+    const entryCount = ((await db.prepare('SELECT COUNT(*) as c FROM Entry').get()) as unknown as { c: number }).c;
 
-    const people = users.map((u) => {
-      const entryNumbers = (
-        db.prepare('SELECT number FROM Entry WHERE creatorId = ? ORDER BY number ASC').all(u.id) as {
-          number: number;
-        }[]
-      ).map((e) => e.number);
-      const votedCount = (db.prepare('SELECT COUNT(*) as c FROM Vote WHERE userId = ?').get(u.id) as { c: number })
-        .c;
-      const limit = getFavoriteLimit(db, u.id);
-      return {
-        id: u.id,
-        name: u.name,
-        entryNumbers,
-        votedCount,
-        voteLimit: limit,
-        hasFinishedVoting: votedCount >= limit,
-        lastSeen: u.lastSeen,
-      };
-    });
+    const people = await Promise.all(
+      users.map(async (u) => {
+        const entryNumbers = (
+          (await db.prepare('SELECT number FROM Entry WHERE creatorId = ? ORDER BY number ASC').all(u.id)) as unknown as {
+            number: number;
+          }[]
+        ).map((e) => e.number);
+        const votedCount = (
+          (await db.prepare('SELECT COUNT(*) as c FROM Vote WHERE userId = ?').get(u.id)) as unknown as { c: number }
+        ).c;
+        const limit = await getFavoriteLimit(db, u.id);
+        return {
+          id: u.id,
+          name: u.name,
+          entryNumbers,
+          votedCount,
+          voteLimit: limit,
+          hasFinishedVoting: votedCount >= limit,
+          lastSeen: u.lastSeen,
+        };
+      })
+    );
 
     res.json({
       phase: contest.phase,
@@ -89,7 +92,7 @@ adminRouter.get(
 adminRouter.get(
   '/medal-votes',
   asyncHandler(async (_req, res) => {
-    const standings = computeMedalStandings(db);
+    const standings = await computeMedalStandings(db);
     res.json(
       standings.map((s) => ({
         entryId: s.entryId,
@@ -107,7 +110,7 @@ adminRouter.get(
 adminRouter.post(
   '/contest/start',
   asyncHandler(async (_req, res) => {
-    const contest = startContest(db);
+    const contest = await startContest(db);
     broadcast('phase-changed', { phase: contest.phase });
     res.json(contest);
   })
@@ -119,16 +122,20 @@ adminRouter.post(
   '/contest/close-voting',
   asyncHandler(async (req, res) => {
     const { force } = closeVotingSchema.parse(req.body ?? {});
-    const contest = getContest(db);
+    const contest = await getContest(db);
     if (contest.phase !== 'VOTING') {
       throw new AppError(409, 'NOT_VOTING_PHASE', 'La votación no está abierta ahora mismo.');
     }
-    const users = listUsers(db);
-    const pending = users.filter((u) => {
-      const votedCount = (db.prepare('SELECT COUNT(*) as c FROM Vote WHERE userId = ?').get(u.id) as { c: number })
-        .c;
-      return votedCount < getFavoriteLimit(db, u.id);
-    });
+    const users = await listUsers(db);
+    const pending = [];
+    for (const u of users) {
+      const votedCount = (
+        (await db.prepare('SELECT COUNT(*) as c FROM Vote WHERE userId = ?').get(u.id)) as unknown as { c: number }
+      ).c;
+      if (votedCount < (await getFavoriteLimit(db, u.id))) {
+        pending.push(u);
+      }
+    }
     if (pending.length > 0 && !force) {
       res.status(409).json({
         code: 'VOTERS_PENDING',
@@ -137,7 +144,7 @@ adminRouter.post(
       });
       return;
     }
-    const result = advance(db);
+    const result = await advance(db);
     broadcast('phase-changed', { phase: result.phase, openedRound: result.openedRound ?? null });
     res.json(result);
   })
@@ -146,14 +153,14 @@ adminRouter.post(
 adminRouter.post(
   '/tiebreak/close-round',
   asyncHandler(async (_req, res) => {
-    const roundId = getOpenRoundId(db);
+    const roundId = await getOpenRoundId(db);
     if (!roundId) {
       throw new AppError(404, 'NO_OPEN_ROUND', 'No hay ninguna ronda de desempate abierta.');
     }
-    const closeResult = closeRound(db, roundId);
+    const closeResult = await closeRound(db, roundId);
     let phase: 'TIEBREAK' | 'RESULTS' = 'TIEBREAK';
     if (closeResult.status === 'RESOLVED') {
-      phase = advance(db).phase;
+      phase = (await advance(db)).phase;
     }
     broadcast('tiebreak-round-changed', { closeResult, phase });
     res.json({ closeResult, phase });
@@ -163,7 +170,7 @@ adminRouter.post(
 adminRouter.post(
   '/contest/reveal-results',
   asyncHandler(async (_req, res) => {
-    const contest = revealResults(db);
+    const contest = await revealResults(db);
     broadcast('results-revealed', { revealedAt: contest.resultsRevealedAt });
     res.json(contest);
   })
@@ -172,7 +179,7 @@ adminRouter.post(
 adminRouter.post(
   '/contest/reopen-voting',
   asyncHandler(async (_req, res) => {
-    const contest = reopenVoting(db);
+    const contest = await reopenVoting(db);
     broadcast('phase-changed', { phase: contest.phase });
     res.json(contest);
   })
@@ -181,7 +188,7 @@ adminRouter.post(
 adminRouter.post(
   '/contest/back-to-registration',
   asyncHandler(async (_req, res) => {
-    const contest = backToRegistration(db);
+    const contest = await backToRegistration(db);
     broadcast('phase-changed', { phase: contest.phase });
     res.json(contest);
   })
@@ -196,9 +203,9 @@ adminRouter.patch(
   '/contest',
   asyncHandler(async (req, res) => {
     const { allowSelfVote, votingMode } = contestSettingsSchema.parse(req.body);
-    if (allowSelfVote !== undefined) setAllowSelfVote(db, allowSelfVote);
-    if (votingMode !== undefined) setVotingMode(db, votingMode);
-    res.json(getContest(db));
+    if (allowSelfVote !== undefined) await setAllowSelfVote(db, allowSelfVote);
+    if (votingMode !== undefined) await setVotingMode(db, votingMode);
+    res.json(await getContest(db));
   })
 );
 
@@ -211,37 +218,37 @@ adminRouter.patch(
   '/entries/:id',
   asyncHandler(async (req, res) => {
     const fields = editEntrySchema.parse(req.body);
-    const entry = db.prepare('SELECT * FROM Entry WHERE id = ?').get(req.params.id);
+    const entry = await db.prepare('SELECT * FROM Entry WHERE id = ?').get(req.params.id);
     if (!entry) {
       throw new AppError(404, 'ENTRY_NOT_FOUND', 'No existe esa tapa.');
     }
     if (fields.name !== undefined) {
-      db.prepare('UPDATE Entry SET name = ? WHERE id = ?').run(fields.name, req.params.id);
+      await db.prepare('UPDATE Entry SET name = ? WHERE id = ?').run(fields.name, req.params.id);
     }
     if (fields.description !== undefined) {
-      db.prepare('UPDATE Entry SET description = ? WHERE id = ?').run(fields.description, req.params.id);
+      await db.prepare('UPDATE Entry SET description = ? WHERE id = ?').run(fields.description, req.params.id);
     }
-    res.json(db.prepare('SELECT * FROM Entry WHERE id = ?').get(req.params.id));
+    res.json(await db.prepare('SELECT * FROM Entry WHERE id = ?').get(req.params.id));
   })
 );
 
 adminRouter.delete(
   '/entries/:id',
   asyncHandler(async (req, res) => {
-    const entry = db.prepare('SELECT imagePath FROM Entry WHERE id = ?').get(req.params.id) as
+    const entry = (await db.prepare('SELECT imagePath FROM Entry WHERE id = ?').get(req.params.id)) as unknown as
       | { imagePath: string }
       | undefined;
     if (!entry) {
       throw new AppError(404, 'ENTRY_NOT_FOUND', 'No existe esa tapa.');
     }
-    const tx = db.transaction((id: string) => {
-      db.prepare('DELETE FROM TiebreakVote WHERE entryId = ?').run(id);
-      db.prepare('DELETE FROM TiebreakCandidate WHERE entryId = ?').run(id);
-      db.prepare('DELETE FROM Vote WHERE entryId = ?').run(id);
-      db.prepare('DELETE FROM MedalVote WHERE entryId = ?').run(id);
-      db.prepare('DELETE FROM Entry WHERE id = ?').run(id);
+    const tx = db.transaction(async (id: string) => {
+      await db.prepare('DELETE FROM TiebreakVote WHERE entryId = ?').run(id);
+      await db.prepare('DELETE FROM TiebreakCandidate WHERE entryId = ?').run(id);
+      await db.prepare('DELETE FROM Vote WHERE entryId = ?').run(id);
+      await db.prepare('DELETE FROM MedalVote WHERE entryId = ?').run(id);
+      await db.prepare('DELETE FROM Entry WHERE id = ?').run(id);
     });
-    tx(req.params.id);
+    await tx(req.params.id);
     deleteEntryImage(entry.imagePath);
     res.json({ ok: true });
   })
@@ -253,38 +260,40 @@ adminRouter.patch(
   '/users/:id',
   asyncHandler(async (req, res) => {
     const { name } = editUserSchema.parse(req.body);
-    const result = db.prepare('UPDATE User SET name = ? WHERE id = ?').run(name, req.params.id);
+    const result = await db.prepare('UPDATE User SET name = ? WHERE id = ?').run(name, req.params.id);
     if (result.changes === 0) {
       throw new AppError(404, 'USER_NOT_FOUND', 'No existe ese participante.');
     }
-    res.json(getUser(db, req.params.id));
+    res.json(await getUser(db, req.params.id));
   })
 );
 
 adminRouter.delete(
   '/users/:id',
   asyncHandler(async (req, res) => {
-    const ownEntries = db.prepare('SELECT id, imagePath FROM Entry WHERE creatorId = ?').all(req.params.id) as {
+    const ownEntries = (await db
+      .prepare('SELECT id, imagePath FROM Entry WHERE creatorId = ?')
+      .all(req.params.id)) as unknown as {
       id: string;
       imagePath: string;
     }[];
-    const tx = db.transaction((id: string) => {
+    const tx = db.transaction(async (id: string) => {
       for (const entry of ownEntries) {
-        db.prepare('DELETE FROM TiebreakVote WHERE entryId = ?').run(entry.id);
-        db.prepare('DELETE FROM TiebreakCandidate WHERE entryId = ?').run(entry.id);
-        db.prepare('DELETE FROM Vote WHERE entryId = ?').run(entry.id);
-        db.prepare('DELETE FROM MedalVote WHERE entryId = ?').run(entry.id);
+        await db.prepare('DELETE FROM TiebreakVote WHERE entryId = ?').run(entry.id);
+        await db.prepare('DELETE FROM TiebreakCandidate WHERE entryId = ?').run(entry.id);
+        await db.prepare('DELETE FROM Vote WHERE entryId = ?').run(entry.id);
+        await db.prepare('DELETE FROM MedalVote WHERE entryId = ?').run(entry.id);
       }
-      db.prepare('DELETE FROM Entry WHERE creatorId = ?').run(id);
-      db.prepare('DELETE FROM Vote WHERE userId = ?').run(id);
-      db.prepare('DELETE FROM TiebreakVote WHERE userId = ?').run(id);
-      db.prepare('DELETE FROM MedalVote WHERE userId = ?').run(id);
-      const result = db.prepare('DELETE FROM User WHERE id = ?').run(id);
+      await db.prepare('DELETE FROM Entry WHERE creatorId = ?').run(id);
+      await db.prepare('DELETE FROM Vote WHERE userId = ?').run(id);
+      await db.prepare('DELETE FROM TiebreakVote WHERE userId = ?').run(id);
+      await db.prepare('DELETE FROM MedalVote WHERE userId = ?').run(id);
+      const result = await db.prepare('DELETE FROM User WHERE id = ?').run(id);
       if (result.changes === 0) {
         throw new AppError(404, 'USER_NOT_FOUND', 'No existe ese participante.');
       }
     });
-    tx(req.params.id);
+    await tx(req.params.id);
     for (const entry of ownEntries) {
       deleteEntryImage(entry.imagePath);
     }

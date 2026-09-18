@@ -41,7 +41,7 @@ entriesRouter.post(
     }
     const fields = entryFieldsSchema.parse(req.body);
     const imagePath = await saveEntryImage(req.file.buffer);
-    const entry = createEntry(db, {
+    const entry = await createEntry(db, {
       creatorId: req.userId!,
       name: fields.name || null,
       description: fields.description || null,
@@ -56,7 +56,7 @@ entriesRouter.get(
   '/',
   userAuth,
   asyncHandler(async (_req, res) => {
-    res.json(listEntries(db));
+    res.json(await listEntries(db));
   })
 );
 
@@ -64,7 +64,7 @@ entriesRouter.get(
   '/mine',
   userAuth,
   asyncHandler(async (req, res) => {
-    res.json(listMyEntries(db, req.userId!));
+    res.json(await listMyEntries(db, req.userId!));
   })
 );
 
@@ -82,14 +82,14 @@ entriesRouter.patch(
       throw new AppError(400, 'INVALID_IMAGE_TYPE', 'El archivo no es una imagen válida.');
     }
     const fields = updateOwnEntrySchema.parse(req.body);
-    let entry = updateOwnEntry(db, req.userId!, req.params.id, {
+    let entry = await updateOwnEntry(db, req.userId!, req.params.id, {
       name: fields.name || null,
       description: fields.description || null,
     });
     if (req.file) {
       const oldImagePath = entry.imagePath;
       const imagePath = await saveEntryImage(req.file.buffer);
-      entry = updateOwnEntry(db, req.userId!, req.params.id, { imagePath });
+      entry = await updateOwnEntry(db, req.userId!, req.params.id, { imagePath });
       deleteEntryImage(oldImagePath);
     }
     broadcast('entries-changed', {});
@@ -101,7 +101,7 @@ entriesRouter.delete(
   '/:id',
   userAuth,
   asyncHandler(async (req, res) => {
-    const imagePath = deleteOwnEntry(db, req.userId!, req.params.id);
+    const imagePath = await deleteOwnEntry(db, req.userId!, req.params.id);
     deleteEntryImage(imagePath);
     broadcast('entries-changed', {});
     res.json({ ok: true });
@@ -112,6 +112,6 @@ entriesRouter.get(
   '/:id',
   userAuth,
   asyncHandler(async (req, res) => {
-    res.json(getEntry(db, req.params.id));
+    res.json(await getEntry(db, req.params.id));
   })
 );

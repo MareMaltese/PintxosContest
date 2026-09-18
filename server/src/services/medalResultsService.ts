@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type { Db } from '../db/connection';
 import { computeMedalStandings, type MedalStanding } from './rankingService';
 import { getResolvedWinner } from './tiebreakService';
 
@@ -15,8 +15,8 @@ export interface MedalPodiumEntry {
 
 const RANK_MEDAL: Record<number, 'GOLD' | 'SILVER' | 'BRONZE'> = { 1: 'GOLD', 2: 'SILVER', 3: 'BRONZE' };
 
-export function computeMedalPodium(db: Database.Database): MedalPodiumEntry[] {
-  const standings = computeMedalStandings(db);
+export async function computeMedalPodium(db: Db): Promise<MedalPodiumEntry[]> {
+  const standings = await computeMedalStandings(db);
   const top = standings.filter((s) => s.rank <= 3);
 
   const byRank = new Map<number, MedalStanding[]>();
@@ -32,7 +32,7 @@ export function computeMedalPodium(db: Database.Database): MedalPodiumEntry[] {
       ordered.push(group[0]);
       continue;
     }
-    const winnerId = getResolvedWinner(db, 'MEDAL', rank);
+    const winnerId = await getResolvedWinner(db, 'MEDAL', rank);
     const winner = winnerId ? group.find((g) => g.entryId === winnerId) : undefined;
     if (winner) {
       ordered.push(winner, ...group.filter((g) => g.entryId !== winnerId));

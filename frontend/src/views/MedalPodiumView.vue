@@ -68,7 +68,7 @@ onMounted(load);
 <template>
   <main class="medal-podium">
     <h1 class="medal-podium__title">
-      Pinch-o-visión
+      RANKING
     </h1>
     <p
       v-if="isLoading"
@@ -214,6 +214,10 @@ onMounted(load);
   font-size: 1.5rem;
   margin: 0 0 var(--space-5);
   text-align: center;
+  background: #fff;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .medal-podium__status {
@@ -243,11 +247,11 @@ onMounted(load);
 }
 
 .medal-podium__photo {
-  width: 56px;
-  height: 56px;
+  width: 106px;
+  height: 106px;
   object-fit: cover;
   border-radius: 50%;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-lg);
 }
 
 .medal-podium__number {
@@ -269,6 +273,7 @@ onMounted(load);
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   box-sizing: border-box;
   color: white;
+  box-shadow: var(--shadow-lg);
 }
 
 .medal-podium__step--gold {

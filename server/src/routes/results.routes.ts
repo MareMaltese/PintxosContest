@@ -12,10 +12,10 @@ resultsRouter.get(
   '/',
   userAuth,
   asyncHandler(async (_req, res) => {
-    const contest = getContest(db);
+    const contest = await getContest(db);
     if (contest.phase !== 'RESULTS' || !contest.resultsRevealedAt) {
       throw new AppError(409, 'RESULTS_NOT_READY', 'Los resultados todavía no se han mostrado.');
     }
-    res.json({ revealedAt: contest.resultsRevealedAt, standings: computeStandings(db) });
+    res.json({ revealedAt: contest.resultsRevealedAt, standings: await computeStandings(db) });
   })
 );

@@ -8,11 +8,15 @@ export const userAuth: RequestHandler = (req, _res, next) => {
     next(new AppError(401, 'MISSING_USER_ID', 'Falta identificarse.'));
     return;
   }
-  const user = db.prepare('SELECT id FROM User WHERE id = ?').get(userId);
-  if (!user) {
-    next(new AppError(401, 'UNKNOWN_USER', 'No reconocemos tu sesión. Vuelve a entrar con tu nombre.'));
-    return;
-  }
-  req.userId = userId;
-  next();
+  db.prepare('SELECT id FROM User WHERE id = ?')
+    .get(userId)
+    .then((user: Record<string, unknown> | undefined) => {
+      if (!user) {
+        next(new AppError(401, 'UNKNOWN_USER', 'No reconocemos tu sesión. Vuelve a entrar con tu nombre.'));
+        return;
+      }
+      req.userId = userId;
+      next();
+    })
+    .catch(next);
 };

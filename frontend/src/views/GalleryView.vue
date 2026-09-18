@@ -196,7 +196,7 @@ function openEntry(entry: EntrySummary): void {
         >
           <Icon
             name="medal"
-            :size="18"
+            :size="35"
           />
         </div>
       </button>
@@ -296,19 +296,19 @@ function openEntry(entry: EntrySummary): void {
 }
 
 .gallery__card--favorite {
-  box-shadow: 0 0 0 3px var(--color-primary);
+  box-shadow: 0 0 0 5px var(--color-primary);
 }
 
 .gallery__card--gold {
-  box-shadow: 0 0 0 3px var(--color-gold);
+  box-shadow: 0 0 0 5px var(--color-gold);
 }
 
 .gallery__card--silver {
-  box-shadow: 0 0 0 3px var(--color-silver);
+  box-shadow: 0 0 0 5px var(--color-silver);
 }
 
 .gallery__card--bronze {
-  box-shadow: 0 0 0 3px var(--color-bronze);
+  box-shadow: 0 0 0 5px var(--color-bronze);
 }
 
 .gallery__card--own {
@@ -352,14 +352,15 @@ function openEntry(entry: EntrySummary): void {
   z-index: 2;
   bottom: var(--space-2);
   right: var(--space-2);
-  width: 28px;
-  height: 28px;
+  width: 3rem;
+  height: 3rem;
   border-radius: 50%;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 1px 1px 2px 2px #0000007a;
+  border: 3px solid;
 }
 
 .gallery__medal-badge--gold {

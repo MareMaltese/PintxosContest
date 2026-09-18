@@ -226,6 +226,7 @@ dist/
   --color-danger: #b3261e;
   --color-success: #2e7d32;
 
+  --radius-sm: 6px;
   --radius-md: 16px;
   --radius-lg: 24px;
   --shadow-sm: 0 1px 3px rgba(31, 27, 22, 0.06), 0 1px 2px rgba(31, 27, 22, 0.04);

@@ -17,7 +17,7 @@ usersRouter.post(
   '/',
   asyncHandler(async (req, res) => {
     const { name } = createUserSchema.parse(req.body);
-    res.status(201).json(createUser(db, name));
+    res.status(201).json(await createUser(db, name));
   })
 );
 
@@ -25,7 +25,7 @@ usersRouter.post(
   '/recover',
   asyncHandler(async (req, res) => {
     const { name, number } = recoverUserSchema.parse(req.body);
-    res.json(recoverUser(db, name, number));
+    res.json(await recoverUser(db, name, number));
   })
 );
 
@@ -33,7 +33,7 @@ usersRouter.post(
   '/:id/heartbeat',
   asyncHandler(async (req, res) => {
     try {
-      touchHeartbeat(db, req.params.id);
+      await touchHeartbeat(db, req.params.id);
     } catch {
       throw new AppError(404, 'USER_NOT_FOUND', 'No existe ese usuario.');
     }

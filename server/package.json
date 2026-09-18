@@ -14,7 +14,9 @@
     "db:reset": "tsx src/seed/resetDb.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "better-sqlite3": "^13.0.3",
+    "dotenv": "^18.0.0",
     "express": "^4.21.2",
     "multer": "^2.4.0",
     "sharp": "^0.35.4",

@@ -17,7 +17,7 @@ medalVotesRouter.get(
   '/me',
   userAuth,
   asyncHandler(async (req, res) => {
-    res.json(getMyMedals(db, req.userId!));
+    res.json(await getMyMedals(db, req.userId!));
   })
 );
 
@@ -26,7 +26,7 @@ medalVotesRouter.put(
   userAuth,
   asyncHandler(async (req, res) => {
     const { medal } = medalSchema.parse(req.body);
-    setMedal(db, req.userId!, req.params.entryId, medal);
+    await setMedal(db, req.userId!, req.params.entryId, medal);
     res.json({ ok: true });
   })
 );
@@ -35,14 +35,14 @@ medalVotesRouter.get(
   '/results',
   userAuth,
   asyncHandler(async (_req, res) => {
-    const contest = getContest(db);
+    const contest = await getContest(db);
     if (contest.phase !== 'RESULTS' || !contest.resultsRevealedAt) {
       throw new AppError(409, 'RESULTS_NOT_READY', 'Los resultados todavía no se han mostrado.');
     }
     res.json({
       revealedAt: contest.resultsRevealedAt,
-      podium: computeMedalPodium(db),
-      standings: computeMedalStandings(db),
+      podium: await computeMedalPodium(db),
+      standings: await computeMedalStandings(db),
     });
   })
 );

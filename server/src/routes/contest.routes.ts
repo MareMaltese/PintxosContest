@@ -1,13 +1,17 @@
 import { Router } from 'express';
 import { db } from '../db';
+import { asyncHandler } from '../middleware/asyncHandler';
 import { getContest } from '../services/contestService';
 import { addClient, removeClient } from '../realtime/sse';
 
 export const contestRouter = Router();
 
-contestRouter.get('/', (_req, res) => {
-  res.json(getContest(db));
-});
+contestRouter.get(
+  '/',
+  asyncHandler(async (_req, res) => {
+    res.json(await getContest(db));
+  })
+);
 
 contestRouter.get('/stream', (req, res) => {
   res.writeHead(200, {

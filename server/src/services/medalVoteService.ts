@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type Database from 'better-sqlite3';
+import type { Db } from '../db/connection';
 import { AppError } from '../middleware/errors';
 import { getContest } from './contestService';
 import { getEntryUnchecked } from './entryService';
@@ -12,8 +12,8 @@ export interface MyMedals {
   bronze: string | null;
 }
 
-export function getMyMedals(db: Database.Database, userId: string): MyMedals {
-  const rows = db.prepare('SELECT entryId, medal FROM MedalVote WHERE userId = ?').all(userId) as {
+export async function getMyMedals(db: Db, userId: string): Promise<MyMedals> {
+  const rows = (await db.prepare('SELECT entryId, medal FROM MedalVote WHERE userId = ?').all(userId)) as unknown as {
     entryId: string;
     medal: Medal;
   }[];
@@ -26,13 +26,13 @@ export function getMyMedals(db: Database.Database, userId: string): MyMedals {
   return result;
 }
 
-export function setMedal(db: Database.Database, userId: string, entryId: string, medal: Medal | null): void {
-  const contest = getContest(db);
+export async function setMedal(db: Db, userId: string, entryId: string, medal: Medal | null): Promise<void> {
+  const contest = await getContest(db);
   if (contest.phase !== 'VOTING') {
     throw new AppError(409, 'NOT_VOTING_PHASE', 'La votación no está abierta ahora mismo.');
   }
   if (medal !== null) {
-    const entry = getEntryUnchecked(db, entryId);
+    const entry = await getEntryUnchecked(db, entryId);
     if (!entry) {
       throw new AppError(400, 'ENTRY_NOT_FOUND', 'Esa tapa no existe.');
     }
@@ -40,18 +40,14 @@ export function setMedal(db: Database.Database, userId: string, entryId: string,
       throw new AppError(403, 'SELF_VOTE_FORBIDDEN', 'No puedes votar tu propio pincho.');
     }
   }
-  const tx = db.transaction(() => {
-    db.prepare('DELETE FROM MedalVote WHERE userId = ? AND entryId = ?').run(userId, entryId);
+  const tx = db.transaction(async () => {
+    await db.prepare('DELETE FROM MedalVote WHERE userId = ? AND entryId = ?').run(userId, entryId);
     if (medal !== null) {
-      db.prepare('DELETE FROM MedalVote WHERE userId = ? AND medal = ?').run(userId, medal);
-      db.prepare('INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, ?)').run(
-        randomUUID(),
-        userId,
-        entryId,
-        medal,
-        new Date().toISOString()
-      );
+      await db.prepare('DELETE FROM MedalVote WHERE userId = ? AND medal = ?').run(userId, medal);
+      await db
+        .prepare('INSERT INTO MedalVote (id, userId, entryId, medal, createdAt) VALUES (?, ?, ?, ?, ?)')
+        .run(randomUUID(), userId, entryId, medal, new Date().toISOString());
     }
   });
-  tx();
+  await tx();
 }

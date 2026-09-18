@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type { Db } from '../db/connection';
 import { AppError } from '../middleware/errors';
 
 export type ContestPhase = 'REGISTRATION' | 'VOTING' | 'TIEBREAK' | 'RESULTS';
@@ -18,10 +18,10 @@ interface ContestRow {
   resultsRevealedAt: string | null;
 }
 
-export function getContest(db: Database.Database): Contest {
-  const row = db
+export async function getContest(db: Db): Promise<Contest> {
+  const row = (await db
     .prepare('SELECT phase, allowSelfVote, votingMode, resultsRevealedAt FROM Contest WHERE id = 1')
-    .get() as ContestRow;
+    .get()) as unknown as ContestRow;
   return {
     phase: row.phase,
     allowSelfVote: !!row.allowSelfVote,
@@ -30,31 +30,31 @@ export function getContest(db: Database.Database): Contest {
   };
 }
 
-export function setPhase(db: Database.Database, phase: ContestPhase): void {
-  db.prepare('UPDATE Contest SET phase = ? WHERE id = 1').run(phase);
+export async function setPhase(db: Db, phase: ContestPhase): Promise<void> {
+  await db.prepare('UPDATE Contest SET phase = ? WHERE id = 1').run(phase);
 }
 
-export function setVotingMode(db: Database.Database, mode: VotingMode): Contest {
-  db.prepare('UPDATE Contest SET votingMode = ? WHERE id = 1').run(mode);
+export async function setVotingMode(db: Db, mode: VotingMode): Promise<Contest> {
+  await db.prepare('UPDATE Contest SET votingMode = ? WHERE id = 1').run(mode);
   return getContest(db);
 }
 
-export function startContest(db: Database.Database): Contest {
-  const contest = getContest(db);
+export async function startContest(db: Db): Promise<Contest> {
+  const contest = await getContest(db);
   if (contest.phase !== 'REGISTRATION') {
     throw new AppError(409, 'ALREADY_STARTED', 'El concurso ya ha empezado.');
   }
-  setPhase(db, 'VOTING');
+  await setPhase(db, 'VOTING');
   return getContest(db);
 }
 
-export function setAllowSelfVote(db: Database.Database, allow: boolean): Contest {
-  db.prepare('UPDATE Contest SET allowSelfVote = ? WHERE id = 1').run(allow ? 1 : 0);
+export async function setAllowSelfVote(db: Db, allow: boolean): Promise<Contest> {
+  await db.prepare('UPDATE Contest SET allowSelfVote = ? WHERE id = 1').run(allow ? 1 : 0);
   return getContest(db);
 }
 
-export function revealResults(db: Database.Database): Contest {
-  const contest = getContest(db);
+export async function revealResults(db: Db): Promise<Contest> {
+  const contest = await getContest(db);
   if (contest.phase !== 'RESULTS') {
     throw new AppError(409, 'NOT_READY', 'Los resultados todavía no están listos para mostrarse.');
   }
@@ -62,24 +62,24 @@ export function revealResults(db: Database.Database): Contest {
     throw new AppError(409, 'ALREADY_REVEALED', 'Los resultados ya se han mostrado.');
   }
   const now = new Date().toISOString();
-  db.prepare('UPDATE Contest SET resultsRevealedAt = ? WHERE id = 1').run(now);
+  await db.prepare('UPDATE Contest SET resultsRevealedAt = ? WHERE id = 1').run(now);
   return getContest(db);
 }
 
-export function reopenVoting(db: Database.Database): Contest {
-  const contest = getContest(db);
+export async function reopenVoting(db: Db): Promise<Contest> {
+  const contest = await getContest(db);
   if (contest.phase !== 'RESULTS') {
     throw new AppError(409, 'NOT_IN_RESULTS', 'El concurso no está en la fase de resultados.');
   }
-  db.prepare('UPDATE Contest SET phase = ?, resultsRevealedAt = NULL WHERE id = 1').run('VOTING');
+  await db.prepare('UPDATE Contest SET phase = ?, resultsRevealedAt = NULL WHERE id = 1').run('VOTING');
   return getContest(db);
 }
 
-export function backToRegistration(db: Database.Database): Contest {
-  const contest = getContest(db);
+export async function backToRegistration(db: Db): Promise<Contest> {
+  const contest = await getContest(db);
   if (contest.phase === 'REGISTRATION') {
     throw new AppError(409, 'ALREADY_REGISTRATION', 'El concurso ya está en fase de registro.');
   }
-  db.prepare('UPDATE Contest SET phase = ?, resultsRevealedAt = NULL WHERE id = 1').run('REGISTRATION');
+  await db.prepare('UPDATE Contest SET phase = ?, resultsRevealedAt = NULL WHERE id = 1').run('REGISTRATION');
   return getContest(db);
 }

@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type { Db } from '../db/connection';
 
 export interface StandingEntry {
   entryId: string;
@@ -34,8 +34,8 @@ function assignCompetitionRank<T>(rows: T[], scoreOf: (row: T) => number): (T & 
   return result;
 }
 
-export function computeStandings(db: Database.Database): Standing[] {
-  const rows = db
+export async function computeStandings(db: Db): Promise<Standing[]> {
+  const rows = (await db
     .prepare(
       `SELECT e.id as entryId, e.number, e.name, e.creatorId, COUNT(v.id) as voteCount
        FROM Entry e
@@ -43,7 +43,7 @@ export function computeStandings(db: Database.Database): Standing[] {
        GROUP BY e.id
        ORDER BY voteCount DESC, e.number ASC`
     )
-    .all() as StandingEntry[];
+    .all()) as unknown as StandingEntry[];
 
   return assignCompetitionRank(rows, (r) => r.voteCount);
 }
@@ -78,8 +78,8 @@ export interface MedalStanding extends MedalStandingEntry {
   rank: number;
 }
 
-export function computeMedalStandings(db: Database.Database): MedalStanding[] {
-  const rows = db
+export async function computeMedalStandings(db: Db): Promise<MedalStanding[]> {
+  const rows = (await db
     .prepare(
       `SELECT e.id as entryId, e.number, e.name, e.creatorId, e.imagePath, u.name as creatorName,
          COALESCE(SUM(CASE WHEN mv.medal = 'GOLD' THEN 1 ELSE 0 END), 0) as gold,
@@ -92,7 +92,7 @@ export function computeMedalStandings(db: Database.Database): MedalStanding[] {
        GROUP BY e.id
        ORDER BY total DESC, e.number ASC`
     )
-    .all() as MedalStandingEntry[];
+    .all()) as unknown as MedalStandingEntry[];
 
   return assignCompetitionRank(rows, (r) => r.total);
 }

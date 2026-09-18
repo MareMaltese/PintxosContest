@@ -14,7 +14,7 @@ tiebreakRouter.get(
   '/current',
   userAuth,
   asyncHandler(async (_req, res) => {
-    const current = getCurrentOpenRound(db);
+    const current = await getCurrentOpenRound(db);
     if (!current) {
       throw new AppError(404, 'NO_OPEN_ROUND', 'No hay ninguna ronda de desempate abierta.');
     }
@@ -27,11 +27,11 @@ tiebreakRouter.post(
   userAuth,
   asyncHandler(async (req, res) => {
     const { entryId } = voteSchema.parse(req.body);
-    const current = getCurrentOpenRound(db);
+    const current = await getCurrentOpenRound(db);
     if (!current) {
       throw new AppError(404, 'NO_OPEN_ROUND', 'No hay ninguna ronda de desempate abierta.');
     }
-    castVote(db, current.round.id, req.userId!, entryId);
+    await castVote(db, current.round.id, req.userId!, entryId);
     res.status(201).json({ ok: true });
   })
 );
