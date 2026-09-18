@@ -141,7 +141,7 @@ onMounted(() => {
       >
         <Icon
           name="clock"
-          :size="28"
+          :size="35"
         />
         <p>¡Aún no ha empezado!</p>
       </div>
@@ -159,8 +159,8 @@ onMounted(() => {
 
 .entry-detail__close {
   position: absolute;
-  top: var(--space-5);
-  right: var(--space-5);
+  top: var(--space-6);
+  right: var(--space-6);
   z-index: 1;
   display: inline-flex;
   align-items: center;

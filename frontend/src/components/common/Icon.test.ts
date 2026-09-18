@@ -24,4 +24,12 @@ describe('Icon', () => {
     const wrapper = mount(Icon, { props: { name: 'does-not-exist' } });
     expect(wrapper.find('svg').exists()).toBe(false);
   });
+
+  it('renders a PNG icon as an img tag when there is no matching SVG', () => {
+    const wrapper = mount(Icon, { props: { name: 'pincho', size: 24 } });
+    const img = wrapper.find('img');
+    expect(img.exists()).toBe(true);
+    expect(img.attributes('src')).toContain('pincho');
+    expect(wrapper.find('.icon').attributes('style')).toContain('24px');
+  });
 });

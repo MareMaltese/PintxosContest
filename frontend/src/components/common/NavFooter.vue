@@ -56,7 +56,7 @@ function goToMyEntries(): void {
       @click="goToGallery"
     >
       <Icon
-        name="tipi"
+        name="grid-nine"
         :size="22"
       />
       <span>TODOS LOS PINCHOS</span>
@@ -68,7 +68,7 @@ function goToMyEntries(): void {
       @click="goToMyEntries"
     >
       <Icon
-        name="skull"
+        name="pincho"
         :size="22"
       />
       <span>MIS PINCHOS</span>
