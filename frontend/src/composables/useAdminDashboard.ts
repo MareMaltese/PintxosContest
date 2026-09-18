@@ -16,6 +16,7 @@ export interface AdminDashboardData {
   allowSelfVote: boolean;
   votingMode: 'FAVORITES' | 'MEDALS';
   resultsRevealedAt: string | null;
+  worstPrizeEnabled: boolean;
   participantCount: number;
   entryCount: number;
   votersFinished: number;

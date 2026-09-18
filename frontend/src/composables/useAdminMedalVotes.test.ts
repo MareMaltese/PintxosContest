@@ -10,7 +10,10 @@ vi.mock('../services/api', async () => {
 import { api, ApiError } from '../services/api';
 import { useAdminMedalVotes } from './useAdminMedalVotes';
 
-const sampleData = [{ entryId: 'e1', number: 1, name: 'Croqueta', gold: 2, silver: 1, bronze: 0, total: 13 }];
+const sampleData = {
+  standings: [{ entryId: 'e1', number: 1, name: 'Croqueta', gold: 2, silver: 1, bronze: 0, total: 13 }],
+  pendingWorstTie: null,
+};
 
 let captured: ReturnType<typeof useAdminMedalVotes>;
 const HostComponent = defineComponent({

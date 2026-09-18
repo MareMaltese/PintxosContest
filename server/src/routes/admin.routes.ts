@@ -9,6 +9,7 @@ import {
   startContest,
   setAllowSelfVote,
   setVotingMode,
+  setWorstPrizeEnabled,
   revealResults,
   reopenVoting,
   backToRegistration,
@@ -17,7 +18,7 @@ import { listUsers, getUser } from '../services/userService';
 import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
 import { computeStandings, computeMedalStandings } from '../services/rankingService';
-import { advance, closeRound, getOpenRoundId } from '../services/tiebreakService';
+import { advance, closeRound, getOpenRoundId, getPendingWorstTie, openRound } from '../services/tiebreakService';
 import { deleteEntryImage } from '../images/imageProcessor';
 import { broadcast } from '../realtime/sse';
 
@@ -80,6 +81,7 @@ adminRouter.get(
       allowSelfVote: contest.allowSelfVote,
       votingMode: contest.votingMode,
       resultsRevealedAt: contest.resultsRevealedAt,
+      worstPrizeEnabled: contest.worstPrizeEnabled,
       participantCount: users.length,
       entryCount,
       votersFinished: people.filter((p) => p.hasFinishedVoting).length,
@@ -93,8 +95,9 @@ adminRouter.get(
   '/medal-votes',
   asyncHandler(async (_req, res) => {
     const standings = await computeMedalStandings(db);
-    res.json(
-      standings.map((s) => ({
+    const pendingWorstTie = await getPendingWorstTie(db);
+    res.json({
+      standings: standings.map((s) => ({
         entryId: s.entryId,
         number: s.number,
         name: s.name,
@@ -102,8 +105,22 @@ adminRouter.get(
         silver: s.silver,
         bronze: s.bronze,
         total: s.total,
-      }))
-    );
+      })),
+      pendingWorstTie,
+    });
+  })
+);
+
+adminRouter.post(
+  '/tiebreak/start-worst',
+  asyncHandler(async (_req, res) => {
+    const pending = await getPendingWorstTie(db);
+    if (!pending) {
+      throw new AppError(409, 'NO_PENDING_WORST_TIE', 'No hay ningún empate pendiente para el premio al último.');
+    }
+    const round = await openRound(db, pending.targetRank, pending.candidateEntryIds, 'MEDAL');
+    broadcast('phase-changed', { phase: 'TIEBREAK', openedRound: round });
+    res.json({ round });
   })
 );
 
@@ -197,14 +214,16 @@ adminRouter.post(
 const contestSettingsSchema = z.object({
   allowSelfVote: z.boolean().optional(),
   votingMode: z.enum(['FAVORITES', 'MEDALS']).optional(),
+  worstPrizeEnabled: z.boolean().optional(),
 });
 
 adminRouter.patch(
   '/contest',
   asyncHandler(async (req, res) => {
-    const { allowSelfVote, votingMode } = contestSettingsSchema.parse(req.body);
+    const { allowSelfVote, votingMode, worstPrizeEnabled } = contestSettingsSchema.parse(req.body);
     if (allowSelfVote !== undefined) await setAllowSelfVote(db, allowSelfVote);
     if (votingMode !== undefined) await setVotingMode(db, votingMode);
+    if (worstPrizeEnabled !== undefined) await setWorstPrizeEnabled(db, worstPrizeEnabled);
     res.json(await getContest(db));
   })
 );

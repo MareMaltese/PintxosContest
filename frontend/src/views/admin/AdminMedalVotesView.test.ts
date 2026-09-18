@@ -28,16 +28,32 @@ describe('AdminMedalVotesView', () => {
   });
 
   it('shows the scoreboard once loaded', async () => {
-    vi.mocked(api.get).mockResolvedValue([
-      { entryId: 'e1', number: 3, name: 'Croqueta', gold: 2, silver: 1, bronze: 0, total: 13 },
-      { entryId: 'e2', number: 1, name: null, gold: 0, silver: 0, bronze: 1, total: 1 },
-    ]);
+    vi.mocked(api.get).mockResolvedValue({
+      standings: [
+        { entryId: 'e1', number: 3, name: 'Croqueta', gold: 2, silver: 1, bronze: 0, total: 13 },
+        { entryId: 'e2', number: 1, name: null, gold: 0, silver: 0, bronze: 1, total: 1 },
+      ],
+      pendingWorstTie: null,
+    });
     const wrapper = mount(AdminMedalVotesView);
     await flushPromises();
 
     expect(wrapper.text()).toContain('#03');
     expect(wrapper.text()).toContain('Croqueta');
     expect(wrapper.text()).toContain('13');
+    expect(wrapper.find('.admin-medal-votes__start-worst').exists()).toBe(false);
+  });
+
+  it('shows the tiebreak button when there is a pending tie for last place', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      standings: [{ entryId: 'e1', number: 3, name: 'Croqueta', gold: 0, silver: 0, bronze: 0, total: 0 }],
+      pendingWorstTie: { targetRank: 4, candidateEntryIds: ['e1', 'e2'] },
+    });
+    const wrapper = mount(AdminMedalVotesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Hay un empate en el premio al último');
+    expect(wrapper.find('.admin-medal-votes__start-worst').exists()).toBe(true);
   });
 
   it('shows a retryable error message when loading fails', async () => {

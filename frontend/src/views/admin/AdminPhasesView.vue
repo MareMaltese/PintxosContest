@@ -72,6 +72,16 @@ async function toggleVotingMode(): Promise<void> {
   }
 }
 
+async function toggleWorstPrize(): Promise<void> {
+  if (!data.value) return;
+  try {
+    await api.patch('/api/admin/contest', { worstPrizeEnabled: !data.value.worstPrizeEnabled });
+    await refetch();
+  } catch (err) {
+    window.alert(friendlyMessage(err, 'No hemos podido cambiar la configuración.'));
+  }
+}
+
 async function closeTiebreakRound(): Promise<void> {
   try {
     await api.post('/api/admin/tiebreak/close-round');
@@ -221,6 +231,15 @@ async function backToRegistration(): Promise<void> {
           @click="toggleVotingMode"
         >
           Modo de puntuación: {{ data.votingMode === 'FAVORITES' ? 'Favoritos' : 'Pinch-o-visión' }} (cambiar)
+        </button>
+
+        <button
+          v-if="data.votingMode === 'MEDALS'"
+          class="button button--secondary admin-phases__worst-prize"
+          type="button"
+          @click="toggleWorstPrize"
+        >
+          Premio al último: {{ data.worstPrizeEnabled ? 'activado' : 'desactivado' }} (cambiar)
         </button>
       </div>
     </main>

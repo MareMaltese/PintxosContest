@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Db } from '../db/connection';
 import { AppError } from '../middleware/errors';
 import { getContest, setPhase } from './contestService';
-import { computeStandings, podiumTieGroups, computeMedalStandings } from './rankingService';
+import { computeStandings, podiumTieGroups, computeMedalStandings, type MedalStanding } from './rankingService';
 
 export type TiebreakKind = 'MAIN' | 'MEDAL';
 
@@ -185,6 +185,73 @@ export async function getResolvedWinner(db: Db, kind: TiebreakKind, targetRank: 
 export interface AdvanceResult {
   phase: 'TIEBREAK' | 'RESULTS';
   openedRound?: TiebreakRound;
+  pendingWorstTie?: PendingWorstTie;
+}
+
+export interface PendingWorstTie {
+  targetRank: number;
+  candidateEntryIds: string[];
+}
+
+// The "worst prize" tiebreak reuses kind 'MEDAL' rather than adding a new kind value,
+// which would require an unsafe SQLite CHECK-constraint migration on the already-live
+// production TiebreakRound table. It's safely distinguishable from the top-3 podium's
+// MEDAL rounds because its targetRank is always the *last* rank (necessarily > 3 for
+// any contest with more than 3 entries), never 1/2/3.
+function worstTieGroup(standings: MedalStanding[]): MedalStanding[] | null {
+  if (standings.length === 0) return null;
+  const maxRank = Math.max(...standings.map((s) => s.rank));
+  const group = standings.filter((s) => s.rank === maxRank);
+  return group.length > 1 ? group : null;
+}
+
+async function hasAnyRoundForTarget(db: Db, kind: TiebreakKind, targetRank: number): Promise<boolean> {
+  const row = await db.prepare('SELECT 1 FROM TiebreakRound WHERE kind = ? AND targetRank = ? LIMIT 1').get(
+    kind,
+    targetRank
+  );
+  return !!row;
+}
+
+// Live-computed, not persisted: true whenever there's currently an unresolved tie for
+// the worst-prize position that has never had a tiebreak round started for it. Once a
+// round has been started (by resolveWorstTie/advance, after the admin's first manual
+// approval), this permanently returns null for that target -- reopens after a
+// still-tied close happen automatically from then on, no repeated admin approval.
+// Used by the admin dashboard to show/hide the "start" button.
+export async function getPendingWorstTie(db: Db): Promise<PendingWorstTie | null> {
+  const contest = await getContest(db);
+  if (!contest.worstPrizeEnabled) return null;
+  const standings = await computeMedalStandings(db);
+  const group = worstTieGroup(standings);
+  if (!group) return null;
+  const targetRank = group[0].rank;
+  if (await isRankResolved(db, 'MEDAL', targetRank)) return null;
+  if (await hasAnyRoundForTarget(db, 'MEDAL', targetRank)) return null;
+  return { targetRank, candidateEntryIds: group.map((g) => g.entryId) };
+}
+
+async function resolveWorstTie(db: Db): Promise<AdvanceResult | null> {
+  const contest = await getContest(db);
+  if (!contest.worstPrizeEnabled) return null;
+  const standings = await computeMedalStandings(db);
+  const group = worstTieGroup(standings);
+  if (!group) return null;
+  const targetRank = group[0].rank;
+  if (await isRankResolved(db, 'MEDAL', targetRank)) return null;
+  // Mirrors resolveGroups(): if a round (of any kind) is already open, just wait for
+  // it to close -- don't start a second one, and don't fall through to RESULTS.
+  if (await getOpenRoundId(db)) {
+    return { phase: 'TIEBREAK' };
+  }
+  const candidateEntryIds = group.map((g) => g.entryId);
+  const alreadyStarted = await hasAnyRoundForTarget(db, 'MEDAL', targetRank);
+  if (!alreadyStarted) {
+    await setPhase(db, 'TIEBREAK');
+    return { phase: 'TIEBREAK', pendingWorstTie: { targetRank, candidateEntryIds } };
+  }
+  const round = await openRound(db, targetRank, candidateEntryIds, 'MEDAL');
+  return { phase: 'TIEBREAK', openedRound: round };
 }
 
 async function resolveGroups(
@@ -219,6 +286,9 @@ export async function advance(db: Db): Promise<AdvanceResult> {
   const medalGroups = podiumTieGroups(await computeMedalStandings(db)).filter((group) => group[0].total > 0);
   const medalResult = await resolveGroups(db, 'MEDAL', medalGroups);
   if (medalResult) return medalResult;
+
+  const worstResult = await resolveWorstTie(db);
+  if (worstResult) return worstResult;
 
   await setPhase(db, 'RESULTS');
   return { phase: 'RESULTS' };

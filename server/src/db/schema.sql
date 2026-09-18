@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS Contest (
   allowSelfVote INTEGER NOT NULL DEFAULT 0,
   votingMode TEXT NOT NULL DEFAULT 'FAVORITES' CHECK (votingMode IN ('FAVORITES','MEDALS')),
   resultsRevealedAt TEXT NULL,
+  worstPrizeEnabled INTEGER NOT NULL DEFAULT 0,
   createdAt TEXT NOT NULL
 );
 

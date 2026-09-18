@@ -46,12 +46,24 @@ function wrapClient(client: Client): Db {
   };
 }
 
+// schema.sql only uses CREATE TABLE IF NOT EXISTS, so it never adds columns to a
+// table that already existed before this column was introduced (e.g. the live
+// production database). New columns must be added here, guarded so re-running
+// it against a database that already has the column is a harmless no-op.
+async function ensureColumn(db: Db, table: string, column: string, ddl: string): Promise<void> {
+  const columns = (await db.prepare(`PRAGMA table_info(${table})`).all()) as unknown as { name: string }[];
+  if (!columns.some((c) => c.name === column)) {
+    await db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
+}
+
 export async function createDb(url: string, authToken?: string): Promise<Db> {
   const client = createClient({ url, authToken, intMode: 'number' });
   const db = wrapClient(client);
 
   const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
   await db.exec(schema);
+  await ensureColumn(db, 'Contest', 'worstPrizeEnabled', 'worstPrizeEnabled INTEGER NOT NULL DEFAULT 0');
 
   const existing = await db.prepare('SELECT id FROM Contest WHERE id = 1').get();
   if (!existing) {

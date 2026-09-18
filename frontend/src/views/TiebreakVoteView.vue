@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { api, ApiError } from '../services/api';
 
 interface TiebreakCandidate {
@@ -21,24 +21,41 @@ interface CurrentRound {
   candidates: TiebreakCandidate[];
 }
 
-const KIND_LABELS: Record<string, string> = {
-  MAIN: 'Desempate del concurso',
-  MEDAL: 'Desempate de Pinch-o-visión',
-};
+const POLL_INTERVAL_MS = 5000;
+
+function roundTitle(round: TiebreakRoundInfo): string {
+  if (round.kind === 'MAIN') return 'Desempate del concurso';
+  // The "premio al último" tiebreak reuses kind MEDAL, distinguished by its
+  // targetRank always being the last place (never 1/2/3, unlike the podium).
+  return round.targetRank <= 3 ? 'Desempate de Pinch-o-visión' : 'Desempate: premio al último';
+}
 
 const current = ref<CurrentRound | null>(null);
 const isLoading = ref(true);
+const isWaitingForAdmin = ref(false);
 const loadError = ref<string | null>(null);
 const hasVoted = ref(false);
 const voteError = ref<string | null>(null);
+let pollTimer: ReturnType<typeof setInterval> | undefined;
 
 async function load(): Promise<void> {
-  isLoading.value = true;
   loadError.value = null;
   try {
     current.value = await api.get<CurrentRound>('/api/tiebreak/current');
+    isWaitingForAdmin.value = false;
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = undefined;
+    }
   } catch (err) {
-    loadError.value = err instanceof ApiError ? err.message : 'No hemos podido cargar el desempate.';
+    if (err instanceof ApiError && err.code === 'NO_OPEN_ROUND') {
+      isWaitingForAdmin.value = true;
+      if (!pollTimer) {
+        pollTimer = setInterval(load, POLL_INTERVAL_MS);
+      }
+    } else {
+      loadError.value = err instanceof ApiError ? err.message : 'No hemos podido cargar el desempate.';
+    }
   } finally {
     isLoading.value = false;
   }
@@ -54,7 +71,12 @@ async function vote(entryId: string): Promise<void> {
   }
 }
 
+const title = computed(() => (current.value ? roundTitle(current.value.round) : ''));
+
 onMounted(load);
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer);
+});
 </script>
 
 <template>
@@ -64,6 +86,12 @@ onMounted(load);
       class="tiebreak__status"
     >
       Cargando…
+    </p>
+    <p
+      v-else-if="isWaitingForAdmin"
+      class="tiebreak__status"
+    >
+      ¡Hay un empate! Estamos esperando a que el organizador inicie la votación de desempate.
     </p>
     <template v-else-if="loadError">
       <p class="tiebreak__status tiebreak__status--error">
@@ -79,7 +107,7 @@ onMounted(load);
     </template>
     <template v-else-if="current">
       <h1 class="tiebreak__title">
-        {{ KIND_LABELS[current.round.kind] }}
+        {{ title }}
       </h1>
       <p
         v-if="hasVoted"

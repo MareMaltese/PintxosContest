@@ -9,6 +9,7 @@ export interface Contest {
   allowSelfVote: boolean;
   votingMode: VotingMode;
   resultsRevealedAt: string | null;
+  worstPrizeEnabled: boolean;
 }
 
 interface ContestRow {
@@ -16,17 +17,19 @@ interface ContestRow {
   allowSelfVote: number;
   votingMode: VotingMode;
   resultsRevealedAt: string | null;
+  worstPrizeEnabled: number;
 }
 
 export async function getContest(db: Db): Promise<Contest> {
   const row = (await db
-    .prepare('SELECT phase, allowSelfVote, votingMode, resultsRevealedAt FROM Contest WHERE id = 1')
+    .prepare('SELECT phase, allowSelfVote, votingMode, resultsRevealedAt, worstPrizeEnabled FROM Contest WHERE id = 1')
     .get()) as unknown as ContestRow;
   return {
     phase: row.phase,
     allowSelfVote: !!row.allowSelfVote,
     votingMode: row.votingMode,
     resultsRevealedAt: row.resultsRevealedAt,
+    worstPrizeEnabled: !!row.worstPrizeEnabled,
   };
 }
 
@@ -50,6 +53,11 @@ export async function startContest(db: Db): Promise<Contest> {
 
 export async function setAllowSelfVote(db: Db, allow: boolean): Promise<Contest> {
   await db.prepare('UPDATE Contest SET allowSelfVote = ? WHERE id = 1').run(allow ? 1 : 0);
+  return getContest(db);
+}
+
+export async function setWorstPrizeEnabled(db: Db, enabled: boolean): Promise<Contest> {
+  await db.prepare('UPDATE Contest SET worstPrizeEnabled = ? WHERE id = 1').run(enabled ? 1 : 0);
   return getContest(db);
 }
 

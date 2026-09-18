@@ -1,8 +1,24 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import AdminNav from '../../components/admin/AdminNav.vue';
 import { useAdminMedalVotes } from '../../composables/useAdminMedalVotes';
+import { api, ApiError } from '../../services/api';
 
 const { data, isLoading, error, refetch } = useAdminMedalVotes();
+
+const isStarting = ref(false);
+
+async function startWorstTiebreak(): Promise<void> {
+  isStarting.value = true;
+  try {
+    await api.post('/api/admin/tiebreak/start-worst');
+    await refetch();
+  } catch (err) {
+    window.alert(err instanceof ApiError ? err.message : 'No hemos podido iniciar el desempate.');
+  } finally {
+    isStarting.value = false;
+  }
+}
 </script>
 
 <template>
@@ -31,34 +47,48 @@ const { data, isLoading, error, refetch } = useAdminMedalVotes();
           Reintentar
         </button>
       </template>
-      <table
-        v-else-if="data"
-        class="admin-table"
-      >
-        <thead>
-          <tr>
-            <th>Nº</th>
-            <th>Nombre</th>
-            <th>Oro</th>
-            <th>Plata</th>
-            <th>Bronce</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="entry in data"
-            :key="entry.entryId"
-          >
-            <td>#{{ String(entry.number).padStart(2, '0') }}</td>
-            <td>{{ entry.name ?? '—' }}</td>
-            <td>{{ entry.gold }}</td>
-            <td>{{ entry.silver }}</td>
-            <td>{{ entry.bronze }}</td>
-            <td>{{ entry.total }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <template v-else-if="data">
+        <p
+          v-if="data.pendingWorstTie"
+          class="admin-medal-votes__tie-notice"
+        >
+          Hay un empate en el premio al último. Inicia la votación de desempate cuando quieras.
+        </p>
+        <button
+          v-if="data.pendingWorstTie"
+          class="button button--primary admin-medal-votes__start-worst"
+          type="button"
+          :disabled="isStarting"
+          @click="startWorstTiebreak"
+        >
+          Iniciar votación de desempate: premio al último
+        </button>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nº</th>
+              <th>Nombre</th>
+              <th>Oro</th>
+              <th>Plata</th>
+              <th>Bronce</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="entry in data.standings"
+              :key="entry.entryId"
+            >
+              <td>#{{ String(entry.number).padStart(2, '0') }}</td>
+              <td>{{ entry.name ?? '—' }}</td>
+              <td>{{ entry.gold }}</td>
+              <td>{{ entry.silver }}</td>
+              <td>{{ entry.bronze }}</td>
+              <td>{{ entry.total }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
     </main>
   </div>
 </template>
@@ -88,6 +118,21 @@ const { data, isLoading, error, refetch } = useAdminMedalVotes();
 
 .admin-medal-votes__status--error {
   color: var(--color-danger);
+}
+
+.admin-medal-votes__tie-notice {
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--space-3);
+  margin: var(--space-3) 0 0;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.admin-medal-votes__start-worst {
+  display: block;
+  width: 100%;
+  margin: var(--space-2) 0 var(--space-4);
 }
 
 .admin-table {

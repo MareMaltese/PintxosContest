@@ -18,13 +18,15 @@ function dashboardWith(
   phase: string,
   allowSelfVote = false,
   votingMode = 'FAVORITES',
-  resultsRevealedAt: string | null = null
+  resultsRevealedAt: string | null = null,
+  worstPrizeEnabled = false
 ) {
   return {
     phase,
     allowSelfVote,
     votingMode,
     resultsRevealedAt,
+    worstPrizeEnabled,
     participantCount: 2,
     entryCount: 2,
     votersFinished: 1,
@@ -152,6 +154,27 @@ describe('AdminPhasesView', () => {
 
     expect(confirmSpy).not.toHaveBeenCalled();
     expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { votingMode: 'MEDALS' });
+  });
+
+  it('hides the "premio al último" toggle in FAVORITES mode', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING', false, 'FAVORITES'));
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.find('.admin-phases__worst-prize').exists()).toBe(false);
+  });
+
+  it('toggles worstPrizeEnabled in MEDALS mode', async () => {
+    vi.mocked(api.get).mockResolvedValue(dashboardWith('VOTING', false, 'MEDALS', null, false));
+    vi.mocked(api.patch).mockResolvedValue({});
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Premio al último: desactivado');
+    await wrapper.find('.admin-phases__worst-prize').trigger('click');
+    await flushPromises();
+
+    expect(api.patch).toHaveBeenCalledWith('/api/admin/contest', { worstPrizeEnabled: true });
   });
 
   it('shows only "Cerrar ronda de desempate" during TIEBREAK', async () => {

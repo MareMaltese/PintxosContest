@@ -3,9 +3,18 @@ import type { Db } from '../db/connection';
 import { createDb } from '../db/connection';
 import { createUser } from './userService';
 import { createEntry } from './entryService';
-import { startContest, setAllowSelfVote, getContest } from './contestService';
+import { startContest, setAllowSelfVote, setWorstPrizeEnabled, getContest } from './contestService';
 import { addVote } from './voteService';
-import { advance, castVote, closeRound, getCurrentOpenRound, getOpenRoundId, getResolvedWinner } from './tiebreakService';
+import {
+  advance,
+  castVote,
+  closeRound,
+  getCurrentOpenRound,
+  getOpenRoundId,
+  getResolvedWinner,
+  getPendingWorstTie,
+  openRound,
+} from './tiebreakService';
 import { setMedal } from './medalVoteService';
 import { AppError } from '../middleware/errors';
 
@@ -222,5 +231,120 @@ describe('tiebreakService — medal podium (kind = MEDAL)', () => {
     await closeRound(db, roundId);
     expect(await getResolvedWinner(db, 'MEDAL', 1)).toBe(a.id);
     expect(await getResolvedWinner(db, 'MAIN', 1)).toBeNull();
+  });
+});
+
+describe('tiebreakService — premio al último (worst prize)', () => {
+  it('does nothing when worstPrizeEnabled is false, even with a tie for last place', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    await makeEntry('D');
+    await makeEntry('E');
+    await startContest(db);
+    const voter = await createUser(db, 'voter');
+    await setMedal(db, voter.id, a.id, 'GOLD');
+    await setMedal(db, voter.id, b.id, 'SILVER');
+    await setMedal(db, voter.id, c.id, 'BRONZE');
+    // D and E: 0 medals each, tied for last -- but the setting is off by default
+
+    const result = await advance(db);
+    expect(result.phase).toBe('RESULTS');
+    expect(await getPendingWorstTie(db)).toBeNull();
+  });
+
+  it('detects a tie for last place and waits for the admin to start it, without auto-opening a round', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    const d = await makeEntry('D');
+    const e = await makeEntry('E');
+    await startContest(db);
+    await setWorstPrizeEnabled(db, true);
+    const voter = await createUser(db, 'voter');
+    await setMedal(db, voter.id, a.id, 'GOLD');
+    await setMedal(db, voter.id, b.id, 'SILVER');
+    await setMedal(db, voter.id, c.id, 'BRONZE');
+
+    const result = await advance(db);
+    expect(result.phase).toBe('TIEBREAK');
+    expect(result.pendingWorstTie?.candidateEntryIds.slice().sort()).toEqual([d.id, e.id].sort());
+    expect((await getContest(db)).phase).toBe('TIEBREAK');
+    expect(await getOpenRoundId(db)).toBeNull();
+
+    const pending = await getPendingWorstTie(db);
+    expect(pending?.candidateEntryIds.slice().sort()).toEqual([d.id, e.id].sort());
+  });
+
+  it('once the admin manually opens the round, resolves and reaches RESULTS like any other tiebreak', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    const d = await makeEntry('D');
+    await makeEntry('E');
+    await startContest(db);
+    await setWorstPrizeEnabled(db, true);
+    const [voter, v1, v2] = [await createUser(db, 'voter'), await createUser(db, 'v1'), await createUser(db, 'v2')];
+    await setMedal(db, voter.id, a.id, 'GOLD');
+    await setMedal(db, voter.id, b.id, 'SILVER');
+    await setMedal(db, voter.id, c.id, 'BRONZE');
+
+    const pendingResult = await advance(db);
+    const pending = pendingResult.pendingWorstTie!;
+    expect(await getPendingWorstTie(db)).not.toBeNull();
+
+    const round = await openRound(db, pending.targetRank, pending.candidateEntryIds, 'MEDAL');
+    expect(await getPendingWorstTie(db)).toBeNull();
+
+    await castVote(db, round.id, v1.id, d.id);
+    await castVote(db, round.id, v2.id, d.id);
+    const closeResult = await closeRound(db, round.id);
+    expect(closeResult.status).toBe('RESOLVED');
+    expect(closeResult.winnerEntryId).toBe(d.id);
+
+    const finalResult = await advance(db);
+    expect(finalResult.phase).toBe('RESULTS');
+  });
+
+  it('reopens automatically if the manually-started round is still tied, without needing the admin again', async () => {
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    const d = await makeEntry('D');
+    const e = await makeEntry('E');
+    await startContest(db);
+    await setWorstPrizeEnabled(db, true);
+    const [voter, v1, v2] = [await createUser(db, 'voter'), await createUser(db, 'v1'), await createUser(db, 'v2')];
+    await setMedal(db, voter.id, a.id, 'GOLD');
+    await setMedal(db, voter.id, b.id, 'SILVER');
+    await setMedal(db, voter.id, c.id, 'BRONZE');
+
+    const pendingResult = await advance(db);
+    const pending = pendingResult.pendingWorstTie!;
+    const round = await openRound(db, pending.targetRank, pending.candidateEntryIds, 'MEDAL');
+
+    await castVote(db, round.id, v1.id, d.id);
+    await castVote(db, round.id, v2.id, e.id); // still tied 1-1
+    const closeResult = await closeRound(db, round.id);
+    expect(closeResult.status).toBe('STILL_TIED');
+
+    const newRoundId = await getOpenRoundId(db);
+    expect(newRoundId).not.toBeNull();
+    expect(newRoundId).not.toBe(round.id);
+
+    const result = await advance(db);
+    expect(result.phase).toBe('TIEBREAK');
+    expect(result.pendingWorstTie).toBeUndefined();
+  });
+
+  it('getPendingWorstTie returns null when there is no tie for last place', async () => {
+    const a = await makeEntry('A');
+    await makeEntry('B');
+    await startContest(db);
+    await setWorstPrizeEnabled(db, true);
+    const voter = await createUser(db, 'voter');
+    await setMedal(db, voter.id, a.id, 'GOLD');
+    // b has 0 medals but is alone in last place -- no dispute
+    expect(await getPendingWorstTie(db)).toBeNull();
   });
 });
