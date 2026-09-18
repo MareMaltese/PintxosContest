@@ -197,6 +197,52 @@ describe('tiebreakService — medal podium (kind = MEDAL)', () => {
     expect(result.openedRound?.targetRank).toBe(1);
   });
 
+  it('still tiebreaks a 3rd-tier medal tie even when the gold tier is also tied (regression)', async () => {
+    // Reproduces a live bug: with gold tied AND the next tier also tied, competition
+    // ranking pushes the 3rd-place tier to rank 5 -- a naive "rank <= 3" cutoff
+    // silently ignored it, so results got revealed with an unresolved bronze tie.
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    const d = await makeEntry('D');
+    const e = await makeEntry('E');
+    const f = await makeEntry('F');
+    await startContest(db);
+    const [v1, v2, v3, v4, v5, v6] = await Promise.all(
+      ['v1', 'v2', 'v3', 'v4', 'v5', 'v6'].map((n) => createUser(db, n))
+    );
+    await setMedal(db, v1.id, a.id, 'GOLD');
+    await setMedal(db, v2.id, b.id, 'GOLD'); // a, b tied at rank 1
+    await setMedal(db, v3.id, c.id, 'SILVER');
+    await setMedal(db, v4.id, d.id, 'SILVER'); // c, d tied at rank 3
+    await setMedal(db, v5.id, e.id, 'BRONZE');
+    await setMedal(db, v6.id, f.id, 'BRONZE'); // e, f tied at rank 5, the true 3rd podium tier (total > 0)
+
+    const goldResult = await advance(db);
+    expect(goldResult.phase).toBe('TIEBREAK');
+    expect(goldResult.openedRound?.targetRank).toBe(1);
+
+    const goldRoundId = (await getOpenRoundId(db))!;
+    await castVote(db, goldRoundId, v3.id, a.id);
+    await castVote(db, goldRoundId, v4.id, a.id);
+    await closeRound(db, goldRoundId);
+
+    const silverResult = await advance(db);
+    expect(silverResult.phase).toBe('TIEBREAK');
+    expect(silverResult.openedRound?.targetRank).toBe(3);
+
+    const silverRoundId = (await getOpenRoundId(db))!;
+    await castVote(db, silverRoundId, v1.id, c.id);
+    await castVote(db, silverRoundId, v2.id, c.id);
+    await closeRound(db, silverRoundId);
+
+    const bronzeResult = await advance(db);
+    expect(bronzeResult.phase).toBe('TIEBREAK');
+    expect(bronzeResult.openedRound?.targetRank).toBe(5);
+    const current = (await getCurrentOpenRound(db))!;
+    expect(current.candidates.map((cand) => cand.id).sort()).toEqual([e.id, f.id].sort());
+  });
+
   it('does not touch the medal podium while a MAIN tie is still open', async () => {
     const a = await makeEntry('A');
     const b = await makeEntry('B');

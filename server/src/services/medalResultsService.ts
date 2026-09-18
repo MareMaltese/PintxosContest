@@ -1,5 +1,5 @@
 import type { Db } from '../db/connection';
-import { computeMedalStandings, type MedalStanding } from './rankingService';
+import { computeMedalStandings, topPodiumRanks, type MedalStanding } from './rankingService';
 import { getResolvedWinner } from './tiebreakService';
 
 export interface MedalPodiumEntry {
@@ -17,7 +17,8 @@ const RANK_MEDAL: Record<number, 'GOLD' | 'SILVER' | 'BRONZE'> = { 1: 'GOLD', 2:
 
 export async function computeMedalPodium(db: Db): Promise<MedalPodiumEntry[]> {
   const standings = await computeMedalStandings(db);
-  const top = standings.filter((s) => s.rank <= 3);
+  const topRanks = topPodiumRanks(standings);
+  const top = standings.filter((s) => topRanks.has(s.rank));
 
   const byRank = new Map<number, MedalStanding[]>();
   for (const s of top) {

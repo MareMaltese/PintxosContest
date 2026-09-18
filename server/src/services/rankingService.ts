@@ -48,10 +48,21 @@ export async function computeStandings(db: Db): Promise<Standing[]> {
   return assignCompetitionRank(rows, (r) => r.voteCount);
 }
 
+// The top 3 *podium slots* are the first 3 distinct rank tiers, not "rank <= 3":
+// competition ranking leaves gaps after a tie (e.g. two entries tied at rank 1 push
+// the next tier to rank 3, and a further tie there pushes the next one to rank 5), so
+// checking the raw rank number against 3 would silently miss -- and never tiebreak,
+// or wrongly drop from the final podium -- a genuine dispute sitting at rank 5
+// whenever an earlier tier is also tied.
+export function topPodiumRanks<T extends RankedEntry>(standings: T[]): Set<number> {
+  return new Set([...new Set(standings.map((s) => s.rank))].sort((a, b) => a - b).slice(0, 3));
+}
+
 export function podiumTieGroups<T extends RankedEntry>(standings: T[]): T[][] {
+  const topRanks = topPodiumRanks(standings);
   const groups = new Map<number, T[]>();
   for (const s of standings) {
-    if (s.rank > 3) continue;
+    if (!topRanks.has(s.rank)) continue;
     if (!groups.has(s.rank)) groups.set(s.rank, []);
     groups.get(s.rank)!.push(s);
   }

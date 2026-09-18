@@ -250,6 +250,9 @@ function openEntry(entry: EntrySummary): void {
 
 .gallery__refresh-warning {
   color: var(--color-danger);
+  background: white:
+  padding: 2rem;
+  border:1px solid;
   text-align: center;
   margin: 0 0 var(--space-3);
   font-size: 0.9rem;

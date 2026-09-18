@@ -64,6 +64,37 @@ describe('rankingService', () => {
     expect(groups.some((g) => g.some((s) => s.entryId === e.id))).toBe(false);
   });
 
+  it('still detects a tie in the 3rd podium slot even when an earlier tie pushed its rank number past 3', async () => {
+    // Competition ranking with a 2-way tie at rank 1 pushes the next tier to rank 3; a
+    // further 2-way tie there pushes the true "3rd place" tier to rank 5. A naive
+    // "rank <= 3" cutoff would silently miss this genuine 3rd-place dispute.
+    const a = await makeEntry('A');
+    const b = await makeEntry('B');
+    const c = await makeEntry('C');
+    const d = await makeEntry('D');
+    const e = await makeEntry('E');
+    const f = await makeEntry('F');
+    await startContest(db);
+    const voters = await Promise.all(['v1', 'v2', 'v3'].map((n) => createUser(db, n)));
+    const [v1, v2, v3] = voters;
+    await addVote(db, v1.id, a.id);
+    await addVote(db, v2.id, a.id);
+    await addVote(db, v1.id, b.id);
+    await addVote(db, v2.id, b.id); // a, b: 2 votes each -> rank 1
+    await addVote(db, v1.id, c.id);
+    await addVote(db, v3.id, d.id); // c, d: 1 vote each -> rank 3
+    // e, f: 0 votes each -> rank 5 (the true 3rd tier)
+
+    const standings = await computeStandings(db);
+    const byId = Object.fromEntries(standings.map((s) => [s.entryId, s]));
+    expect(byId[e.id].rank).toBe(5);
+    expect(byId[f.id].rank).toBe(5);
+
+    const groups = podiumTieGroups(standings);
+    expect(groups).toHaveLength(3);
+    expect(groups[2].map((s) => s.entryId).sort()).toEqual([e.id, f.id].sort());
+  });
+
   it('returns no groups when the podium is unambiguous', async () => {
     const a = await makeEntry('A');
     await makeEntry('B');
