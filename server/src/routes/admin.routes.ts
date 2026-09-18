@@ -129,6 +129,7 @@ adminRouter.get(
         entryId: s.entryId,
         number: s.number,
         name: s.name,
+        imagePath: s.imagePath,
         gold: s.gold,
         silver: s.silver,
         bronze: s.bronze,

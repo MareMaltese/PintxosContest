@@ -5,6 +5,7 @@ export interface AdminMedalStanding {
   entryId: string;
   number: number;
   name: string | null;
+  imagePath: string;
   gold: number;
   silver: number;
   bronze: number;

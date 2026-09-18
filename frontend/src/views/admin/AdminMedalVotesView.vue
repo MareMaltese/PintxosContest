@@ -66,6 +66,7 @@ async function startWorstTiebreak(): Promise<void> {
         <table class="admin-table">
           <thead>
             <tr>
+              <th />
               <th>Nº</th>
               <th>Nombre</th>
               <th>Oro</th>
@@ -79,6 +80,13 @@ async function startWorstTiebreak(): Promise<void> {
               v-for="entry in data.standings"
               :key="entry.entryId"
             >
+              <td>
+                <img
+                  :src="`/uploads/${entry.imagePath}`"
+                  :alt="`Tapa número ${entry.number}`"
+                  class="admin-table__thumbnail"
+                >
+              </td>
               <td>#{{ String(entry.number).padStart(2, '0') }}</td>
               <td>{{ entry.name ?? '—' }}</td>
               <td>{{ entry.gold }}</td>
@@ -154,5 +162,13 @@ async function startWorstTiebreak(): Promise<void> {
   padding: var(--space-3);
   border-bottom: 1px solid var(--color-border);
   font-size: 0.9rem;
+}
+
+.admin-table__thumbnail {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  display: block;
 }
 </style>

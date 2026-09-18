@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <g stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Spoon bowl -->
+    <path d="M128 34c-26 0-46 22-46 50 0 33 21 58 46 58s46-25 46-58c0-28-20-50-46-50z"/>
+    <!-- Spoon handle -->
+    <path d="M128 142v80"/>
+  </g>
+</svg>

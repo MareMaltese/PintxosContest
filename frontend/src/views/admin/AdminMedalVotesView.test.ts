@@ -30,8 +30,8 @@ describe('AdminMedalVotesView', () => {
   it('shows the scoreboard once loaded', async () => {
     vi.mocked(api.get).mockResolvedValue({
       standings: [
-        { entryId: 'e1', number: 3, name: 'Croqueta', gold: 2, silver: 1, bronze: 0, total: 13 },
-        { entryId: 'e2', number: 1, name: null, gold: 0, silver: 0, bronze: 1, total: 1 },
+        { entryId: 'e1', number: 3, name: 'Croqueta', imagePath: 'a.webp', gold: 2, silver: 1, bronze: 0, total: 13 },
+        { entryId: 'e2', number: 1, name: null, imagePath: 'b.webp', gold: 0, silver: 0, bronze: 1, total: 1 },
       ],
       pendingWorstTie: null,
     });
@@ -42,11 +42,18 @@ describe('AdminMedalVotesView', () => {
     expect(wrapper.text()).toContain('Croqueta');
     expect(wrapper.text()).toContain('13');
     expect(wrapper.find('.admin-medal-votes__start-worst').exists()).toBe(false);
+
+    const thumbnails = wrapper.findAll('.admin-table__thumbnail');
+    expect(thumbnails).toHaveLength(2);
+    expect(thumbnails[0].attributes('src')).toBe('/uploads/a.webp');
+    expect(thumbnails[1].attributes('src')).toBe('/uploads/b.webp');
   });
 
   it('shows the tiebreak button when there is a pending tie for last place', async () => {
     vi.mocked(api.get).mockResolvedValue({
-      standings: [{ entryId: 'e1', number: 3, name: 'Croqueta', gold: 0, silver: 0, bronze: 0, total: 0 }],
+      standings: [
+        { entryId: 'e1', number: 3, name: 'Croqueta', imagePath: 'a.webp', gold: 0, silver: 0, bronze: 0, total: 0 },
+      ],
       pendingWorstTie: { targetRank: 4, candidateEntryIds: ['e1', 'e2'] },
     });
     const wrapper = mount(AdminMedalVotesView);
