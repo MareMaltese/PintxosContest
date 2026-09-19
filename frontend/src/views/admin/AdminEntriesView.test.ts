@@ -50,6 +50,15 @@ describe('AdminEntriesView', () => {
     expect(wrapper.text()).toContain('Laura');
   });
 
+  it('shows a placeholder icon instead of a broken image when an entry has no photo yet', async () => {
+    vi.mocked(api.get).mockResolvedValue([{ ...entries[0], imagePath: '' }]);
+    const wrapper = mount(AdminEntriesView);
+    await flushPromises();
+
+    expect(wrapper.find('img').exists()).toBe(false);
+    expect(wrapper.find('.admin-table__thumbnail-placeholder').exists()).toBe(true);
+  });
+
   it('shows the favorite vote count, and hides medal columns, when votingMode is FAVORITES', async () => {
     useContestStore().votingMode = 'FAVORITES';
     const wrapper = mount(AdminEntriesView);

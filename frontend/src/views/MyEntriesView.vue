@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { X } from '@lucide/vue';
+import { X, Camera } from '@lucide/vue';
 import { Lock } from '@lucide/vue';
 import Icon from '../components/common/Icon.vue';
 import { ApiError } from '../services/api';
@@ -97,10 +97,20 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
         class="my-entries__item"
       >
         <img
+          v-if="entry.imagePath"
           :src="`/uploads/${entry.imagePath}`"
           :alt="`Tapa número ${entry.number}`"
           class="my-entries__photo"
         >
+        <span
+          v-else
+          class="my-entries__photo my-entries__photo-placeholder"
+        >
+          <Camera
+            :size="24"
+            aria-hidden="true"
+          />
+        </span>
         <div class="my-entries__info">
           <p class="my-entries__number">
             #{{ String(entry.number).padStart(2, '0') }}
@@ -256,6 +266,14 @@ async function deleteEntry(entry: EntrySummary): Promise<void> {
   object-fit: cover;
   border-radius: var(--radius-md);
   flex-shrink: 0;
+}
+
+.my-entries__photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
 }
 
 .my-entries__info {

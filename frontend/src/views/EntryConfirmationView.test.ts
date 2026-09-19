@@ -36,6 +36,19 @@ describe('EntryConfirmationView', () => {
     expect(img.attributes('src')).toBe('/uploads/abc.webp');
   });
 
+  it('shows a placeholder icon when the entry was created without a photo', () => {
+    useEntriesStore().setLastCreated({
+      id: 'e1',
+      number: 7,
+      name: 'Croqueta',
+      description: null,
+      imagePath: '',
+    });
+    const wrapper = mount(EntryConfirmationView);
+    expect(wrapper.find('img').exists()).toBe(false);
+    expect(wrapper.find('.confirmation__photo-placeholder').exists()).toBe(true);
+  });
+
   it('navigates to new-entry on "Registrar otro pincho"', async () => {
     const wrapper = mount(EntryConfirmationView);
     await wrapper.findAll('button')[0].trigger('click');

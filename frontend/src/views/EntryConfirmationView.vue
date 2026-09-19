@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { Camera } from '@lucide/vue';
 import { useEntriesStore } from '../stores/entries';
 
 const route = useRoute();
@@ -9,7 +10,9 @@ const entries = useEntriesStore();
 
 const number = computed(() => route.params.number as string);
 const paddedNumber = computed(() => number.value.padStart(2, '0'));
-const imageUrl = computed(() => (entries.lastCreated ? `/uploads/${entries.lastCreated.imagePath}` : null));
+const imageUrl = computed(() =>
+  entries.lastCreated?.imagePath ? `/uploads/${entries.lastCreated.imagePath}` : null
+);
 
 function registerAnother(): void {
   router.push({ name: 'new-entry' });
@@ -29,6 +32,15 @@ function finish(): void {
         :alt="`Foto del pincho número ${number}`"
         class="confirmation__photo"
       >
+      <span
+        v-else
+        class="confirmation__photo confirmation__photo-placeholder"
+      >
+        <Camera
+          :size="32"
+          aria-hidden="true"
+        />
+      </span>
       <p class="confirmation__badge">
         PINCHO Nº {{ paddedNumber }}
       </p>
@@ -81,6 +93,14 @@ function finish(): void {
   object-fit: cover;
   border-radius: var(--radius-md);
   margin-bottom: var(--space-4);
+}
+
+.confirmation__photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
 }
 
 .confirmation__badge {

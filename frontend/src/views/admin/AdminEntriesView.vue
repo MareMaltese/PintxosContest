@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { Camera } from '@lucide/vue';
 import AdminNav from '../../components/admin/AdminNav.vue';
 import Icon from '../../components/common/Icon.vue';
 import { api, ApiError } from '../../services/api';
@@ -129,10 +130,20 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
           >
             <td>
               <img
+                v-if="entry.imagePath"
                 :src="`/uploads/${entry.imagePath}`"
                 :alt="`Tapa número ${entry.number}`"
                 class="admin-table__thumbnail"
               >
+              <span
+                v-else
+                class="admin-table__thumbnail admin-table__thumbnail-placeholder"
+              >
+                <Camera
+                  :size="18"
+                  aria-hidden="true"
+                />
+              </span>
             </td>
             <td>#{{ String(entry.number).padStart(2, '0') }}</td>
             <td>{{ entry.name ?? '—' }}</td>
@@ -260,5 +271,13 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
   object-fit: cover;
   border-radius: var(--radius-sm);
   display: block;
+}
+
+.admin-table__thumbnail-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
 }
 </style>

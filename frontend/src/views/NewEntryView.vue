@@ -41,20 +41,21 @@ function onFileChange(event: Event): void {
 
 async function onSubmit(): Promise<void> {
   touched.value = true;
-  if (!selectedFile.value) return;
+  if (!selectedFile.value && !name.value.trim()) return;
 
   isSubmitting.value = true;
   submitError.value = null;
   try {
-    let photo = selectedFile.value;
-    try {
-      photo = await compressImage(selectedFile.value);
-    } catch {
-      // si la compresión falla, seguimos con el archivo original
-    }
-
     const form = new FormData();
-    form.set('image', photo);
+    if (selectedFile.value) {
+      let photo = selectedFile.value;
+      try {
+        photo = await compressImage(selectedFile.value);
+      } catch {
+        // si la compresión falla, seguimos con el archivo original
+      }
+      form.set('image', photo);
+    }
     if (name.value.trim()) form.set('name', name.value.trim());
     if (description.value.trim()) form.set('description', description.value.trim());
 
@@ -79,7 +80,7 @@ async function onSubmit(): Promise<void> {
         Registra tu pincho
       </h1>
       <p class="new-entry__subtitle">
-        Haz la foto ahora mismo, tal cual está.
+        Haz la foto ahora mismo, o pon el nombre y añade la foto después.
       </p>
 
       <input
@@ -113,11 +114,11 @@ async function onSubmit(): Promise<void> {
         </span>
       </button>
       <p
-        v-if="touched && !selectedFile"
+        v-if="touched && !selectedFile && !name.trim()"
         class="new-entry__error"
         role="alert"
       >
-        Haz una foto de tu pincho para continuar.
+        Pon un nombre o haz una foto para continuar.
       </p>
 
       <label

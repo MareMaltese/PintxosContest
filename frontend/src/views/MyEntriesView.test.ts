@@ -41,6 +41,17 @@ describe('MyEntriesView', () => {
     expect(wrapper.text()).toContain('Con jamón.');
   });
 
+  it('shows a placeholder icon instead of a broken image when an entry has no photo yet', async () => {
+    vi.mocked(api.get).mockResolvedValue([
+      { id: 'e1', number: 3, creatorId: 'me', name: 'Croqueta', description: null, imagePath: '', createdAt: 'x' },
+    ]);
+    const wrapper = mount(MyEntriesView);
+    await flushPromises();
+
+    expect(wrapper.find('img').exists()).toBe(false);
+    expect(wrapper.find('.my-entries__photo-placeholder').exists()).toBe(true);
+  });
+
   it('shows an empty state when there are no entries yet', async () => {
     vi.mocked(api.get).mockResolvedValue([]);
     const wrapper = mount(MyEntriesView);

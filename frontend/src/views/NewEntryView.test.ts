@@ -36,11 +36,32 @@ describe('NewEntryView', () => {
     expect(wrapper.find('button[type="submit"] .icon').exists()).toBe(true);
   });
 
-  it('shows a validation message when submitting without a photo', async () => {
+  it('shows a validation message when submitting without a photo or a name', async () => {
     const wrapper = mount(NewEntryView);
     await wrapper.find('form').trigger('submit.prevent');
-    expect(wrapper.text()).toContain('Haz una foto de tu pincho');
+    expect(wrapper.text()).toContain('Pon un nombre o haz una foto');
     expect(api.postForm).not.toHaveBeenCalled();
+  });
+
+  it('allows submitting with only a name, no photo', async () => {
+    vi.mocked(api.postForm).mockResolvedValue({
+      id: 'e1',
+      number: 7,
+      name: 'Croqueta',
+      description: null,
+      imagePath: '',
+    });
+    const wrapper = mount(NewEntryView);
+
+    await wrapper.find('input#entry-name').setValue('Croqueta');
+    await wrapper.find('form').trigger('submit.prevent');
+    await flushPromises();
+
+    expect(api.postForm).toHaveBeenCalledTimes(1);
+    const [, form] = vi.mocked(api.postForm).mock.calls[0];
+    expect(form.get('name')).toBe('Croqueta');
+    expect(form.get('image')).toBeNull();
+    expect(pushMock).toHaveBeenCalledWith({ name: 'entry-confirmation', params: { number: '7' } });
   });
 
   it('uploads the compressed photo plus optional fields and navigates to the confirmation screen', async () => {

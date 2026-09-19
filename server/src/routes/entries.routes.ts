@@ -33,14 +33,14 @@ entriesRouter.post(
   userAuth,
   upload.single('image'),
   asyncHandler(async (req, res) => {
-    if (!req.file) {
-      throw new AppError(400, 'IMAGE_REQUIRED', 'Falta la fotografía de la tapa.');
-    }
-    if (!req.file.mimetype.startsWith('image/')) {
+    if (req.file && !req.file.mimetype.startsWith('image/')) {
       throw new AppError(400, 'INVALID_IMAGE_TYPE', 'El archivo no es una imagen válida.');
     }
     const fields = entryFieldsSchema.parse(req.body);
-    const imagePath = await saveEntryImage(db, req.file.buffer);
+    if (!req.file && !fields.name) {
+      throw new AppError(400, 'NAME_REQUIRED', 'Pon al menos un nombre si todavía no tienes la foto.');
+    }
+    const imagePath = req.file ? await saveEntryImage(db, req.file.buffer) : '';
     const entry = await createEntry(db, {
       creatorId: req.userId!,
       name: fields.name || null,

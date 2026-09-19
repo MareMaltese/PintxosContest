@@ -50,6 +50,15 @@ describe('EditEntryView', () => {
     expect(wrapper.find('.edit-entry__preview').attributes('src')).toBe('/uploads/a.webp');
   });
 
+  it('shows the "Hacer foto" placeholder when the entry has no photo yet', async () => {
+    vi.mocked(api.get).mockResolvedValue([{ ...entry, imagePath: '' }]);
+    const wrapper = mount(EditEntryView);
+    await flushPromises();
+
+    expect(wrapper.find('.edit-entry__preview').exists()).toBe(false);
+    expect(wrapper.text()).toContain('Hacer foto');
+  });
+
   it('shows a check icon before the save button label', async () => {
     vi.mocked(api.get).mockResolvedValue([entry]);
     const wrapper = mount(EditEntryView);

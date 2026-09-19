@@ -11,6 +11,8 @@ import {
   backToRegistration,
   setPhase,
 } from './contestService';
+import { createUser } from './userService';
+import { createEntry } from './entryService';
 import { AppError } from '../middleware/errors';
 
 let db: Db;
@@ -41,6 +43,20 @@ describe('contestService', () => {
   it('startContest throws if the contest already started', async () => {
     await startContest(db);
     await expect(startContest(db)).rejects.toThrow(AppError);
+  });
+
+  it('startContest throws if any entry is still missing its photo', async () => {
+    const creator = await createUser(db, 'Laura');
+    await createEntry(db, { creatorId: creator.id, name: 'Croqueta', description: null, imagePath: '' });
+    await expect(startContest(db)).rejects.toThrow(AppError);
+    expect((await getContest(db)).phase).toBe('REGISTRATION');
+  });
+
+  it('startContest succeeds once every entry has a photo', async () => {
+    const creator = await createUser(db, 'Laura');
+    await createEntry(db, { creatorId: creator.id, name: 'Croqueta', description: null, imagePath: 'a.webp' });
+    const contest = await startContest(db);
+    expect(contest.phase).toBe('VOTING');
   });
 
   it('setAllowSelfVote toggles the flag', async () => {

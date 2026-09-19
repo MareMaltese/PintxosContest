@@ -47,6 +47,16 @@ export async function startContest(db: Db): Promise<Contest> {
   if (contest.phase !== 'REGISTRATION') {
     throw new AppError(409, 'ALREADY_STARTED', 'El concurso ya ha empezado.');
   }
+  const missingPhoto = (await db.prepare("SELECT COUNT(*) as count FROM Entry WHERE imagePath = ''").get()) as unknown as {
+    count: number;
+  };
+  if (missingPhoto.count > 0) {
+    throw new AppError(
+      409,
+      'MISSING_PHOTOS',
+      'Hay tapas sin foto todavía. Todas las tapas deben tener foto antes de empezar la votación.'
+    );
+  }
   await setPhase(db, 'VOTING');
   return getContest(db);
 }

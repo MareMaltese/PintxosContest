@@ -24,7 +24,7 @@ const entry = computed(() => entries.myList.find((e) => e.id === route.params.id
 
 const previewUrl = computed(() => {
   if (objectUrl.value) return objectUrl.value;
-  return entry.value ? `/uploads/${entry.value.imagePath}` : null;
+  return entry.value?.imagePath ? `/uploads/${entry.value.imagePath}` : null;
 });
 
 watch(
