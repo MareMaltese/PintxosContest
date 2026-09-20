@@ -105,6 +105,7 @@ adminRouter.get(
     );
 
     const currentRound = await getCurrentOpenRound(db);
+    const pendingWorstTie = await getPendingWorstTie(db);
 
     res.json({
       phase: contest.phase,
@@ -113,6 +114,7 @@ adminRouter.get(
       resultsRevealedAt: contest.resultsRevealedAt,
       worstPrizeEnabled: contest.worstPrizeEnabled,
       openRound: currentRound ? { kind: currentRound.round.kind, targetRank: currentRound.round.targetRank } : null,
+      pendingWorstTie,
       participantCount: users.length,
       entryCount,
       votersFinished: people.filter((p) => p.hasFinishedVoting).length,

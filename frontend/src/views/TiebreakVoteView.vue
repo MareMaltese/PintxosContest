@@ -136,7 +136,7 @@ onUnmounted(() => {
           v-if="!hasVoted"
           class="tiebreak__subtitle"
         >
-          Elige tu favorita entre las tapas empatadas:
+          {{ info!.subtitle }}
         </p>
       </div>
       <p

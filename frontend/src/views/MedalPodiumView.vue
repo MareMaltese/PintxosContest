@@ -72,6 +72,7 @@ onMounted(load);
 
 <template>
   <main class="medal-podium">
+    <div style="background:white;padding:0.5rem">
     <h1 class="medal-podium__title">
       RANKING
     </h1>
@@ -169,6 +170,7 @@ onMounted(load);
           >#{{ padNumber(bronze.number) }}</span>
         </div>
       </div>
+    </div>
     </div>
 
     <ul

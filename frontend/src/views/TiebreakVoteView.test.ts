@@ -41,6 +41,7 @@ describe('TiebreakVoteView', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('Desempate del concurso');
+    expect(wrapper.text()).toContain('Elige tu favorita entre las tapas empatadas:');
     expect(wrapper.text()).toContain('#03');
     expect(wrapper.text()).toContain('#05');
   });
@@ -72,7 +73,7 @@ describe('TiebreakVoteView', () => {
     expect(wrapper.text()).toContain('registrado');
   });
 
-  it('shows the "premio al último" label when targetRank is past the podium (reused MEDAL kind)', async () => {
+  it('shows the "Cuchara de Palo" label, and clarifies who should win it, when targetRank is past the podium (reused MEDAL kind)', async () => {
     vi.mocked(api.get).mockResolvedValue({
       round: { id: 'r1', targetRank: 4, kind: 'MEDAL', status: 'OPEN' },
       candidates: [{ id: 'e1', number: 4, name: null, imagePath: 'd.webp' }],
@@ -80,7 +81,8 @@ describe('TiebreakVoteView', () => {
     const wrapper = mount(TiebreakVoteView);
     await flushPromises();
 
-    expect(wrapper.text()).toContain('Desempate: premio al último');
+    expect(wrapper.text()).toContain('Desempate: Cuchara de Palo');
+    expect(wrapper.text()).toContain('Vota a la tapa que crees que se merece llevarse la Cuchara de Palo');
   });
 
   it('shows a retryable error when loading fails', async () => {
@@ -123,7 +125,7 @@ describe('TiebreakVoteView', () => {
       await vi.advanceTimersByTimeAsync(5000);
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Desempate: premio al último');
+      expect(wrapper.text()).toContain('Desempate: Cuchara de Palo');
     });
   });
 

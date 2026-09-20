@@ -99,6 +99,15 @@ async function toggleWorstPrize(): Promise<void> {
   }
 }
 
+async function startWorstTiebreak(): Promise<void> {
+  try {
+    await api.post('/api/admin/tiebreak/start-worst');
+    await refetch();
+  } catch (err) {
+    window.alert(friendlyMessage(err, 'No hemos podido iniciar el desempate.'));
+  }
+}
+
 async function closeTiebreakRound(): Promise<void> {
   try {
     await api.post('/api/admin/tiebreak/close-round');
@@ -228,13 +237,14 @@ async function backToRegistration(): Promise<void> {
           >
             Cerrar ronda de desempate
           </button>
-          <p
-            v-else
-            class="admin-phases__round-info"
+          <button
+            v-else-if="data.pendingWorstTie"
+            class="button button--primary admin-phases__start-worst"
+            type="button"
+            @click="startWorstTiebreak"
           >
-            Hay un empate pendiente por resolver. Ve a la pestaña
-            <strong>Clasificación</strong> para iniciar esa votación de desempate.
-          </p>
+            Iniciar votación de desempate: premio al último
+          </button>
         </template>
 
         <button

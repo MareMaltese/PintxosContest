@@ -20,7 +20,8 @@ function dashboardWith(
   votingMode = 'FAVORITES',
   resultsRevealedAt: string | null = null,
   worstPrizeEnabled = false,
-  openRound: { kind: string; targetRank: number } | null = null
+  openRound: { kind: string; targetRank: number } | null = null,
+  pendingWorstTie: { targetRank: number; candidateEntryIds: string[] } | null = null
 ) {
   return {
     phase,
@@ -29,6 +30,7 @@ function dashboardWith(
     resultsRevealedAt,
     worstPrizeEnabled,
     openRound,
+    pendingWorstTie,
     participantCount: 2,
     entryCount: 2,
     votersFinished: 1,
@@ -201,13 +203,35 @@ describe('AdminPhasesView', () => {
     expect(wrapper.text()).toContain('Cerrar ronda de desempate');
   });
 
-  it('points to Clasificación instead of a close-round button when the tiebreak has not been started yet', async () => {
-    vi.mocked(api.get).mockResolvedValue(dashboardWith('TIEBREAK', false, 'MEDALS', null, true, null));
+  it('shows a start-tiebreak button instead of a close-round button when the worst-prize tie has not been started yet', async () => {
+    vi.mocked(api.get).mockResolvedValue(
+      dashboardWith('TIEBREAK', false, 'MEDALS', null, true, null, {
+        targetRank: 5,
+        candidateEntryIds: ['e1', 'e2'],
+      })
+    );
     const wrapper = mount(AdminPhasesView);
     await flushPromises();
 
     expect(wrapper.text()).not.toContain('Cerrar ronda de desempate');
-    expect(wrapper.text()).toContain('Clasificación');
+    expect(wrapper.find('.admin-phases__start-worst').exists()).toBe(true);
+  });
+
+  it('starts the worst-prize tiebreak from Administración', async () => {
+    vi.mocked(api.get).mockResolvedValue(
+      dashboardWith('TIEBREAK', false, 'MEDALS', null, true, null, {
+        targetRank: 5,
+        candidateEntryIds: ['e1', 'e2'],
+      })
+    );
+    vi.mocked(api.post).mockResolvedValue({});
+    const wrapper = mount(AdminPhasesView);
+    await flushPromises();
+
+    await wrapper.find('.admin-phases__start-worst').trigger('click');
+    await flushPromises();
+
+    expect(api.post).toHaveBeenCalledWith('/api/admin/tiebreak/start-worst');
   });
 
   it('shows which kind of tiebreak is open during TIEBREAK', async () => {
@@ -227,7 +251,7 @@ describe('AdminPhasesView', () => {
     const wrapper = mount(AdminPhasesView);
     await flushPromises();
 
-    expect(wrapper.text()).toContain('Desempate: premio al último');
+    expect(wrapper.text()).toContain('Desempate: Cuchara de Palo');
   });
 
   it('shows "Mostrar resultados" during RESULTS before revealing', async () => {

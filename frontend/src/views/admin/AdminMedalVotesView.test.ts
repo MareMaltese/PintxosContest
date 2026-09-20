@@ -41,7 +41,6 @@ describe('AdminMedalVotesView', () => {
     expect(wrapper.text()).toContain('#03');
     expect(wrapper.text()).toContain('Croqueta');
     expect(wrapper.text()).toContain('13');
-    expect(wrapper.find('.admin-medal-votes__start-worst').exists()).toBe(false);
 
     const thumbnails = wrapper.findAll('.admin-table__thumbnail');
     expect(thumbnails).toHaveLength(2);
@@ -49,7 +48,7 @@ describe('AdminMedalVotesView', () => {
     expect(thumbnails[1].attributes('src')).toBe('/uploads/b.webp');
   });
 
-  it('shows the tiebreak button when there is a pending tie for last place', async () => {
+  it('points to Administración when there is a pending tie for last place', async () => {
     vi.mocked(api.get).mockResolvedValue({
       standings: [
         { entryId: 'e1', number: 3, name: 'Croqueta', imagePath: 'a.webp', gold: 0, silver: 0, bronze: 0, total: 0 },
@@ -60,7 +59,7 @@ describe('AdminMedalVotesView', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('Hay un empate en el premio al último');
-    expect(wrapper.find('.admin-medal-votes__start-worst').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Administración');
   });
 
   it('shows a retryable error message when loading fails', async () => {

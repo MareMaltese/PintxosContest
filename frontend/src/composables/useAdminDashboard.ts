@@ -1,5 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { api, ApiError } from '../services/api';
+import type { PendingWorstTie } from './useAdminMedalVotes';
 
 export interface AdminPerson {
   id: string;
@@ -23,6 +24,7 @@ export interface AdminDashboardData {
   resultsRevealedAt: string | null;
   worstPrizeEnabled: boolean;
   openRound: OpenRoundInfo | null;
+  pendingWorstTie: PendingWorstTie | null;
   participantCount: number;
   entryCount: number;
   votersFinished: number;

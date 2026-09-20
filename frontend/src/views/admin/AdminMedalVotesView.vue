@@ -1,24 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import AdminNav from '../../components/admin/AdminNav.vue';
 import { useAdminMedalVotes } from '../../composables/useAdminMedalVotes';
-import { api, ApiError } from '../../services/api';
 
 const { data, isLoading, error, refetch } = useAdminMedalVotes();
-
-const isStarting = ref(false);
-
-async function startWorstTiebreak(): Promise<void> {
-  isStarting.value = true;
-  try {
-    await api.post('/api/admin/tiebreak/start-worst');
-    await refetch();
-  } catch (err) {
-    window.alert(err instanceof ApiError ? err.message : 'No hemos podido iniciar el desempate.');
-  } finally {
-    isStarting.value = false;
-  }
-}
 </script>
 
 <template>
@@ -52,17 +35,9 @@ async function startWorstTiebreak(): Promise<void> {
           v-if="data.pendingWorstTie"
           class="admin-medal-votes__tie-notice"
         >
-          Hay un empate en el premio al último. Inicia la votación de desempate cuando quieras.
+          Hay un empate en el premio al último. Ve a
+          <strong>Administración</strong> para iniciar esa votación de desempate.
         </p>
-        <button
-          v-if="data.pendingWorstTie"
-          class="button button--primary admin-medal-votes__start-worst"
-          type="button"
-          :disabled="isStarting"
-          @click="startWorstTiebreak"
-        >
-          Iniciar votación de desempate: premio al último
-        </button>
         <table class="admin-table">
           <thead>
             <tr>
@@ -145,12 +120,6 @@ async function startWorstTiebreak(): Promise<void> {
   margin: var(--space-3) 0 0;
   border-radius: var(--radius-md);
   text-align: center;
-}
-
-.admin-medal-votes__start-worst {
-  display: block;
-  width: 100%;
-  margin: var(--space-2) 0 var(--space-4);
 }
 
 .admin-table {
