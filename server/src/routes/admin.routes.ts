@@ -13,12 +13,14 @@ import {
   revealResults,
   reopenVoting,
   backToRegistration,
+  type VotingMode,
 } from '../services/contestService';
 import { listUsers, getUser } from '../services/userService';
 import { listEntriesForAdmin } from '../services/entryService';
 import { getFavoriteLimit } from '../services/voteService';
 import { getMedalLimit, countMyMedals } from '../services/medalVoteService';
-import { computeStandings, computeMedalStandings } from '../services/rankingService';
+import { getRankingLimit, countMyRanked } from '../services/rankingVoteService';
+import { computeStandings, computeScoreStandings } from '../services/rankingService';
 import { getWorstPrizeWinner } from '../services/medalResultsService';
 import {
   advance,
@@ -39,12 +41,16 @@ adminRouter.use(adminAuth);
 
 // "Completed voting" means different things depending on which system is active:
 // favorites are capped by getFavoriteLimit, medals by getMedalLimit (a user can only
-// ever hand out one of each medal, capped further by how many entries they can vote for).
+// ever hand out one of each medal, capped further by how many entries they can vote for),
+// rankings by having ordered every entry they can vote for.
 async function votingProgressFor(
   database: Db,
   userId: string,
-  votingMode: 'FAVORITES' | 'MEDALS'
+  votingMode: VotingMode
 ): Promise<{ votedCount: number; voteLimit: number }> {
+  if (votingMode === 'RANKING') {
+    return { votedCount: await countMyRanked(database, userId), voteLimit: await getRankingLimit(database, userId) };
+  }
   if (votingMode === 'MEDALS') {
     return { votedCount: await countMyMedals(database, userId), voteLimit: await getMedalLimit(database, userId) };
   }
@@ -61,7 +67,7 @@ adminRouter.get(
   asyncHandler(async (_req, res) => {
     const entries = await listEntriesForAdmin(db);
     const voteCountById = new Map((await computeStandings(db)).map((s) => [s.entryId, s.voteCount]));
-    const medalsById = new Map((await computeMedalStandings(db)).map((s) => [s.entryId, s]));
+    const medalsById = new Map((await computeScoreStandings(db)).map((s) => [s.entryId, s]));
     res.json(
       entries.map((entry) => {
         const medal = medalsById.get(entry.id);
@@ -128,7 +134,7 @@ adminRouter.get(
   '/medal-votes',
   asyncHandler(async (_req, res) => {
     const contest = await getContest(db);
-    const standings = await computeMedalStandings(db);
+    const standings = await computeScoreStandings(db);
     const pendingWorstTie = await getPendingWorstTie(db);
     const worstEntryId = await getWorstPrizeWinner(db);
     res.json({
@@ -268,7 +274,7 @@ adminRouter.post(
 
 const contestSettingsSchema = z.object({
   allowSelfVote: z.boolean().optional(),
-  votingMode: z.enum(['FAVORITES', 'MEDALS']).optional(),
+  votingMode: z.enum(['FAVORITES', 'MEDALS', 'RANKING']).optional(),
   worstPrizeEnabled: z.boolean().optional(),
 });
 
@@ -320,6 +326,7 @@ adminRouter.delete(
       await db.prepare('DELETE FROM TiebreakCandidate WHERE entryId = ?').run(id);
       await db.prepare('DELETE FROM Vote WHERE entryId = ?').run(id);
       await db.prepare('DELETE FROM MedalVote WHERE entryId = ?').run(id);
+      await db.prepare('DELETE FROM RankingVote WHERE entryId = ?').run(id);
       await db.prepare('DELETE FROM Entry WHERE id = ?').run(id);
     });
     await tx(req.params.id);
@@ -357,11 +364,13 @@ adminRouter.delete(
         await db.prepare('DELETE FROM TiebreakCandidate WHERE entryId = ?').run(entry.id);
         await db.prepare('DELETE FROM Vote WHERE entryId = ?').run(entry.id);
         await db.prepare('DELETE FROM MedalVote WHERE entryId = ?').run(entry.id);
+        await db.prepare('DELETE FROM RankingVote WHERE entryId = ?').run(entry.id);
       }
       await db.prepare('DELETE FROM Entry WHERE creatorId = ?').run(id);
       await db.prepare('DELETE FROM Vote WHERE userId = ?').run(id);
       await db.prepare('DELETE FROM TiebreakVote WHERE userId = ?').run(id);
       await db.prepare('DELETE FROM MedalVote WHERE userId = ?').run(id);
+      await db.prepare('DELETE FROM RankingVote WHERE userId = ?').run(id);
       const result = await db.prepare('DELETE FROM User WHERE id = ?').run(id);
       if (result.changes === 0) {
         throw new AppError(404, 'USER_NOT_FOUND', 'No existe ese participante.');

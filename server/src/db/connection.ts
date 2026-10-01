@@ -57,6 +57,34 @@ async function ensureColumn(db: Db, table: string, column: string, ddl: string):
   }
 }
 
+// The live Contest table was created with CHECK (votingMode IN ('FAVORITES','MEDALS')),
+// and SQLite can't alter a CHECK constraint in place. Rebuild the table (a single row,
+// nothing references it) so 'RANKING' is accepted. Must run after ensureColumn has
+// added worstPrizeEnabled, since the copy below names that column.
+async function allowRankingVotingMode(db: Db): Promise<void> {
+  const row = (await db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'Contest'").get()) as
+    | { sql: string }
+    | undefined;
+  if (!row || !row.sql.includes('votingMode IN') || row.sql.includes("'RANKING'")) return;
+  await db.exec(`
+    BEGIN;
+    CREATE TABLE Contest_new (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      phase TEXT NOT NULL CHECK (phase IN ('REGISTRATION','VOTING','TIEBREAK','RESULTS')),
+      allowSelfVote INTEGER NOT NULL DEFAULT 0,
+      votingMode TEXT NOT NULL DEFAULT 'FAVORITES' CHECK (votingMode IN ('FAVORITES','MEDALS','RANKING')),
+      resultsRevealedAt TEXT NULL,
+      worstPrizeEnabled INTEGER NOT NULL DEFAULT 0,
+      createdAt TEXT NOT NULL
+    );
+    INSERT INTO Contest_new (id, phase, allowSelfVote, votingMode, resultsRevealedAt, worstPrizeEnabled, createdAt)
+      SELECT id, phase, allowSelfVote, votingMode, resultsRevealedAt, worstPrizeEnabled, createdAt FROM Contest;
+    DROP TABLE Contest;
+    ALTER TABLE Contest_new RENAME TO Contest;
+    COMMIT;
+  `);
+}
+
 export async function createDb(url: string, authToken?: string): Promise<Db> {
   const client = createClient({ url, authToken, intMode: 'number' });
   const db = wrapClient(client);
@@ -64,6 +92,7 @@ export async function createDb(url: string, authToken?: string): Promise<Db> {
   const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
   await db.exec(schema);
   await ensureColumn(db, 'Contest', 'worstPrizeEnabled', 'worstPrizeEnabled INTEGER NOT NULL DEFAULT 0');
+  await allowRankingVotingMode(db);
 
   const existing = await db.prepare('SELECT id FROM Contest WHERE id = 1').get();
   if (!existing) {

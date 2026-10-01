@@ -72,9 +72,27 @@ async function toggleSelfVote(): Promise<void> {
   }
 }
 
+type VotingMode = 'FAVORITES' | 'MEDALS' | 'RANKING';
+
+const NEXT_VOTING_MODE: Record<VotingMode, VotingMode> = {
+  FAVORITES: 'MEDALS',
+  MEDALS: 'RANKING',
+  RANKING: 'FAVORITES',
+};
+const VOTING_MODE_LABELS: Record<VotingMode, string> = {
+  FAVORITES: 'Favoritos',
+  MEDALS: 'Medallas',
+  RANKING: 'Clasificación',
+};
+const VOTING_MODE_ICONS: Record<VotingMode, string> = {
+  FAVORITES: 'heart',
+  MEDALS: 'medal',
+  RANKING: 'list-heart',
+};
+
 async function toggleVotingMode(): Promise<void> {
   if (!data.value) return;
-  const next = data.value.votingMode === 'FAVORITES' ? 'MEDALS' : 'FAVORITES';
+  const next = NEXT_VOTING_MODE[data.value.votingMode];
   if (data.value.phase !== 'REGISTRATION') {
     const confirmed = window.confirm(
       'Ya se ha empezado a votar. Los votos ya emitidos con el sistema actual no se perderán, pero quedarán ocultos y no contarán para el resultado que se muestre. ¿Seguro que quieres cambiar el tipo de puntuación?'
@@ -303,14 +321,14 @@ async function backToRegistration(): Promise<void> {
           @click="toggleVotingMode"
         >
           <Icon
-            :name="data.votingMode === 'FAVORITES' ? 'heart' : 'medal'"
+            :name="VOTING_MODE_ICONS[data.votingMode]"
             :size="20"
           />
-          Modo de puntuación: {{ data.votingMode === 'FAVORITES' ? 'Favoritos' : 'Medallas' }} (cambiar)
+          Modo de puntuación: {{ VOTING_MODE_LABELS[data.votingMode] }} (cambiar)
         </button>
 
         <button
-          v-if="data.votingMode === 'MEDALS'"
+          v-if="data.votingMode !== 'FAVORITES'"
           class="button button--secondary admin-phases__worst-prize"
           type="button"
           @click="toggleWorstPrize"

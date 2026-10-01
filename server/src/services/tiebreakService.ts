@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Db } from '../db/connection';
 import { AppError } from '../middleware/errors';
 import { getContest, setPhase } from './contestService';
-import { computeStandings, podiumTieGroups, computeMedalStandings, type MedalStanding } from './rankingService';
+import { computeStandings, podiumTieGroups, computeScoreStandings, type MedalStanding } from './rankingService';
 
 export type TiebreakKind = 'MAIN' | 'MEDAL';
 
@@ -222,7 +222,7 @@ async function hasAnyRoundForTarget(db: Db, kind: TiebreakKind, targetRank: numb
 export async function getPendingWorstTie(db: Db): Promise<PendingWorstTie | null> {
   const contest = await getContest(db);
   if (!contest.worstPrizeEnabled) return null;
-  const standings = await computeMedalStandings(db);
+  const standings = await computeScoreStandings(db);
   const group = worstTieGroup(standings);
   if (!group) return null;
   const targetRank = group[0].rank;
@@ -234,7 +234,7 @@ export async function getPendingWorstTie(db: Db): Promise<PendingWorstTie | null
 async function resolveWorstTie(db: Db): Promise<AdvanceResult | null> {
   const contest = await getContest(db);
   if (!contest.worstPrizeEnabled) return null;
-  const standings = await computeMedalStandings(db);
+  const standings = await computeScoreStandings(db);
   const group = worstTieGroup(standings);
   if (!group) return null;
   const targetRank = group[0].rank;
@@ -387,7 +387,7 @@ export async function advance(db: Db): Promise<AdvanceResult> {
   const mainResult = await resolveGroups(db, 'MAIN', mainGroups);
   if (mainResult) return mainResult;
 
-  const medalGroups = podiumTieGroups(await computeMedalStandings(db)).filter((group) => group[0].total > 0);
+  const medalGroups = podiumTieGroups(await computeScoreStandings(db)).filter((group) => group[0].total > 0);
   const medalResult = await resolveGroups(db, 'MEDAL', medalGroups);
   if (medalResult) return medalResult;
 

@@ -5,18 +5,20 @@ import { connectContestStream } from '../services/sse';
 import { useEntriesStore } from './entries';
 
 export type ContestPhase = 'REGISTRATION' | 'VOTING' | 'TIEBREAK' | 'RESULTS';
-export type VotingMode = 'FAVORITES' | 'MEDALS';
+export type VotingMode = 'FAVORITES' | 'MEDALS' | 'RANKING';
 
 interface ContestResponse {
   phase: ContestPhase;
   allowSelfVote: boolean;
   votingMode: VotingMode;
+  worstPrizeEnabled: boolean;
 }
 
 export const useContestStore = defineStore('contest', () => {
   const phase = ref<ContestPhase>('REGISTRATION');
   const allowSelfVote = ref(false);
   const votingMode = ref<VotingMode>('FAVORITES');
+  const worstPrizeEnabled = ref(false);
   const loaded = ref(false);
   const resultsRevealedAt = ref<string | null>(null);
 
@@ -25,6 +27,7 @@ export const useContestStore = defineStore('contest', () => {
     phase.value = data.phase;
     allowSelfVote.value = data.allowSelfVote;
     votingMode.value = data.votingMode;
+    worstPrizeEnabled.value = data.worstPrizeEnabled;
     loaded.value = true;
 
     connectContestStream((event) => {
@@ -40,5 +43,5 @@ export const useContestStore = defineStore('contest', () => {
     });
   }
 
-  return { phase, allowSelfVote, votingMode, loaded, resultsRevealedAt, init };
+  return { phase, allowSelfVote, votingMode, worstPrizeEnabled, loaded, resultsRevealedAt, init };
 });

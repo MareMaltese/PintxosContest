@@ -2,7 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useSessionStore } from '../stores/session';
 import { useContestStore } from '../stores/contest';
 import { useAdminAuthStore } from '../stores/adminAuth';
-import { SESSION_REQUIRED_ROUTES, REGISTRATION_ONLY_ROUTES, GALLERY_ROUTES, ADMIN_ROUTES } from './routeGroups';
+import {
+  SESSION_REQUIRED_ROUTES,
+  REGISTRATION_ONLY_ROUTES,
+  GALLERY_ROUTES,
+  ADMIN_ROUTES,
+  isRankingTabAvailable,
+} from './routeGroups';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -27,6 +33,7 @@ export const router = createRouter({
     { path: '/galeria/:id', name: 'entry-detail', component: () => import('../views/EntryDetailView.vue') },
     { path: '/desempate', name: 'tiebreak', component: () => import('../views/TiebreakVoteView.vue') },
     { path: '/ranking', name: 'medal-results', component: () => import('../views/MedalPodiumView.vue') },
+    { path: '/clasificacion', name: 'my-ranking', component: () => import('../views/RankingView.vue') },
     { path: '/admin', name: 'admin-login', component: () => import('../views/admin/AdminLoginView.vue') },
     {
       path: '/admin/dashboard',
@@ -73,6 +80,10 @@ router.beforeEach((to) => {
     return { name: 'tiebreak' };
   }
   if (name === 'tiebreak' && !isTiebreak) {
+    return { name: 'gallery' };
+  }
+
+  if (name === 'my-ranking' && !isRankingTabAvailable(contest.votingMode, contest.phase)) {
     return { name: 'gallery' };
   }
 

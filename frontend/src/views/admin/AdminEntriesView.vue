@@ -120,6 +120,11 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
               <th>Plata</th>
               <th>Bronce</th>
             </template>
+            <template v-if="contest.votingMode === 'RANKING'">
+              <th>1º</th>
+              <th>2º</th>
+              <th>3º</th>
+            </template>
             <th />
           </tr>
         </thead>
@@ -152,7 +157,7 @@ async function deleteEntry(entry: AdminEntry): Promise<void> {
             <td v-if="contest.votingMode === 'FAVORITES'">
               {{ entry.voteCount }}
             </td>
-            <template v-if="contest.votingMode === 'MEDALS'">
+            <template v-if="contest.votingMode !== 'FAVORITES'">
               <td>{{ entry.gold }}</td>
               <td>{{ entry.silver }}</td>
               <td>{{ entry.bronze }}</td>

@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS Contest (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   phase TEXT NOT NULL CHECK (phase IN ('REGISTRATION','VOTING','TIEBREAK','RESULTS')),
   allowSelfVote INTEGER NOT NULL DEFAULT 0,
-  votingMode TEXT NOT NULL DEFAULT 'FAVORITES' CHECK (votingMode IN ('FAVORITES','MEDALS')),
+  votingMode TEXT NOT NULL DEFAULT 'FAVORITES' CHECK (votingMode IN ('FAVORITES','MEDALS','RANKING')),
   resultsRevealedAt TEXT NULL,
   worstPrizeEnabled INTEGER NOT NULL DEFAULT 0,
   createdAt TEXT NOT NULL
@@ -73,4 +73,13 @@ CREATE TABLE IF NOT EXISTS MedalVote (
   createdAt TEXT NOT NULL,
   UNIQUE (userId, entryId),
   UNIQUE (userId, medal)
+);
+
+-- One row per (voter, entry): the voter's full personal ordering, position 1 = best.
+CREATE TABLE IF NOT EXISTS RankingVote (
+  userId TEXT NOT NULL REFERENCES User(id),
+  entryId TEXT NOT NULL REFERENCES Entry(id),
+  position INTEGER NOT NULL,
+  createdAt TEXT NOT NULL,
+  PRIMARY KEY (userId, entryId)
 );

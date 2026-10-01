@@ -46,7 +46,7 @@ async function loadWinners(): Promise<void> {
   isLoading.value = true;
   loadError.value = null;
   try {
-    if (contest.votingMode === 'MEDALS') {
+    if (contest.votingMode !== 'FAVORITES') {
       const data = await api.get<{ podium: MedalWinner[] }>('/api/medal-votes/results');
       medalWinners.value = data.podium;
     } else {
@@ -66,7 +66,7 @@ function dismiss(): void {
 
 function accept(): void {
   showModal.value = false;
-  if (contest.votingMode === 'MEDALS') {
+  if (contest.votingMode !== 'FAVORITES') {
     router.push({ name: 'medal-results' });
   }
 }
@@ -104,7 +104,7 @@ function accept(): void {
       </p>
 
       <ol
-        v-else-if="contest.votingMode === 'MEDALS'"
+        v-else-if="contest.votingMode !== 'FAVORITES'"
         class="results-revealed-modal__list"
       >
         <li

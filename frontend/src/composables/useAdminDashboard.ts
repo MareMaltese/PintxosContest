@@ -20,7 +20,7 @@ export interface OpenRoundInfo {
 export interface AdminDashboardData {
   phase: 'REGISTRATION' | 'VOTING' | 'TIEBREAK' | 'RESULTS';
   allowSelfVote: boolean;
-  votingMode: 'FAVORITES' | 'MEDALS';
+  votingMode: 'FAVORITES' | 'MEDALS' | 'RANKING';
   resultsRevealedAt: string | null;
   worstPrizeEnabled: boolean;
   openRound: OpenRoundInfo | null;

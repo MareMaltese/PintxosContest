@@ -7,7 +7,7 @@ import { AppError } from '../middleware/errors';
 import { getContest } from '../services/contestService';
 import { getMyMedals, setMedal } from '../services/medalVoteService';
 import { computeMedalPodium, getWorstPrizeWinner } from '../services/medalResultsService';
-import { computeMedalStandings } from '../services/rankingService';
+import { computeScoreStandings } from '../services/rankingService';
 
 const medalSchema = z.object({ medal: z.enum(['GOLD', 'SILVER', 'BRONZE']).nullable() });
 
@@ -42,7 +42,7 @@ medalVotesRouter.get(
     res.json({
       revealedAt: contest.resultsRevealedAt,
       podium: await computeMedalPodium(db),
-      standings: await computeMedalStandings(db),
+      standings: await computeScoreStandings(db),
       worstEntryId: await getWorstPrizeWinner(db),
     });
   })

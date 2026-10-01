@@ -129,11 +129,23 @@ onMounted(() => {
           />
         </template>
         <MedalButtons
-          v-else
+          v-else-if="contest.votingMode === 'MEDALS'"
           :entry-id="entry.id"
           :disabled="selfVoteBlocked"
           disabled-reason="No puedes puntuar tu propio pincho."
         />
+        <button
+          v-else-if="!selfVoteBlocked"
+          class="button button--primary entry-detail__to-ranking"
+          type="button"
+          @click="router.push({ name: 'my-ranking' })"
+        >
+          <Icon
+            name="list-heart"
+            :size="20"
+          />
+          Colócalo en tu clasificación
+        </button>
       </div>
       <div
         v-else-if="contest.phase === 'REGISTRATION'"

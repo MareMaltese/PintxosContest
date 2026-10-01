@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Icon from './Icon.vue';
 import { useContestStore } from '../../stores/contest';
+import { isRankingTabAvailable } from '../../router/routeGroups';
 
 const route = useRoute();
 const router = useRouter();
@@ -18,11 +19,13 @@ function updateCanGoBack(): void {
 updateCanGoBack();
 watch(() => route.fullPath, updateCanGoBack);
 
-const showRanking = computed(() => contest.phase === 'RESULTS' && contest.votingMode === 'MEDALS');
+const showRanking = computed(() => contest.phase === 'RESULTS' && contest.votingMode !== 'FAVORITES');
+const showMyRanking = computed(() => isRankingTabAvailable(contest.votingMode, contest.phase));
 const showBack = computed(() => !showRanking.value && canGoBack.value && route.name !== 'tiebreak');
 const isGalleryActive = computed(() => route.name === 'gallery' || route.name === 'entry-detail');
 const isMineActive = computed(() => route.name === 'my-entries' || route.name === 'edit-entry');
 const isRankingActive = computed(() => route.name === 'medal-results');
+const isMyRankingActive = computed(() => route.name === 'my-ranking');
 
 function goBack(): void {
   router.back();
@@ -38,6 +41,10 @@ function goToMyEntries(): void {
 
 function goToRanking(): void {
   router.push({ name: 'medal-results' });
+}
+
+function goToMyRanking(): void {
+  router.push({ name: 'my-ranking' });
 }
 </script>
 
@@ -72,6 +79,20 @@ function goToRanking(): void {
       v-else
       class="nav-footer__spacer"
     />
+
+    <button
+      v-if="showMyRanking"
+      class="nav-footer__button nav-footer__my-ranking"
+      :class="{ 'nav-footer__button--active': isMyRankingActive }"
+      type="button"
+      @click="goToMyRanking"
+    >
+      <Icon
+        name="list-heart"
+        :size="32"
+      />
+      <span>CLASIFICACIÓN</span>
+    </button>
 
     <button
       class="nav-footer__button nav-footer__gallery"

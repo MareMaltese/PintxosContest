@@ -145,6 +145,33 @@ describe('router', () => {
     expect(router.currentRoute.value.name).toBe('tiebreak');
   });
 
+  it('lets a registered visitor reach /clasificacion only in ranking mode while voting or after', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.votingMode = 'MEDALS';
+    await router.push('/clasificacion');
+    expect(router.currentRoute.value.name).toBe('gallery');
+
+    contest.votingMode = 'RANKING';
+    await router.push('/clasificacion');
+    expect(router.currentRoute.value.name).toBe('my-ranking');
+
+    await router.push('/galeria');
+    contest.phase = 'RESULTS';
+    await router.push('/clasificacion');
+    expect(router.currentRoute.value.name).toBe('my-ranking');
+  });
+
+  it('redirects /clasificacion to /desempate during a tiebreak', async () => {
+    useSessionStore().user = { id: 'u1', name: 'Laura' };
+    const contest = useContestStore();
+    contest.votingMode = 'RANKING';
+    contest.phase = 'TIEBREAK';
+    await router.push('/clasificacion');
+    expect(router.currentRoute.value.name).toBe('tiebreak');
+  });
+
   it('redirects away from /desempate to the gallery outside the TIEBREAK phase', async () => {
     useSessionStore().user = { id: 'u1', name: 'Laura' };
     useContestStore().phase = 'RESULTS';

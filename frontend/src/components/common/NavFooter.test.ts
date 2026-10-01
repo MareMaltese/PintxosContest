@@ -128,6 +128,41 @@ describe('NavFooter', () => {
     expect(wrapper.find('.nav-footer__ranking').classes()).not.toContain('nav-footer__button--active');
   });
 
+  it('shows the Clasificación tab in ranking mode while voting and navigates to it', async () => {
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.votingMode = 'RANKING';
+    routeMock.name = 'my-ranking';
+    const wrapper = mount(NavFooter);
+
+    const tab = wrapper.find('.nav-footer__my-ranking');
+    expect(tab.text()).toContain('CLASIFICACIÓN');
+    expect(tab.classes()).toContain('nav-footer__button--active');
+    await tab.trigger('click');
+    expect(push).toHaveBeenCalledWith({ name: 'my-ranking' });
+  });
+
+  it('keeps the Clasificación tab next to the Ranking button once a ranking contest has finished', () => {
+    const contest = useContestStore();
+    contest.phase = 'RESULTS';
+    contest.votingMode = 'RANKING';
+    const wrapper = mount(NavFooter);
+
+    expect(wrapper.find('.nav-footer__my-ranking').exists()).toBe(true);
+    expect(wrapper.find('.nav-footer__ranking').exists()).toBe(true);
+  });
+
+  it('hides the Clasificación tab outside ranking mode or before voting starts', () => {
+    const contest = useContestStore();
+    contest.phase = 'VOTING';
+    contest.votingMode = 'MEDALS';
+    expect(mount(NavFooter).find('.nav-footer__my-ranking').exists()).toBe(false);
+
+    contest.phase = 'REGISTRATION';
+    contest.votingMode = 'RANKING';
+    expect(mount(NavFooter).find('.nav-footer__my-ranking').exists()).toBe(false);
+  });
+
   it('keeps the regular back button once finished if votingMode is FAVORITES', () => {
     const contest = useContestStore();
     contest.phase = 'RESULTS';

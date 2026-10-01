@@ -37,7 +37,7 @@ function goTo(name: string): void {
       Administración
     </button>
     <button
-      v-if="contest.votingMode === 'MEDALS'"
+      v-if="contest.votingMode !== 'FAVORITES'"
       type="button"
       @click="goTo('admin-medal-votes')"
     >

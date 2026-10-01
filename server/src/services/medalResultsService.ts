@@ -1,6 +1,6 @@
 import type { Db } from '../db/connection';
 import { getContest } from './contestService';
-import { computeMedalStandings, topPodiumRanks, type MedalStanding } from './rankingService';
+import { computeScoreStandings, topPodiumRanks, type MedalStanding } from './rankingService';
 import { getResolvedWinner } from './tiebreakService';
 
 export interface MedalPodiumEntry {
@@ -17,7 +17,7 @@ export interface MedalPodiumEntry {
 const RANK_MEDAL: Record<number, 'GOLD' | 'SILVER' | 'BRONZE'> = { 1: 'GOLD', 2: 'SILVER', 3: 'BRONZE' };
 
 export async function computeMedalPodium(db: Db): Promise<MedalPodiumEntry[]> {
-  const standings = await computeMedalStandings(db);
+  const standings = await computeScoreStandings(db);
   const topRanks = topPodiumRanks(standings);
   const top = standings.filter((s) => topRanks.has(s.rank));
 
@@ -60,7 +60,7 @@ export async function computeMedalPodium(db: Db): Promise<MedalPodiumEntry[]> {
 export async function getWorstPrizeWinner(db: Db): Promise<string | null> {
   const contest = await getContest(db);
   if (!contest.worstPrizeEnabled) return null;
-  const standings = await computeMedalStandings(db);
+  const standings = await computeScoreStandings(db);
   if (standings.length === 0) return null;
   const maxRank = Math.max(...standings.map((s) => s.rank));
   const group = standings.filter((s) => s.rank === maxRank);

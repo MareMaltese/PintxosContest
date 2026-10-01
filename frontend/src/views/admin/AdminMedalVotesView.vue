@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useAdminMedalVotes } from '../../composables/useAdminMedalVotes';
+import { useContestStore } from '../../stores/contest';
 
 const { data, isLoading, error, refetch } = useAdminMedalVotes();
+const contest = useContestStore();
 </script>
 
 <template>
@@ -44,9 +46,16 @@ const { data, isLoading, error, refetch } = useAdminMedalVotes();
               <th />
               <th>Nº</th>
               <th>Nombre</th>
-              <th>Oro</th>
-              <th>Plata</th>
-              <th>Bronce</th>
+              <template v-if="contest.votingMode === 'RANKING'">
+                <th>1º</th>
+                <th>2º</th>
+                <th>3º</th>
+              </template>
+              <template v-else>
+                <th>Oro</th>
+                <th>Plata</th>
+                <th>Bronce</th>
+              </template>
               <th v-if="data.worstPrizeEnabled">
                 Último
               </th>

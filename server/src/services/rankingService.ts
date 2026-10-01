@@ -1,4 +1,5 @@
 import type { Db } from '../db/connection';
+import { getContest } from './contestService';
 
 export interface StandingEntry {
   entryId: string;
@@ -106,4 +107,52 @@ export async function computeMedalStandings(db: Db): Promise<MedalStanding[]> {
     .all()) as unknown as MedalStandingEntry[];
 
   return assignCompetitionRank(rows, (r) => r.total);
+}
+
+// Ranking mode scores each voter's ordering Borda-style: with N entries in the contest,
+// the entry a voter puts in position p (1 = best) earns N - p points, so everyone's
+// favourite is worth the same and an entry they didn't rank (their own, when self-voting
+// is off) earns 0, like their last place would. gold/silver/bronze count how many voters
+// put the entry 1st/2nd/3rd, so the shape matches medal standings and the podium,
+// tiebreak and worst-prize logic work unchanged on top of it.
+export async function computeRankingStandings(db: Db): Promise<MedalStanding[]> {
+  const entries = (await db
+    .prepare(
+      `SELECT e.id as entryId, e.number, e.name, e.creatorId, e.imagePath, u.name as creatorName
+       FROM Entry e
+       JOIN User u ON u.id = e.creatorId`
+    )
+    .all()) as unknown as Omit<MedalStandingEntry, 'gold' | 'silver' | 'bronze' | 'total'>[];
+  const votes = (await db
+    .prepare('SELECT userId, entryId FROM RankingVote ORDER BY userId ASC, position ASC')
+    .all()) as unknown as { userId: string; entryId: string }[];
+
+  const byId = new Map<string, MedalStandingEntry>(
+    entries.map((e) => [e.entryId, { ...e, gold: 0, silver: 0, bronze: 0, total: 0 }])
+  );
+  let currentUser: string | null = null;
+  let position = 0;
+  for (const vote of votes) {
+    if (vote.userId !== currentUser) {
+      currentUser = vote.userId;
+      position = 0;
+    }
+    const standing = byId.get(vote.entryId);
+    if (!standing) continue;
+    position += 1;
+    standing.total += entries.length - position;
+    if (position === 1) standing.gold += 1;
+    if (position === 2) standing.silver += 1;
+    if (position === 3) standing.bronze += 1;
+  }
+
+  const rows = [...byId.values()].sort((a, b) => b.total - a.total || a.number - b.number);
+  return assignCompetitionRank(rows, (r) => r.total);
+}
+
+// The points-based standings for whichever points system is active: per-voter
+// orderings in RANKING mode, medals otherwise.
+export async function computeScoreStandings(db: Db): Promise<MedalStanding[]> {
+  const contest = await getContest(db);
+  return contest.votingMode === 'RANKING' ? computeRankingStandings(db) : computeMedalStandings(db);
 }

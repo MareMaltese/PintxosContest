@@ -2,7 +2,7 @@ import type { Db } from '../db/connection';
 import { AppError } from '../middleware/errors';
 
 export type ContestPhase = 'REGISTRATION' | 'VOTING' | 'TIEBREAK' | 'RESULTS';
-export type VotingMode = 'FAVORITES' | 'MEDALS';
+export type VotingMode = 'FAVORITES' | 'MEDALS' | 'RANKING';
 
 export interface Contest {
   phase: ContestPhase;

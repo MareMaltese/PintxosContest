@@ -20,6 +20,7 @@ const PHASE_LABELS: Record<string, string> = {
 const VOTING_MODE_LABELS: Record<string, string> = {
   FAVORITES: 'Favoritos',
   MEDALS: 'Medallas',
+  RANKING: 'Clasificación',
 };
 </script>
 
